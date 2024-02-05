@@ -51,11 +51,11 @@ Recently, I wanted to organize all of my Cloud and on-prem resources better, and
 
 To update the DNS A records, there are a few simple things that will need to be setup.
 
-1. There will need to be an A record in Cloudflare for ddclient to update
-2. ddclient will need authentication into Cloudflare
+1. There will need to be an [A record](https://www.cloudflare.com/learning/dns/dns-records/dns-a-record/_) in Cloudflare for ddclient to update
+2. ddclient will need authentication into Cloudflare using an [API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)
 3. ddclient will need to check it's own IP address to compare
 
-Creating the A records is straightforward, opening DNS and then Records will allow you to create away.
+Creating the `A record` is straightforward, opening DNS and then Records will allow you to create away.
 
 Authenticating ddclient into Cloudflare is a little trickier, I prefer to create an API key that has read/write access to the domain zone in Cloudflare.  This can be accomplished under Profile -> API Keys, and then by following the wizard.
 
@@ -100,6 +100,8 @@ password=<api-token> \
 test-subdomain.domain.tld
 
 ```
+
+Once everything has been loaded into place, running `sudo docker compose pull && sudo docker compose up -d` will get it running.  ddclient can be configured to log externally, though I used [Portainer](https://www.portainer.io/) to view the logs and troubleshoot along the way.
 
 ## Troubleshooting
 
