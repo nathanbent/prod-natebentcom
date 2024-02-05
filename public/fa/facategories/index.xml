@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>FAcategories on PaperMod RTL</title>
+    <link>https://natebent.com/fa/facategories/</link>
+    <description>Recent content in FAcategories on PaperMod RTL</description>
+    <image>
+      <title>PaperMod RTL</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>fa</language>
+    <atom:link href="https://natebent.com/fa/facategories/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>

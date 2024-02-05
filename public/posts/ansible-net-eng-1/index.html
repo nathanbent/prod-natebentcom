@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Ansible &amp; Network Engineers, Pt. I | NateBent.com</title>
+<meta name="keywords" content="Ansible, Network Engineer, Cisco, Aruba AOS-S">
+<meta name="description" content="Playing with Ansible in a network setting">
+<meta name="author" content="Nate">
+<link rel="canonical" href="https://canonical.url/to/page">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.7902506d2f4a951d00d46ef7a47ba80875dbbfff605981233533e7b154880d9e.css" integrity="sha256-eQJQbS9KlR0A1G73pHuoCHXbv/9gWYEjNTPnsVSIDZ4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://natebent.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://natebent.com/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://natebent.com/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://natebent.com/apple-touch-icon.png">
+<link rel="mask-icon" href="https://natebent.com/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:title" content="Ansible &amp; Network Engineers, Pt. I" />
+<meta property="og:description" content="Playing with Ansible in a network setting" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://natebent.com/posts/ansible-net-eng-1/" />
+<meta property="og:image" content="https://natebent.com/%3Cimage%20path/url%3E" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-01-13T15:18:50-06:00" />
+<meta property="article:modified_time" content="2024-01-13T15:18:50-06:00" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://natebent.com/%3Cimage%20path/url%3E" />
+<meta name="twitter:title" content="Ansible &amp; Network Engineers, Pt. I"/>
+<meta name="twitter:description" content="Playing with Ansible in a network setting"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Posts",
+      "item": "https://natebent.com/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "Ansible \u0026 Network Engineers, Pt. I",
+      "item": "https://natebent.com/posts/ansible-net-eng-1/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Ansible \u0026 Network Engineers, Pt. I",
+  "name": "Ansible \u0026 Network Engineers, Pt. I",
+  "description": "Playing with Ansible in a network setting",
+  "keywords": [
+    "Ansible", "Network Engineer", "Cisco", "Aruba AOS-S"
+  ],
+  "articleBody": "I have been trying to gather my thoughts about using Ansible as a network engineer for a while now; but I’ve never found a good perspective to tell the story through. Even to begin to summarize how useful Ansible can be in a network setting can be a daunting task; my ongoing Obsidian web of notes seems to grow exponentially the more I explore.\nIntro and context Since I have to start somewhere, I think that covering the basic framework of how I use Ansible, and some of the most common tasks that I have been able to automate and speed up over time.\nFor example, I recently worked on a project where we were establishing standards conformance in an environment of roughly 100 switches. Traditionally, in order to check things like SNMP communities, Syslogging servers and the like, you’d have to log in to each switch individually.\nUsing Ansible, we were able to programmatically make sure that each switch matched those standards. As Ansible works though it’s playbook of activities, it will report back as a success or a failure, making tracking extremely simple.\nSetting up the environment The environment for Ansible is mostly contained in the inventory files that you keep, containing the devices that will be configuring.\nA simple inventory.yaml file that I used recently looked like this;\n[SwitchGroup1] [ios] ios01 ansible_host=ios-01.example.net ios02 ansible_host=ios-02.example.net ios03 ansible_host=ios-03.example.net [ios:vars] ansible_become=yes ansible_become_method=enable ansible_network_os=cisco.ios.ios ansible_user=my_ios_user ansible_password=my_ios_password Basic example tasks For my example task of ensuring SNMP settings are correct\"\nblah blah blah blah blah blah blah blah blah Some thoughts on Ansible’s place in my toolbox Ansible has become one of my more used deployment methods; it’s incredibly versatile in terms of what it can do, and what platforms it can interact with.\nI’ve found that Ansible is excellent, and worry-free, for more simple programmatic tasks, where each switch is going to have a matching configuration. Tasks that require compliance with a standard make the most sense; for example most organizations will want to have the same SNMP communties, syslog servers, logging parameters across their devices.\nReferences and further reading Ansible documentation for Cisco IOS\n",
+  "wordCount" : "354",
+  "inLanguage": "en",
+  "image":"https://natebent.com/%3Cimage%20path/url%3E","datePublished": "2024-01-13T15:18:50-06:00",
+  "dateModified": "2024-01-13T15:18:50-06:00",
+  "author":{
+    "@type": "Person",
+    "name": "Nate"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://natebent.com/posts/ansible-net-eng-1/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NateBent.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://natebent.com/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://natebent.com" accesskey="h" title="NateBent.com (Alt + H)">NateBent.com</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://natebent.com/pages/about-me" title="About Me">
+                    <span>About Me</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://natebent.com/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://natebent.com">Home</a>&nbsp;»&nbsp;<a href="https://natebent.com/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Ansible &amp; Network Engineers, Pt. I
+    </h1>
+    <div class="post-description">
+      Playing with Ansible in a network setting
+    </div>
+    <div class="post-meta"><span title='2024-01-13 15:18:50 -0600 CST'>January 13, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;354 words&nbsp;·&nbsp;Nate&nbsp;|&nbsp;<a href="https://github.com/%3cpath_to_repo%3e/content/posts/ansible-net-eng-1/index.md" rel="noopener noreferrer" target="_blank">Suggest Changes</a>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#intro-and-context">Intro and context</a></li>
+    <li><a href="#setting-up-the-environment">Setting up the environment</a></li>
+    <li><a href="#basic-example-tasks">Basic example tasks</a></li>
+    <li><a href="#some-thoughts-on-ansibles-place-in-my-toolbox">Some thoughts on Ansible&rsquo;s place in my toolbox</a></li>
+    <li><a href="#references-and-further-reading">References and further reading</a></li>
+  </ul>
+</nav>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p>I have been trying to gather my thoughts about using Ansible as a network engineer for a while now; but I&rsquo;ve never found a good perspective to tell the story through.  Even to begin to summarize how useful Ansible can be in a network setting can be a daunting task; my ongoing Obsidian web of notes seems to grow exponentially the more I explore.</p>
+<h2 id="intro-and-context">Intro and context<a hidden class="anchor" aria-hidden="true" href="#intro-and-context">#</a></h2>
+<p>Since I have to start somewhere, I think that covering the basic framework of how I use Ansible, and some of the most common tasks that I have been able to automate and speed up over time.</p>
+<p>For example, I recently worked on a project where we were establishing standards conformance in an environment of roughly 100 switches.  Traditionally, in order to check things like SNMP communities, Syslogging servers and the like, you&rsquo;d have to log in to each switch individually.</p>
+<p>Using Ansible, we were able to programmatically make sure that each switch matched those standards.  As Ansible works though it&rsquo;s playbook of activities, it will report back as a success or a failure, making tracking extremely simple.</p>
+<h2 id="setting-up-the-environment">Setting up the environment<a hidden class="anchor" aria-hidden="true" href="#setting-up-the-environment">#</a></h2>
+<p>The environment for Ansible is mostly contained in the inventory files that you keep, containing the devices that will be configuring.</p>
+<p>A simple <code>inventory.yaml</code> file that I used recently looked like this;</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="p">[</span><span class="l">SwitchGroup1]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">[</span><span class="l">ios]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ios01 ansible_host=ios-01.example.net</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ios02 ansible_host=ios-02.example.net</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ios03 ansible_host=ios-03.example.net</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">[</span><span class="l">ios:vars]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ansible_become=yes</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ansible_become_method=enable</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ansible_network_os=cisco.ios.ios</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ansible_user=my_ios_user</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ansible_password=my_ios_password</span><span class="w">
+</span></span></span></code></pre></div><h2 id="basic-example-tasks">Basic example tasks<a hidden class="anchor" aria-hidden="true" href="#basic-example-tasks">#</a></h2>
+<p>For my example task of ensuring SNMP settings are correct&quot;</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="l">blah blah blah</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">blah blah blah</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">blah blah blah</span><span class="w">
+</span></span></span></code></pre></div><h2 id="some-thoughts-on-ansibles-place-in-my-toolbox">Some thoughts on Ansible&rsquo;s place in my toolbox<a hidden class="anchor" aria-hidden="true" href="#some-thoughts-on-ansibles-place-in-my-toolbox">#</a></h2>
+<p>Ansible has become one of my more used deployment methods; it&rsquo;s incredibly versatile in terms of what it can do, and what platforms it can interact with.</p>
+<p>I&rsquo;ve found that Ansible is excellent, and worry-free, for more simple programmatic tasks, where each switch is going to have a matching configuration.  Tasks that require compliance with a standard make the most sense; for example most organizations will want to have the same SNMP communties, syslog servers, logging parameters across their devices.</p>
+<h2 id="references-and-further-reading">References and further reading<a hidden class="anchor" aria-hidden="true" href="#references-and-further-reading">#</a></h2>
+<p><a href="https://docs.ansible.com/ansible/latest/collections/cisco/ios/index.html">Ansible documentation for Cisco IOS</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://natebent.com/tags/ansible/">Ansible</a></li>
+      <li><a href="https://natebent.com/tags/network-engineer/">Network Engineer</a></li>
+      <li><a href="https://natebent.com/tags/cisco/">Cisco</a></li>
+      <li><a href="https://natebent.com/tags/aruba-aos-s/">Aruba AOS-S</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://natebent.com/posts/ddns-ddclient-and-cloudflare/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>DDNS, ddclient and Cloudflare</span>
+  </a>
+  <a class="next" href="https://natebent.com/posts/playing-with-obsidian/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Playing With Obsidian</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2024 <a href="https://natebent.com">NateBent.com</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

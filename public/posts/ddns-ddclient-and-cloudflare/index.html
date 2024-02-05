@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>DDNS, ddclient and Cloudflare | NateBent.com</title>
+<meta name="keywords" content="Docker, DDNS, Cloudflare">
+<meta name="description" content="Setting DDNS up on Cloudflare can be a little tricky, this is my experience with it">
+<meta name="author" content="Nate">
+<link rel="canonical" href="https://canonical.url/to/page">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.7902506d2f4a951d00d46ef7a47ba80875dbbfff605981233533e7b154880d9e.css" integrity="sha256-eQJQbS9KlR0A1G73pHuoCHXbv/9gWYEjNTPnsVSIDZ4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://natebent.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://natebent.com/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://natebent.com/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://natebent.com/apple-touch-icon.png">
+<link rel="mask-icon" href="https://natebent.com/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:title" content="DDNS, ddclient and Cloudflare" />
+<meta property="og:description" content="Setting DDNS up on Cloudflare can be a little tricky, this is my experience with it" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://natebent.com/posts/ddns-ddclient-and-cloudflare/" /><meta property="og:image" content="https://natebent.com/images/papermod-cover.png"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-02-03T20:52:13-06:00" />
+<meta property="article:modified_time" content="2024-02-03T20:52:13-06:00" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://natebent.com/images/papermod-cover.png"/>
+
+<meta name="twitter:title" content="DDNS, ddclient and Cloudflare"/>
+<meta name="twitter:description" content="Setting DDNS up on Cloudflare can be a little tricky, this is my experience with it"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Posts",
+      "item": "https://natebent.com/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "DDNS, ddclient and Cloudflare",
+      "item": "https://natebent.com/posts/ddns-ddclient-and-cloudflare/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "DDNS, ddclient and Cloudflare",
+  "name": "DDNS, ddclient and Cloudflare",
+  "description": "Setting DDNS up on Cloudflare can be a little tricky, this is my experience with it",
+  "keywords": [
+    "Docker", "DDNS", "Cloudflare"
+  ],
+  "articleBody": "Context DDNS allows for the dynamic update of DNS entries and attributes - what a fitting name. This can be an extremely valuable resource for professionals and homelabbers who need to deal with dynamically assigned IP addresses in keeping things connected.\nI personally use Cloudflare as a DNS proxy for my various domains, which used to be managed by Google Domains until they sold that business to Squarespace; I’ve since been moving everything to Porkbun.\nRecently, I wanted to organize all of my Cloud and on-prem resources better, and decided to use a singular domain name to help organize everything. I wanted to be sure that the subdomains I would be assigning out through A records would always be accurate, and thus my project began.\nSetup To update the DNS A records, there are a few simple things that will need to be setup.\nThere will need to be an A record in Cloudflare for ddclient to update ddclient will need authentication into Cloudflare ddclient will need to check it’s own IP address to compare Creating the A records is straightforward, opening DNS and then Records will allow you to create away.\nAuthenticating ddclient into Cloudflare is a little trickier, I prefer to create an API key that has read/write access to the domain zone in Cloudflare. This can be accomplished under Profile -\u003e API Keys, and then by following the wizard.\nFinally, ddclient will need some way to check it’s own IP and see if the records need updated. Oddly enough, this seems to be the hardest service to keep consistently working. There are dozens of decent to great DDNS services out there that have been around, and yet IP checking services disappear with the winds. Go figure.\nBecause I have a number of VMs running among the different cloud providers, running ddclient in a docker container works wonderfully. Once I install docker and docker compose, I’m easily able to use basically the same two files to keep every VM host updated.\nIt should be noted that without a pre-made config/ddclient.conf file, the ddclient container will download a default one. This needs to be altered slightly to work.\nMy docker-compose.yml and ddclient.conf docker-compose.yml\n## docker-compose.yml --- services: ddclient: image: lscr.io/linuxserver/ddclient:latest container_name: ddclient environment: - PUID= - PGID= - TZ=UTC volumes: - ./config:/config restart: unless-stopped config/ddclient.conf\n## ddclient.conf use=web web=dynamicdns.park-your-domain.com/getip web-skip='Current IP Address' protocol=cloudflare, \\ zone=domain.tld, \\ ttl=1, \\ login=token, \\ password= \\ test-subdomain.domain.tld Troubleshooting I ran into several errors this most recent go-round, as well as before.\nFailure to get IPv4 address\nAt some point, the default use web option to get the public IP stopped working for me. Adding the specific web address seems to have mostly fixed it for good; we’ll see.\nFailure to communicate with Cloudflare's API\nI had some difficulties in working with the Cloudflare DDNS API as it exists in the default configuation that downloads with\nReferences and Resources ddclient website ddclient github LinuxServer’s ddclient github ",
+  "wordCount" : "492",
+  "inLanguage": "en",
+  "datePublished": "2024-02-03T20:52:13-06:00",
+  "dateModified": "2024-02-03T20:52:13-06:00",
+  "author":{
+    "@type": "Person",
+    "name": "Nate"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://natebent.com/posts/ddns-ddclient-and-cloudflare/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NateBent.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://natebent.com/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://natebent.com" accesskey="h" title="NateBent.com (Alt + H)">NateBent.com</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://natebent.com/pages/about-me" title="About Me">
+                    <span>About Me</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://natebent.com/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://natebent.com">Home</a>&nbsp;»&nbsp;<a href="https://natebent.com/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      DDNS, ddclient and Cloudflare
+    </h1>
+    <div class="post-description">
+      Setting DDNS up on Cloudflare can be a little tricky, this is my experience with it
+    </div>
+    <div class="post-meta"><span title='2024-02-03 20:52:13 -0600 CST'>February 3, 2024</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;492 words&nbsp;·&nbsp;Nate&nbsp;|&nbsp;<a href="https://github.com/%3cpath_to_repo%3e/content/posts/ddns-ddclient-and-cloudflare/index.md" rel="noopener noreferrer" target="_blank">Suggest Changes</a>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#context">Context</a></li>
+    <li><a href="#setup">Setup</a></li>
+    <li><a href="#my-docker-composeyml-and-ddclientconf">My docker-compose.yml and ddclient.conf</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+    <li><a href="#references-and-resources">References and Resources</a></li>
+  </ul>
+</nav>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="context">Context<a hidden class="anchor" aria-hidden="true" href="#context">#</a></h2>
+<p><a href="https://en.wikipedia.org/wiki/Dynamic_DNS">DDNS</a> allows for the dynamic update of DNS entries and attributes - what a fitting name.  This can be an extremely valuable resource for professionals and homelabbers who need to deal with dynamically assigned IP addresses in keeping things connected.</p>
+<p>I personally use <a href="https://www.cloudflare.com/">Cloudflare</a> as a DNS proxy for my various domains, which used to be managed by <a href="https://domains.google.com/">Google Domains</a> until they <a href="https://domains.squarespace.com/google-domains">sold that business</a> to <a href="https://domains.squarespace.com/">Squarespace</a>; I&rsquo;ve since been moving everything to <a href="https://porkbun.com/">Porkbun</a>.</p>
+<p>Recently, I wanted to organize all of my Cloud and on-prem resources better, and decided to use a singular domain name to help organize everything.  I wanted to be sure that the subdomains I would be assigning out through A records would always be accurate, and thus my project began.</p>
+<h2 id="setup">Setup<a hidden class="anchor" aria-hidden="true" href="#setup">#</a></h2>
+<p>To update the DNS A records, there are a few simple things that will need to be setup.</p>
+<ol>
+<li>There will need to be an A record in Cloudflare for ddclient to update</li>
+<li>ddclient will need authentication into Cloudflare</li>
+<li>ddclient will need to check it&rsquo;s own IP address to compare</li>
+</ol>
+<p>Creating the A records is straightforward, opening DNS and then Records will allow you to create away.</p>
+<p>Authenticating ddclient into Cloudflare is a little trickier, I prefer to create an API key that has read/write access to the domain zone in Cloudflare.  This can be accomplished under Profile -&gt; API Keys, and then by following the wizard.</p>
+<p>Finally, ddclient will need some way to check it&rsquo;s own IP and see if the records need updated.  Oddly enough, this seems to be the hardest service to keep consistently working.  There are dozens of  decent to great DDNS services out there that have been around, and yet IP checking services disappear with the winds.  Go figure.</p>
+<p>Because I have a number of VMs running among the different cloud providers, running ddclient in a docker container works wonderfully.  Once I install docker and docker compose, I&rsquo;m easily able to use basically the same two files to keep every VM host updated.</p>
+<p><em><strong>It should be noted</strong></em> that without a pre-made config/ddclient.conf file, the ddclient container will download a default one.  This needs to be altered slightly to work.</p>
+<h2 id="my-docker-composeyml-and-ddclientconf">My docker-compose.yml and ddclient.conf<a hidden class="anchor" aria-hidden="true" href="#my-docker-composeyml-and-ddclientconf">#</a></h2>
+<p><strong>docker-compose.yml</strong></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c">## docker-compose.yml</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nn">---</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">services</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">ddclient</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">lscr.io/linuxserver/ddclient:latest</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l">ddclient</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">PUID=&lt;UID&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">PGID=&lt;GID&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">TZ=UTC</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">volumes</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="l">./config:/config</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l">unless-stopped</span><span class="w">
+</span></span></span></code></pre></div><p><strong>config/ddclient.conf</strong></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c">## ddclient.conf</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">use=web</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">web=dynamicdns.park-your-domain.com/getip</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">web-skip=&#39;Current IP Address&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">protocol=cloudflare, \</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">zone=domain.tld, \</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">ttl=1, \</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">login=token, \</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">password=&lt;api-token&gt; \</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="l">test-subdomain.domain.tld</span><span class="w">
+</span></span></span></code></pre></div><h2 id="troubleshooting">Troubleshooting<a hidden class="anchor" aria-hidden="true" href="#troubleshooting">#</a></h2>
+<p>I ran into several errors this most recent go-round, as well as before.</p>
+<p><code>Failure to get IPv4 address</code></p>
+<p>At some point, the default <code>use web</code> option to get the public IP stopped working for me.  Adding the specific web address seems to have mostly fixed it for good; we&rsquo;ll see.</p>
+<p><code>Failure to communicate with Cloudflare's API</code></p>
+<p>I had some difficulties in working with the Cloudflare DDNS API as it exists in the default configuation that downloads with</p>
+<h2 id="references-and-resources">References and Resources<a hidden class="anchor" aria-hidden="true" href="#references-and-resources">#</a></h2>
+<ul>
+<li><a href="https://ddclient.net/">ddclient website</a></li>
+<li><a href="https://github.com/ddclient/ddclient">ddclient github</a></li>
+<li><a href="https://github.com/linuxserver/docker-ddclient">LinuxServer&rsquo;s ddclient github</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://natebent.com/tags/docker/">Docker</a></li>
+      <li><a href="https://natebent.com/tags/ddns/">DDNS</a></li>
+      <li><a href="https://natebent.com/tags/cloudflare/">Cloudflare</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="next" href="https://natebent.com/posts/ansible-net-eng-1/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Ansible &amp; Network Engineers, Pt. I</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2024 <a href="https://natebent.com">NateBent.com</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

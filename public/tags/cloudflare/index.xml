@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cloudflare on NateBent.com</title>
+    <link>https://natebent.com/tags/cloudflare/</link>
+    <description>Recent content in Cloudflare on NateBent.com</description>
+    <image>
+      <title>NateBent.com</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 03 Feb 2024 20:52:13 -0600</lastBuildDate>
+    <atom:link href="https://natebent.com/tags/cloudflare/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>DDNS, ddclient and Cloudflare</title>
+      <link>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</link>
+      <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate>
+      <guid>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</guid>
+      <description>Setting DDNS up on Cloudflare can be a little tricky, this is my experience with it</description>
+    </item>
+  </channel>
+</rss>

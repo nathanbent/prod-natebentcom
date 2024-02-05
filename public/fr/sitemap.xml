@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://natebent.com/fr/frcategories/</loc>
+  </url><url>
+    <loc>https://natebent.com/fr/frseries/</loc>
+  </url><url>
+    <loc>https://natebent.com/fr/frtags/</loc>
+  </url><url>
+    <loc>https://natebent.com/fr/</loc>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://natebent.com/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fa"
+                href="https://natebent.com/fa/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="https://natebent.com/fr/"
+                />
+  </url>
+</urlset>

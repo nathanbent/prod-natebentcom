@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on NateBent.com</title>
+    <link>https://natebent.com/tags/</link>
+    <description>Recent content in Tags on NateBent.com</description>
+    <image>
+      <title>NateBent.com</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 03 Feb 2024 20:52:13 -0600</lastBuildDate>
+    <atom:link href="https://natebent.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Cloudflare</title>
+      <link>https://natebent.com/tags/cloudflare/</link>
+      <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate>
+      <guid>https://natebent.com/tags/cloudflare/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>DDNS</title>
+      <link>https://natebent.com/tags/ddns/</link>
+      <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate>
+      <guid>https://natebent.com/tags/ddns/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Docker</title>
+      <link>https://natebent.com/tags/docker/</link>
+      <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate>
+      <guid>https://natebent.com/tags/docker/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Ansible</title>
+      <link>https://natebent.com/tags/ansible/</link>
+      <pubDate>Sat, 13 Jan 2024 15:18:50 -0600</pubDate>
+      <guid>https://natebent.com/tags/ansible/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Aruba AOS-S</title>
+      <link>https://natebent.com/tags/aruba-aos-s/</link>
+      <pubDate>Sat, 13 Jan 2024 15:18:50 -0600</pubDate>
+      <guid>https://natebent.com/tags/aruba-aos-s/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Cisco</title>
+      <link>https://natebent.com/tags/cisco/</link>
+      <pubDate>Sat, 13 Jan 2024 15:18:50 -0600</pubDate>
+      <guid>https://natebent.com/tags/cisco/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Network Engineer</title>
+      <link>https://natebent.com/tags/network-engineer/</link>
+      <pubDate>Sat, 13 Jan 2024 15:18:50 -0600</pubDate>
+      <guid>https://natebent.com/tags/network-engineer/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Markdown</title>
+      <link>https://natebent.com/tags/markdown/</link>
+      <pubDate>Tue, 02 Jan 2024 05:41:58 -0600</pubDate>
+      <guid>https://natebent.com/tags/markdown/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Obsidian</title>
+      <link>https://natebent.com/tags/obsidian/</link>
+      <pubDate>Tue, 02 Jan 2024 05:41:58 -0600</pubDate>
+      <guid>https://natebent.com/tags/obsidian/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Software</title>
+      <link>https://natebent.com/tags/software/</link>
+      <pubDate>Tue, 02 Jan 2024 05:41:58 -0600</pubDate>
+      <guid>https://natebent.com/tags/software/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Hugo</title>
+      <link>https://natebent.com/tags/hugo/</link>
+      <pubDate>Mon, 01 Jan 2024 17:26:18 -0600</pubDate>
+      <guid>https://natebent.com/tags/hugo/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Meta</title>
+      <link>https://natebent.com/tags/meta/</link>
+      <pubDate>Mon, 01 Jan 2024 17:26:18 -0600</pubDate>
+      <guid>https://natebent.com/tags/meta/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>About Me</title>
+      <link>https://natebent.com/tags/about-me/</link>
+      <pubDate>Mon, 25 Dec 2023 15:13:33 -0600</pubDate>
+      <guid>https://natebent.com/tags/about-me/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

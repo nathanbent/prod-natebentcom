@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Docs on PaperMod</title>
+    <link>https://natebent.com/tags/docs/</link>
+    <description>Recent content in Docs on PaperMod</description>
+    <image>
+      <title>PaperMod</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 20 Jan 2021 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://natebent.com/tags/docs/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Features / Mods</title>
+      <link>https://natebent.com/posts/papermod/papermod-features/</link>
+      <pubDate>Wed, 20 Jan 2021 00:00:00 +0000</pubDate>
+      <guid>https://natebent.com/posts/papermod/papermod-features/</guid>
+      <description>Learn About All Features in PaperMod</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on NateBent.com</title>
+    <link>https://natebent.com/pages/projects/</link>
+    <description>Recent content in Projects on NateBent.com</description>
+    <image>
+      <title>NateBent.com</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 25 Dec 2023 15:13:33 -0600</lastBuildDate>
+    <atom:link href="https://natebent.com/pages/projects/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>

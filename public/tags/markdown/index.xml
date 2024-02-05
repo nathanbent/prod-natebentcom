@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Markdown on NateBent.com</title>
+    <link>https://natebent.com/tags/markdown/</link>
+    <description>Recent content in Markdown on NateBent.com</description>
+    <image>
+      <title>NateBent.com</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 02 Jan 2024 05:41:58 -0600</lastBuildDate>
+    <atom:link href="https://natebent.com/tags/markdown/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Playing With Obsidian</title>
+      <link>https://natebent.com/posts/playing-with-obsidian/</link>
+      <pubDate>Tue, 02 Jan 2024 05:41:58 -0600</pubDate>
+      <guid>https://natebent.com/posts/playing-with-obsidian/</guid>
+      <description>I&amp;#39;ve been playing with Obsidian for a few months, and wanted to share some thoughts</description>
+    </item>
+  </channel>
+</rss>
