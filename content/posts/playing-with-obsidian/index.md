@@ -2,8 +2,8 @@
 title: 'Playing With Obsidian'
 date: 2024-01-02T05:41:58-06:00
 cover:
-    image: images/obsidian-test.png
-    caption: 'about 2023 year'
+    image: images/obsidian-feature.png
+#    caption: 'about 2023 year'
 # weight: 1
 # aliases: ["/first"]
 tags: ["Obsidian", "Markdown", "Software"]
