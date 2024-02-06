@@ -60,7 +60,7 @@ Storage:
 	- Specifically, I really like the ability to create HDD block storage and attach it.  IMHO, for longer term storage there isn't really a benefit to using SSD/NVMe storage.  Linode and Oracle only allow for NVMe blockstorage additions, and Vultr's pricing is consistent/better than what I've gotten from AWS.
 - The most local datacenter.  I am located in the Midwest, and Vultr's datacenter in Dallas has been extremely performant for me.
 	- Linode also has a datacenter in Dallas, but it doesn't yet offer any VPC services (so I typically use Chicago for Linode services that require VPC)
-
+- Their selection of OS's is comparable with the major providers, and they allow ISO uploading for what isn't already there.
 
 
 ## What I don't like
@@ -74,3 +74,4 @@ Storage:
 ## References and resources
 - [Vultr.com](https://vultr.com)
 - [Vultr Docs](https//docs.vultr.com)
+
