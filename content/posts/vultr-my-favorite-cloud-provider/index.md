@@ -44,13 +44,15 @@ The largest Cloud providers have a huge amount to offer, but my best experiences
 
 ## My setup
 I have a few services on Vultr that are almost always provisioned;
+Compute:
 - A production VM that I use for Cloud-based services such as
 	- Storage for ongoing projects
 	- Remote access to various resources
 	- Hosting for files
 - A testing VM that I use for testing things I need, or want to use, before they go into production.
 - A connections focused VM that serves as an IPsec endpoint for tunnels between my home and other Cloud providers.
-
+Storage:
+- I use a 200Gb HDD blockshare for long-term backups.  I really appreciate that Vultr offers HDD block storage options; it's much cheaper than the nVME options that most other providers are using.  For document storage and longer-term backupsm this is perfect.
 
 ## What I like
 
@@ -63,8 +65,10 @@ I have a few services on Vultr that are almost always provisioned;
 
 ## What I don't like
 - I have had some weirdness with their newer VPC2.0 offering.  Namely, I haven't been able to use it for routing traffic through my IPsec tunnel, so I keep the origional VPC connected for that.
+  - Getting decent speeds through Samba/NFS took some tuning over VPC2.0, but 
+
 - VPC1.0 connection speeds are fairly low; typically around 400Mbps in iperf3 testing.
-	- Because of this I use VPC2.0 for stuff like SMB shares, and VPC1.0 for IPsec traffic.
+  - Because of this I use VPC2.0 for stuff like SMB shares, and VPC1.0 for IPsec traffic.
 
 
 ## References and resources
