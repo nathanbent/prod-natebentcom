@@ -1,11 +1,11 @@
 ---
-title: 'Connecting TrueNAS iSCSI to Windows'
-date: 2024-02-18T22:19:11Z
+title: 'Emoji WLC Support'
+date: 2024-03-08T00:01:57Z
 author: "Nate"
 # weight: 1
 # aliases: ["/first"]
 tags: ["Untagged"]
-categories: ["Experiences"]
+categories: ["Uncategorized"]
 #series: ["No-Series"]
 showToc: true
 TocOpen: false
@@ -26,8 +26,8 @@ ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
     image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
+    alt: "<alt text>" # alt text caption: "<text>" # display caption under
+cover
     relative: false # when using page bundles set this to true
     hidden: true # only hide on current single page
 editPost:
@@ -36,19 +36,3 @@ editPost:
     Text: "Suggest Changes" # edit text
     appendFilePath: true # to append file path to Edit link
 ---
-
-## Context
-
-
-
-## Setup
-
-
-
-## References and resources
-
-
-
-
-
-
