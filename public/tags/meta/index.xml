@@ -20,19 +20,5 @@
       <guid>https://natebent.com/posts/moving-to-hugo/</guid>
       <description>After playing with Wordpress for 15 years, I&amp;#39;m moving to Hugo</description>
     </item>
-    <item>
-      <title>Projects</title>
-      <link>https://natebent.com/pages/projects/</link>
-      <pubDate>Mon, 25 Dec 2023 15:13:33 -0600</pubDate>
-      <guid>https://natebent.com/pages/projects/</guid>
-      <description>Desc. Text</description>
-    </item>
-    <item>
-      <title>About Me</title>
-      <link>https://natebent.com/pages/about-me/</link>
-      <pubDate>Mon, 25 Dec 2023 14:58:22 -0600</pubDate>
-      <guid>https://natebent.com/pages/about-me/</guid>
-      <description>A very brief author summary</description>
-    </item>
   </channel>
 </rss>
