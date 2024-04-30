@@ -14,6 +14,13 @@
     <lastBuildDate>Tue, 09 Apr 2024 23:20:01 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Creating Ubuntu Templates with Cloud-Init in Proxmox</title>
+      <link>https://natebent.com/posts/proxmox-template-ubuntu/</link>
+      <pubDate>Tue, 09 Apr 2024 23:20:01 +0000</pubDate>
+      <guid>https://natebent.com/posts/proxmox-template-ubuntu/</guid>
+      <description>Desc. Text</description>
+    </item>
+    <item>
       <title>DDNS, ddclient and Cloudflare</title>
       <link>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</link>
       <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate>
