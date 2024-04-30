@@ -65,5 +65,15 @@ I am currently working on:
 
 - Cisco CCNP - ENCOR
 
+- HPE-Aruba Aruba Certified Professional - Campus Access
+
 - CompTIA Cy-SA+
 
+
+## Find me elsewhere:
+
+- Social Media
+    - LinkedIn
+- Projects and other sites
+    - GitHub
+    - More coming soon
