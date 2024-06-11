@@ -1,12 +1,23 @@
 ---
+<<<<<<< HEAD
 title: 'TrueNAS, iSCSI and Windows'
 date: 2024-06-05T22:19:11Z
+=======
+title: 'Connecting TrueNAS iSCSI to Windows'
+date: 2024-02-18T22:19:11Z
+>>>>>>> bca8af03efaba088d40dea0cae87d978b2963b03
 author: "Nate"
 weight: 1
 # aliases: ["/first"]
+<<<<<<< HEAD
 tags: ["Truenas", "Proxmox", "Gaming"]
 categories: ["Experiences", "Projects"]
 series: ["Virtual Gaming PC"]
+=======
+tags: ["Untagged"]
+categories: ["Experiences"]
+#series: ["No-Series"]
+>>>>>>> bca8af03efaba088d40dea0cae87d978b2963b03
 showToc: true
 TocOpen: false
 draft: false
@@ -36,6 +47,7 @@ editPost:
     Text: "Suggest Changes" # edit text
     appendFilePath: true # to append file path to Edit link
 ---
+<<<<<<< HEAD
 ## Creating and Connecting to an iSCSI Share in TrueNAS and Windows 11
 
 As part of the trying to build out my virtualized gaming PC, I wanted to expand the VM past what was directly attached to it.  To try to see what would get me the best performance, I set up both a standard Samba share, and then an iSCSI share. 
@@ -101,3 +113,21 @@ As part of the trying to build out my virtualized gaming PC, I wanted to expand 
 Once the process is complete, you will have a new iSCSI drive accessible from your Windows 11 machine, providing you with the additional storage capacity offered by your TrueNAS server.
 
 Setting up an iSCSI share can seem complex, but following these steps ensures a smooth and successful configuration. Enjoy your expanded storage capabilities!
+=======
+
+## Context
+
+
+
+## Setup
+
+
+
+## References and resources
+
+
+
+
+
+
+>>>>>>> bca8af03efaba088d40dea0cae87d978b2963b03

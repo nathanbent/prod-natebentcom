@@ -1,6 +1,6 @@
 ---
-title: 'Virtualizing a Gaming PC, Pt. 1'
-date: 2024-02-18T00:36:46Z
+title: 'Virtual Gaming Pc 2 Storage'
+date: 2024-02-19T16:59:06Z
 author: "Nate"
 # weight: 1
 # aliases: ["/first"]

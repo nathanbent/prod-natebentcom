@@ -11,6 +11,7 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
+<<<<<<< HEAD
     <lastBuildDate>Wed, 05 Jun 2024 22:19:11 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
@@ -32,6 +33,15 @@
       <link>https://natebent.com/tags/truenas/</link>
       <pubDate>Wed, 05 Jun 2024 22:19:11 +0000</pubDate>
       <guid>https://natebent.com/tags/truenas/</guid>
+=======
+    <lastBuildDate>Tue, 09 Apr 2024 23:20:01 +0000</lastBuildDate>
+    <atom:link href="https://natebent.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Untagged</title>
+      <link>https://natebent.com/tags/untagged/</link>
+      <pubDate>Tue, 09 Apr 2024 23:20:01 +0000</pubDate>
+      <guid>https://natebent.com/tags/untagged/</guid>
+>>>>>>> bca8af03efaba088d40dea0cae87d978b2963b03
       <description></description>
     </item>
     <item>

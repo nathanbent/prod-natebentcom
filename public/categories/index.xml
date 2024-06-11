@@ -11,8 +11,33 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
+<<<<<<< HEAD
     <lastBuildDate>Wed, 05 Jun 2024 22:19:11 +0000</lastBuildDate>
+=======
+    <lastBuildDate>Tue, 09 Apr 2024 23:20:01 +0000</lastBuildDate>
+>>>>>>> bca8af03efaba088d40dea0cae87d978b2963b03
     <atom:link href="https://natebent.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Cloud-Init</title>
+      <link>https://natebent.com/categories/cloud-init/</link>
+      <pubDate>Tue, 09 Apr 2024 23:20:01 +0000</pubDate>
+      <guid>https://natebent.com/categories/cloud-init/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Proxmox</title>
+      <link>https://natebent.com/categories/proxmox/</link>
+      <pubDate>Tue, 09 Apr 2024 23:20:01 +0000</pubDate>
+      <guid>https://natebent.com/categories/proxmox/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Ubuntu</title>
+      <link>https://natebent.com/categories/ubuntu/</link>
+      <pubDate>Tue, 09 Apr 2024 23:20:01 +0000</pubDate>
+      <guid>https://natebent.com/categories/ubuntu/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Experiences</title>
       <link>https://natebent.com/categories/experiences/</link>

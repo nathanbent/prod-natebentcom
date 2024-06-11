@@ -2,13 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+<<<<<<< HEAD
     <loc>https://natebent.com/posts/truenas-iscsi-windows/</loc>
     <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+=======
+    <loc>https://natebent.com/posts/proxmox-template-ubuntu/</loc>
+    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
+>>>>>>> bca8af03efaba088d40dea0cae87d978b2963b03
   </url><url>
     <loc>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</loc>
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/</loc>
+<<<<<<< HEAD
     <lastmod>2024-06-05T22:19:11+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/experiences/</loc>
@@ -40,6 +46,30 @@
   </url><url>
     <loc>https://natebent.com/series/virtual-gaming-pc/</loc>
     <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+=======
+    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/cloud-init/</loc>
+    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/</loc>
+    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/posts/</loc>
+    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/proxmox/</loc>
+    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/</loc>
+    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/ubuntu/</loc>
+    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/untagged/</loc>
+    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
+>>>>>>> bca8af03efaba088d40dea0cae87d978b2963b03
   </url><url>
     <loc>https://natebent.com/tags/cloudflare/</loc>
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
@@ -50,6 +80,12 @@
     <loc>https://natebent.com/tags/docker/</loc>
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
   </url><url>
+<<<<<<< HEAD
+=======
+    <loc>https://natebent.com/categories/experiences/</loc>
+    <lastmod>2024-02-03T20:52:13-06:00</lastmod>
+  </url><url>
+>>>>>>> bca8af03efaba088d40dea0cae87d978b2963b03
     <loc>https://natebent.com/tags/ansible/</loc>
     <lastmod>2024-01-13T15:18:50-06:00</lastmod>
   </url><url>
