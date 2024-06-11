@@ -2,11 +2,44 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://natebent.com/posts/truenas-iscsi-windows/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
     <loc>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</loc>
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/</loc>
-    <lastmod>2024-02-03T20:52:13-06:00</lastmod>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/experiences/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/gaming/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/posts/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/projects/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/proxmox/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/series/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/truenas/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/series/virtual-gaming-pc/</loc>
+    <lastmod>2024-06-05T22:19:11+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/cloudflare/</loc>
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
@@ -15,18 +48,6 @@
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/docker/</loc>
-    <lastmod>2024-02-03T20:52:13-06:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/categories/experiences/</loc>
-    <lastmod>2024-02-03T20:52:13-06:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/</loc>
-    <lastmod>2024-02-03T20:52:13-06:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/posts/</loc>
-    <lastmod>2024-02-03T20:52:13-06:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/tags/</loc>
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/ansible/</loc>
@@ -68,9 +89,6 @@
     <loc>https://natebent.com/posts/moving-to-hugo/</loc>
     <lastmod>2024-01-01T17:26:18-06:00</lastmod>
   </url><url>
-    <loc>https://natebent.com/categories/projects/</loc>
-    <lastmod>2024-01-01T17:26:18-06:00</lastmod>
-  </url><url>
     <loc>https://natebent.com/tags/about-me/</loc>
     <lastmod>2023-12-25T15:13:33-06:00</lastmod>
   </url><url>
@@ -87,7 +105,5 @@
     <lastmod>2023-12-25T14:58:22-06:00</lastmod>
   </url><url>
     <loc>https://natebent.com/archive/</loc>
-  </url><url>
-    <loc>https://natebent.com/series/</loc>
   </url>
 </urlset>

@@ -11,8 +11,29 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 03 Feb 2024 20:52:13 -0600</lastBuildDate>
+    <lastBuildDate>Wed, 05 Jun 2024 22:19:11 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Gaming</title>
+      <link>https://natebent.com/tags/gaming/</link>
+      <pubDate>Wed, 05 Jun 2024 22:19:11 +0000</pubDate>
+      <guid>https://natebent.com/tags/gaming/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Proxmox</title>
+      <link>https://natebent.com/tags/proxmox/</link>
+      <pubDate>Wed, 05 Jun 2024 22:19:11 +0000</pubDate>
+      <guid>https://natebent.com/tags/proxmox/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Truenas</title>
+      <link>https://natebent.com/tags/truenas/</link>
+      <pubDate>Wed, 05 Jun 2024 22:19:11 +0000</pubDate>
+      <guid>https://natebent.com/tags/truenas/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Cloudflare</title>
       <link>https://natebent.com/tags/cloudflare/</link>

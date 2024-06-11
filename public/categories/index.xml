@@ -11,13 +11,20 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 03 Feb 2024 20:52:13 -0600</lastBuildDate>
+    <lastBuildDate>Wed, 05 Jun 2024 22:19:11 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Experiences</title>
       <link>https://natebent.com/categories/experiences/</link>
-      <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate>
+      <pubDate>Wed, 05 Jun 2024 22:19:11 +0000</pubDate>
       <guid>https://natebent.com/categories/experiences/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Projects</title>
+      <link>https://natebent.com/categories/projects/</link>
+      <pubDate>Wed, 05 Jun 2024 22:19:11 +0000</pubDate>
+      <guid>https://natebent.com/categories/projects/</guid>
       <description></description>
     </item>
     <item>
@@ -25,13 +32,6 @@
       <link>https://natebent.com/categories/thoughts/</link>
       <pubDate>Sat, 13 Jan 2024 15:18:50 -0600</pubDate>
       <guid>https://natebent.com/categories/thoughts/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Projects</title>
-      <link>https://natebent.com/categories/projects/</link>
-      <pubDate>Mon, 01 Jan 2024 17:26:18 -0600</pubDate>
-      <guid>https://natebent.com/categories/projects/</guid>
       <description></description>
     </item>
     <item>
