@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Truenas on NateBent.com</title>
+    <link>https://natebent.com/tags/truenas/</link>
+    <description>Recent content in Truenas on NateBent.com</description>
+    <image>
+      <title>NateBent.com</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 05 Jun 2024 22:19:11 +0000</lastBuildDate>
+    <atom:link href="https://natebent.com/tags/truenas/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>TrueNAS, iSCSI and Windows</title>
+      <link>https://natebent.com/posts/truenas-iscsi-windows/</link>
+      <pubDate>Wed, 05 Jun 2024 22:19:11 +0000</pubDate>
+      <guid>https://natebent.com/posts/truenas-iscsi-windows/</guid>
+      <description>Setting iSCSI up with TrueNAS and Windows</description>
+    </item>
+  </channel>
+</rss>
