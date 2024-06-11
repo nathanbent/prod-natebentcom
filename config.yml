@@ -29,7 +29,7 @@ languages:
       series: series
     menu:
       main:
-        - name: About Me
+        - name: About
           url: /pages/about-me
           weight: 5
         - name: Posts
