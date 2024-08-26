@@ -113,7 +113,9 @@ At some point, the default `use web` option to get the public IP stopped working
 
 `Failure to communicate with Cloudflare's API`
 
-I had some difficulties in working with the Cloudflare DDNS API as it exists in the default configuation that downloads with 
+I had some difficulties in working with the Cloudflare DDNS API as it exists in the default configuration that downloads with the docker compose pull.  This seems to be an older version of the config, which references the API in a way that no longer works.
+
+> Edit 2024-08-18 - This seems to have been fixed.
 
 
 ## References and Resources

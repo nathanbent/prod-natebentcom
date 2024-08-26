@@ -56,17 +56,13 @@ To reach out to me, please use the email in my resume.
 I currently hold:
 
 - CompTIA A+/Security+/Network+
-
 - Cisco CCNA
-
 - FCP - FortiGate 7.4 Administrator
+- Aruba ACP-CA
 
 I am currently working on:
 
 - Cisco CCNP - ENCOR
-
-- HPE-Aruba Aruba Certified Professional - Campus Access
-
 - CompTIA Cy-SA+
 
 
@@ -74,6 +70,7 @@ I am currently working on:
 
 - Social Media
     - LinkedIn
+    - I don't really do social media
 - Projects and other sites
     - GitHub
     - More coming soon
