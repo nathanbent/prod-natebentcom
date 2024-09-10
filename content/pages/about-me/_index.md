@@ -69,8 +69,8 @@ I am currently working on:
 ## Find me elsewhere:
 
 - Social Media
-    - LinkedIn
+    - [LinkedIn](https://www.linkedin.com/in/nathan-bent-86373769/)
     - I don't really do social media
 - Projects and other sites
-    - GitHub
+    - [GitHub](https://github.com/nathanbent)
     - More coming soon

@@ -1,6 +1,6 @@
 ---
-title: 'Test'
-date: 2024-08-13T14:41:22Z
+title: 'OVAs in Proxmox'
+date: 2024-08-29T11:20:52-05:00
 author: "Nate"
 # weight: 1
 # aliases: ["/first"]
@@ -36,8 +36,3 @@ editPost:
     Text: "Suggest Changes" # edit text
     appendFilePath: true # to append file path to Edit link
 ---
-# Swag
-
-## Swagg
-
-### SWAGGG

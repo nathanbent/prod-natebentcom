@@ -75,6 +75,8 @@ wget https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-
 
 5. 
 
+
+
 ## References and resources
 
 - [Cloud-Init Support | Proxmox Wiki](https://pve.proxmox.com/wiki/Cloud-Init_Support)
