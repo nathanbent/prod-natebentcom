@@ -11,7 +11,7 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 13 Aug 2024 14:41:22 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 29 Aug 2024 11:20:52 -0500</lastBuildDate>
     <atom:link href="https://natebent.com/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Creating Ubuntu Templates with Cloud-Init in Proxmox</title>
