@@ -40,7 +40,9 @@ editPost:
 
 ## Context
 
+
 ## Setup
+
 
 ## Steps
 
@@ -58,11 +60,12 @@ editPost:
 
 5. reboot Windows
 
-6. In the System Preparation Tool window, choose “Enter OOBE”, leave Generalize unchecked (to keep the drivers) and Shutdown Options- Shutdown
+6. Run SysPrep with the command `C:\Windows\System32\Sysprep\sysprep.exe`
+   a. In the System Preparation Tool window, choose “Enter OOBE”, leave Generalize unchecked (to keep the drivers) and Shutdown Options- Shutdown
 
 7. Click OK, wait for Sysprep to run and shutdown
 
-8. Back in Proxmox web gui, click More and Convert to Template
+8.  Back in Proxmox web gui, click More and Convert to Template
 
 
 

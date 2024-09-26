@@ -11,8 +11,15 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 09 Apr 2024 23:20:01 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 25 Sep 2024 11:54:26 -0500</lastBuildDate>
     <atom:link href="https://natebent.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>IDRAC</title>
+      <link>https://natebent.com/tags/idrac/</link>
+      <pubDate>Wed, 25 Sep 2024 11:54:26 -0500</pubDate>
+      <guid>https://natebent.com/tags/idrac/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Untagged</title>
       <link>https://natebent.com/tags/untagged/</link>
