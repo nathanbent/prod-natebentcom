@@ -45,5 +45,6 @@ I put emojis in SSIDs and checked to see if it works.
 
 ## Results
 Bro, one time I tried using emojis in the PSK, and it fuckin worked!
+I was like bro...
 
 ## References and resources
