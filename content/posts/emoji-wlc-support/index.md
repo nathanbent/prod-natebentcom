@@ -38,9 +38,12 @@ editPost:
 ---
 
 ## Context
+Check it out on my GitHub.
 
 ## Setup
+I put emojis in SSIDs and checked to see if it works.
 
 ## Results
+Bro, one time I tried using emojis in the PSK, and it fuckin worked!
 
 ## References and resources
