@@ -2,7 +2,7 @@
 # contain http (as opposeed to https) URLs. This would affect Google indexing of your URLs.
 baseURL: "https://natebent.com"
 title: NateBent.com
-paginate: 5
+#paginate: 5
 theme: [hugo-PaperMod]
 
 enableInlineShortcodes: true
@@ -14,6 +14,9 @@ enableEmoji: true
 pygmentsUseClasses: true
 mainsections: ["posts", "about-me/"]
 # googleAnalytics: UA-123-45
+
+params:
+  social: true
 
 minify:
   disableXML: true
