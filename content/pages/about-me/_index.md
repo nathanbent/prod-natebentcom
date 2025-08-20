@@ -38,7 +38,7 @@ cover:
 My name is Nate Bent, and I am a Network Engineer who is lucky enough to be able to work with a variety of technologies in some complex, public facing environments.  If I had to summarize myself quickly:
 
 - I spend my days working on designing, implementing and maintaining wired and wireless networks that are used by tens of thousands of people. 
-
+ 
 - I spend my nights playing with and learning new technologies that interest me, to name a few:
   
   - Virtualization and containerization
@@ -55,10 +55,12 @@ To reach out to me, please use the email in my resume.
 
 I currently hold:
 
-- CompTIA A+/Security+/Network+
+- HPE Aruba Certified Architect - Campus Access
+- HPE Aruba Certified Professional - Campus Access
+- HPE Aruba Certified Professional - Network Security
 - Cisco CCNA
+- CompTIA A+/Security+/Network+
 - FCP - FortiGate 7.4 Administrator
-- Aruba ACP-CA
 
 I am currently working on:
 
