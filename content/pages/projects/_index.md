@@ -3,11 +3,9 @@ title: 'Projects'
 date: 2023-12-25T15:13:33-06:00
 # weight: 1
 # aliases: ["/first"]
-tags: ["Random"]
 tags: ["About Me", "Meta"]
 categories: ["Meta"]
 author: "Nate"
-# author: ["Me", "You"] # multiple authors
 showToc: true
 TocOpen: true
 draft: false
@@ -17,7 +15,6 @@ description: "Desc. Text"
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: true
-disableHLJS: false
 hideSummary: true
 searchHidden: true
 ShowReadingTime: false

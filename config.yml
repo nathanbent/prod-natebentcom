@@ -15,9 +15,6 @@ pygmentsUseClasses: true
 mainsections: ["posts", "about-me/"]
 # googleAnalytics: UA-123-45
 
-params:
-  social: true
-
 minify:
   disableXML: true
   # minifyOutput: true
@@ -65,6 +62,7 @@ params:
   ShowToc: true
   # comments: false
   images: ["images/papermod-cover.png"]
+  social: true
 
  # profile-mode
   profileMode:

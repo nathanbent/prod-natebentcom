@@ -15,7 +15,6 @@ comments: false
 description: "After playing with Wordpress for 15 years, I'm moving to Hugo"
 disableHLJS: true # to disable highlightjs
 disableShare: true
-disableHLJS: false
 hideSummary: false
 searchHidden: true
 ShowReadingTime: true
