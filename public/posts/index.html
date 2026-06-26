@@ -12,7 +12,7 @@
 <meta name="description" content="Posts - NateBent.com">
 <meta name="author" content="Nathan Bent">
 <link rel="canonical" href="https://natebent.com/posts/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.dfd36a6d954b6d8df9e2cc11a9d73c77cce5ccdb7fff8445cfd7a9658e853d90.css" integrity="sha256-39NqbZVLbY354swRqdc8d8zlzNt//4RFz9epZY6FPZA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3f49b99c42dbb7db2e456b0a940c8b5eef4e6e5669e055f1a83affd2170dd440.css" integrity="sha256-P0m5nELbt9suRWsKlAyLXu9OblZp4FXxqDr/0hcN1EA=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://natebent.com/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://natebent.com/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://natebent.com/favicon-32x32.png">
@@ -155,6 +155,45 @@
     </a>
   </h1>
 </header>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">VXLAN Performance on a FortiGate 70F: The Software Switching Tax
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>The setup, and the question A while back I built an EVPN/VXLAN overlay between a FortiGate and a three node Proxmox cluster. The overlay segments come out of Proxmox SDN (an EVPN zone with a handful of VNets), and the FortiGate plays anycast gateway for them. I wrote up the build itself in a separate post; this one is only about the thing I wanted to know once it was actually working: what does all that encapsulation cost me in throughput?
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-06-25 23:40:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;1555 words&nbsp;·&nbsp;Nate</footer>
+  <a class="entry-link" aria-label="post link to VXLAN Performance on a FortiGate 70F: The Software Switching Tax" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">VXLAN Between a FortiGate and Proxmox, Part 2: EVPN
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Recap, and the problem with where we left off In part 1 I convinced a FortiGate and a Proxmox cluster to form a working VXLAN segment with nothing more than matching VNI, port, and a static list of peer addresses. That works, but it has a built in tax: every VTEP has to list every other VTEP. Adding a host means editing the peer list on every existing box, and the only way a VTEP learns which MAC lives behind which remote VTEP is to flood unknown traffic everywhere and watch the replies.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-06-23 21:14:00 +0000 UTC'>June 23, 2026</span>&nbsp;·&nbsp;13 min&nbsp;·&nbsp;2621 words&nbsp;·&nbsp;Nate</footer>
+  <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2: EVPN" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">VXLAN Between a FortiGate and Proxmox
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Why VXLAN I already run VLANs through my core switch to carve up the lab, and that works well enough. What I wanted to play with was decoupling a segment from the physical switch entirely. VXLAN does that by wrapping the guest’s Layer 2 frame inside a UDP packet (destination port 4789 by default) and shipping it to whatever VXLAN Tunnel Endpoint (VTEP) holds the other end. To a VM the bridge looks like any other bridge, but the “wire” underneath it is now an IP path I control instead of a switchport.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-06-21 21:14:00 +0000 UTC'>June 21, 2026</span>&nbsp;·&nbsp;6 min&nbsp;·&nbsp;1249 words&nbsp;·&nbsp;Nate</footer>
+  <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox" href="https://natebent.com/posts/vxlan-fortigate-proxmox-1/"></a>
+</article>
 
 <article class="post-entry"> 
   <header class="entry-header">

@@ -11,8 +11,71 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 25 Sep 2024 11:54:26 -0500</lastBuildDate>
+    <lastBuildDate>Thu, 25 Jun 2026 23:40:00 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>EVPN</title>
+      <link>https://natebent.com/tags/evpn/</link>
+      <pubDate>Thu, 25 Jun 2026 23:40:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/evpn/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>FortiGate</title>
+      <link>https://natebent.com/tags/fortigate/</link>
+      <pubDate>Thu, 25 Jun 2026 23:40:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/fortigate/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Homelab</title>
+      <link>https://natebent.com/tags/homelab/</link>
+      <pubDate>Thu, 25 Jun 2026 23:40:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/homelab/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>NP7</title>
+      <link>https://natebent.com/tags/np7/</link>
+      <pubDate>Thu, 25 Jun 2026 23:40:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/np7/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Performance</title>
+      <link>https://natebent.com/tags/performance/</link>
+      <pubDate>Thu, 25 Jun 2026 23:40:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/performance/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Proxmox</title>
+      <link>https://natebent.com/tags/proxmox/</link>
+      <pubDate>Thu, 25 Jun 2026 23:40:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/proxmox/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>SDN</title>
+      <link>https://natebent.com/tags/sdn/</link>
+      <pubDate>Thu, 25 Jun 2026 23:40:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/sdn/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>VXLAN</title>
+      <link>https://natebent.com/tags/vxlan/</link>
+      <pubDate>Thu, 25 Jun 2026 23:40:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/vxlan/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>BGP</title>
+      <link>https://natebent.com/tags/bgp/</link>
+      <pubDate>Tue, 23 Jun 2026 21:14:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/bgp/</guid>
+      <description></description>
+    </item>
     <item>
       <title>IDRAC</title>
       <link>https://natebent.com/tags/idrac/</link>

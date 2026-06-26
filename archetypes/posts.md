@@ -2,7 +2,7 @@
 title: '{{ replace .File.ContentBaseName "-" " " | title }}'
 date: {{ .Date }}
 author: "Nate"
-# weight: 1
+weight: 1
 # aliases: ["/first"]
 tags: ["Untagged"]
 categories: ["Uncategorized"]
