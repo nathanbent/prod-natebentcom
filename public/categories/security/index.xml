@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Security on NateBent.com</title>
+    <link>https://natebent.com/categories/security/</link>
+    <description>Recent content in Security on NateBent.com</description>
+    <image>
+      <title>NateBent.com</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 25 Jun 2026 01:00:00 +0000</lastBuildDate>
+    <atom:link href="https://natebent.com/categories/security/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside</title>
+      <link>https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/</link>
+      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/</guid>
+      <description>What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.</description>
+    </item>
+  </channel>
+</rss>

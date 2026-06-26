@@ -1,0 +1,54 @@
+/* ============================================================
+   Callouts / GitHub-style alerts
+   Default (plain ">" and [!NOTE]) = blue
+   [!TIP] green · [!IMPORTANT] purple · [!WARNING] amber · [!CAUTION] red
+   ============================================================ */
+
+:root {
+    --callout-border: #3e7cb1;  --callout-bg: rgba(62,124,177,.08);  --callout-fg: #3e7cb1;
+
+    --cl-note-b: #3e7cb1;  --cl-note-bg: rgba(62,124,177,.08);   --cl-note-f: #3e7cb1;
+    --cl-tip-b: #3a9f6a;   --cl-tip-bg: rgba(58,159,106,.08);     --cl-tip-f: #2f8d5b;
+    --cl-imp-b: #8a63d2;   --cl-imp-bg: rgba(138,99,210,.08);     --cl-imp-f: #7b54c8;
+    --cl-warn-b: #d1a017;  --cl-warn-bg: rgba(209,160,23,.10);    --cl-warn-f: #9c7400;
+    --cl-caut-b: #d1453b;  --cl-caut-bg: rgba(209,69,59,.08);     --cl-caut-f: #c23730;
+}
+
+.dark {
+    --callout-border: #6ea8e0;  --callout-bg: rgba(110,168,224,.12);  --callout-fg: #6ea8e0;
+
+    --cl-note-b: #6ea8e0;  --cl-note-bg: rgba(110,168,224,.12);   --cl-note-f: #6ea8e0;
+    --cl-tip-b: #57c98a;   --cl-tip-bg: rgba(87,201,138,.12);     --cl-tip-f: #57c98a;
+    --cl-imp-b: #b294e8;   --cl-imp-bg: rgba(178,148,232,.12);    --cl-imp-f: #b294e8;
+    --cl-warn-b: #e3b341;  --cl-warn-bg: rgba(227,179,65,.12);    --cl-warn-f: #e3b341;
+    --cl-caut-b: #f0857d;  --cl-caut-bg: rgba(240,133,125,.12);   --cl-caut-f: #f0857d;
+}
+
+/* Base — plain ">" quotes get the blue callout look */
+.post-content blockquote {
+    border-inline-start: 4px solid var(--callout-border);
+    background: var(--callout-bg);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    margin: 20px 0;
+}
+.post-content blockquote > :last-child { margin-bottom: 0; }
+
+/* Typed callouts just remap the three vars; base rule picks them up */
+.post-content blockquote.callout-note      { --callout-border: var(--cl-note-b); --callout-bg: var(--cl-note-bg); --callout-fg: var(--cl-note-f); }
+.post-content blockquote.callout-tip       { --callout-border: var(--cl-tip-b);  --callout-bg: var(--cl-tip-bg);  --callout-fg: var(--cl-tip-f); }
+.post-content blockquote.callout-important { --callout-border: var(--cl-imp-b);  --callout-bg: var(--cl-imp-bg);  --callout-fg: var(--cl-imp-f); }
+.post-content blockquote.callout-warning   { --callout-border: var(--cl-warn-b); --callout-bg: var(--cl-warn-bg); --callout-fg: var(--cl-warn-f); }
+.post-content blockquote.callout-caution   { --callout-border: var(--cl-caut-b); --callout-bg: var(--cl-caut-bg); --callout-fg: var(--cl-caut-f); }
+
+/* Title row (icon + label) */
+.post-content blockquote .callout-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    font-weight: 600;
+    color: var(--callout-fg);
+}
+.post-content blockquote .callout-icon { display: inline-flex; }
+.post-content blockquote .callout-icon svg { width: 1.1em; height: 1.1em; fill: currentColor; }

@@ -2,14 +2,17 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/</loc>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/posts/vxlan-fortigate-proxmox-2/</loc>
-    <lastmod>2026-06-23T21:14:00+00:00</lastmod>
+    <lastmod>2026-06-23T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/posts/vxlan-fortigate-proxmox-1/</loc>
-    <lastmod>2026-06-21T21:14:00+00:00</lastmod>
+    <lastmod>2026-06-21T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/posts/idrac-fan-control/</loc>
     <lastmod>2024-09-25T11:54:26-05:00</lastmod>
@@ -20,47 +23,62 @@
     <loc>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</loc>
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
   </url><url>
+    <loc>https://natebent.com/tags/bgp/</loc>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://natebent.com/categories/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/evpn/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/fortigate/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/homelab/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/microsegmentation/</loc>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/networking/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/np7/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/performance/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/posts/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/proxmox/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/series/proxmox-software-defined-networking/</loc>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/sdn/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/security/</loc>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/security/</loc>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/series/</loc>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/vxlan/</loc>
-    <lastmod>2026-06-25T23:40:00+00:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/tags/bgp/</loc>
-    <lastmod>2026-06-23T21:14:00+00:00</lastmod>
+    <lastmod>2026-06-25T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/experiences/</loc>
     <lastmod>2024-09-25T11:54:26-05:00</lastmod>
@@ -147,7 +165,5 @@
     <lastmod>2026-06-23T12:00:00-05:00</lastmod>
   </url><url>
     <loc>https://natebent.com/archive/</loc>
-  </url><url>
-    <loc>https://natebent.com/series/</loc>
   </url>
 </urlset>

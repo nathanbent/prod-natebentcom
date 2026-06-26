@@ -11,12 +11,12 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 25 Jun 2026 23:40:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 25 Jun 2026 01:00:00 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/tags/np7/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>VXLAN Performance on a FortiGate 70F: The Software Switching Tax</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/</link>
-      <pubDate>Thu, 25 Jun 2026 23:40:00 +0000</pubDate>
+      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/</guid>
       <description>Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.</description>
     </item>

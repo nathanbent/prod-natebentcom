@@ -36,6 +36,19 @@ cover:
 
 Over the last few months, I have been playing around with moving my website from Wordpress where it has lived in one form or another since around 2004.  When I first installed it, I believe I was really just looking for some software to run on my newly hacked together LAMP server; I never imagined I would use it for so long.
 
+
+> A plain quote — stays blue, no label.
+
+> [!NOTE]
+> Blue, with a "Note" label and info icon.
+
+> [!WARNING]
+> Amber.
+
+> [!CAUTION]
+> Red.
+
+
 <!--more-->
 
 Having used Wordpress for so long, I have gotten extremely familiar with what I liked, but also what I disliked.  To summarize,

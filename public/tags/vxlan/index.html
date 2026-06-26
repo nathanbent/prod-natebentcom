@@ -12,7 +12,7 @@
 <meta name="description" content="Nate Bent&#39;s website and portfolio">
 <meta name="author" content="Nathan Bent">
 <link rel="canonical" href="https://natebent.com/tags/vxlan/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3f49b99c42dbb7db2e456b0a940c8b5eef4e6e5669e055f1a83affd2170dd440.css" integrity="sha256-P0m5nELbt9suRWsKlAyLXu9OblZp4FXxqDr/0hcN1EA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.8f58c2ca3ddc59094c81af5c83fb6a678db60188a1f15f4e441830e3d05d56a6.css" integrity="sha256-j1jCyj3cWQlMga9cg/tqZ422AYih8V9ORBgw49BdVqY=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://natebent.com/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://natebent.com/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://natebent.com/favicon-32x32.png">
@@ -62,6 +62,7 @@
 <meta property="og:description" content="Nate Bent&#39;s website and portfolio" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://natebent.com/tags/vxlan/" /><meta property="og:image" content="https://natebent.com/images/papermod-cover.png"/>
+
 
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://natebent.com/images/papermod-cover.png"/>
@@ -143,6 +144,20 @@
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>The thing that actually makes this interesting The fun of this setup was never VXLAN for its own sake. It is that the FortiGate is the only router for every overlay segment, which means traffic I normally cannot see gets inspected like everything else. That sentence is the whole security story, so it is worth unpacking before anything else.
+A quick disclaimer up front, because it is the most common misconception: VXLAN is not a security feature. It does not encrypt anything, it does not authenticate anything, and an overlay is not inherently safer than a VLAN. What the overlay gives you is an architecture in which certain strong patterns become cheap and natural. The security comes from the patterns, not the encapsulation. The rest of this post is those patterns, then an honest list of what the overlay does not do for you.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;10 min&nbsp;·&nbsp;1957 words&nbsp;·&nbsp;Nate</footer>
+  <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">VXLAN Performance on a FortiGate 70F: The Software Switching Tax
     </h2>
   </header>
@@ -150,7 +165,7 @@
     <p>The setup, and the question A while back I built an EVPN/VXLAN overlay between a FortiGate and a three node Proxmox cluster. The overlay segments come out of Proxmox SDN (an EVPN zone with a handful of VNets), and the FortiGate plays anycast gateway for them. I wrote up the build itself in a separate post; this one is only about the thing I wanted to know once it was actually working: what does all that encapsulation cost me in throughput?
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2026-06-25 23:40:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;1555 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;1555 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Performance on a FortiGate 70F: The Software Switching Tax" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/"></a>
 </article>
 
@@ -163,7 +178,7 @@
     <p>Recap, and the problem with where we left off In part 1 I convinced a FortiGate and a Proxmox cluster to form a working VXLAN segment with nothing more than matching VNI, port, and a static list of peer addresses. That works, but it has a built in tax: every VTEP has to list every other VTEP. Adding a host means editing the peer list on every existing box, and the only way a VTEP learns which MAC lives behind which remote VTEP is to flood unknown traffic everywhere and watch the replies.
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2026-06-23 21:14:00 +0000 UTC'>June 23, 2026</span>&nbsp;·&nbsp;13 min&nbsp;·&nbsp;2621 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2026-06-23 01:00:00 +0000 UTC'>June 23, 2026</span>&nbsp;·&nbsp;13 min&nbsp;·&nbsp;2621 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2: EVPN" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2/"></a>
 </article>
 
@@ -176,7 +191,7 @@
     <p>Why VXLAN I already run VLANs through my core switch to carve up the lab, and that works well enough. What I wanted to play with was decoupling a segment from the physical switch entirely. VXLAN does that by wrapping the guest’s Layer 2 frame inside a UDP packet (destination port 4789 by default) and shipping it to whatever VXLAN Tunnel Endpoint (VTEP) holds the other end. To a VM the bridge looks like any other bridge, but the “wire” underneath it is now an IP path I control instead of a switchport.
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2026-06-21 21:14:00 +0000 UTC'>June 21, 2026</span>&nbsp;·&nbsp;6 min&nbsp;·&nbsp;1249 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2026-06-21 01:00:00 +0000 UTC'>June 21, 2026</span>&nbsp;·&nbsp;6 min&nbsp;·&nbsp;1249 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox" href="https://natebent.com/posts/vxlan-fortigate-proxmox-1/"></a>
 </article>
     </main>
