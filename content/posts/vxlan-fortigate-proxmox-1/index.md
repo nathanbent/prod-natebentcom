@@ -110,14 +110,14 @@ From the VM, `ping 172.31.99.1`. If that comes back, the interop is proven.
 
 On the FortiGate I watched the forwarding table and the encapsulated packets go by:
 
-```
+```FortiOS
 diagnose sys vxlan fdb list vxlan-poc
 diagnose sniffer packet lan 'udp port 4789' 4
 ```
 
 On Proxmox the same flows show up mirrored:
 
-```
+```bash
 bridge fdb show | grep vxlan
 tcpdump -ni <underlay-iface> udp port 4789
 ```
