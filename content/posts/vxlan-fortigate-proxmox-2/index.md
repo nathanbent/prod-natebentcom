@@ -282,7 +282,8 @@ Notice that the route target on the FortiGate and the tag on Proxmox are the sam
 ## Proxmox Datacenter Manager
 
 Proxmox Datacenter Manager (PDM) has been adding in more support for SDN features, including EVPN.  Here is what it looks like currently:
-{{</* figure src="images/pdm-evpn-1.png" alt="Proxmox Datacenter Manager - EVPN Page" caption="Proxmox Datacenter Manager - EVPN Page" */>}}
+
+{{< figure src="images/pdm-evpn-1.png" alt="Proxmox Datacenter Manager - EVPN Page" caption="Proxmox Datacenter Manager - EVPN Page" >}}
 
 ## Where this goes next
 

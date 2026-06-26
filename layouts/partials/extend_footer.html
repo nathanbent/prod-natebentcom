@@ -40,4 +40,55 @@
   }
 })();
 </script>
+<script>
+(function () {
+  var content = document.querySelector('.post-content');
+  if (!content) return;
+
+  var overlay = null;
+  var onKey = function (e) { if (e.key === 'Escape') close(); };
+
+  function close() {
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', onKey);
+    var o = overlay; overlay = null;
+    setTimeout(function () { if (o.parentNode) o.parentNode.removeChild(o); }, 200);
+  }
+
+  content.addEventListener('click', function (e) {
+    var img = e.target.closest('img');
+    if (!img) return;
+    if (img.classList.contains('in-text')) return;  // skip inline icons
+    if (img.closest('a')) return;                    // let linked images follow their link
+
+    overlay = document.createElement('div');
+    overlay.className = 'lightbox';
+
+    var box = document.createElement('figure');
+    box.className = 'lightbox-inner';
+
+    var big = document.createElement('img');
+    big.src = img.currentSrc || img.src;
+    big.alt = img.alt || '';
+    box.appendChild(big);
+
+    var cap = img.closest('figure') &&
+              img.closest('figure').querySelector('figcaption');
+    if (cap && cap.textContent.trim()) {
+      var c = document.createElement('figcaption');
+      c.textContent = cap.textContent.trim();
+      box.appendChild(c);
+    }
+
+    overlay.appendChild(box);
+    overlay.addEventListener('click', close);
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';         // lock background scroll
+    requestAnimationFrame(function () { overlay.classList.add('open'); });
+    document.addEventListener('keydown', onKey);
+  });
+})();
+</script>
 {{- end }}
