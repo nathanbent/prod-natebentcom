@@ -13,8 +13,7 @@
   <blockquote class="callout callout-{{ .AlertType }}">
     <p class="callout-title">
       <span class="callout-icon">{{ index $icons .AlertType | safeHTML }}</span>
-#      <span class="callout-label">{{ or (i18n .AlertType) (title .AlertType) }}</span>
-       <span class="callout-label">{{ or (index $labels .AlertType) (i18n .AlertType) (title .AlertType) }}</span>
+      <span class="callout-label">{{ or (index $labels .AlertType) (i18n .AlertType) (title .AlertType) }}</span>
     </p>
     {{ .Text }}
   </blockquote>
