@@ -14,9 +14,10 @@ tags:
 categories:
   - Networking
   - Security
+series: ["Proxmox Software-Defined Networking"]
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: false
 description: What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.

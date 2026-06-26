@@ -11,6 +11,7 @@ tags:
   - Homelab
 categories:
   - Networking
+series: ["Proxmox Software-Defined Networking"]
 showToc: true
 TocOpen: false
 draft: false

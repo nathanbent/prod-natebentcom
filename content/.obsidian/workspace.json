@@ -13,9 +13,9 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "posts/vxlan-fortigate-proxmox-2.25/index.md",
+                "file": "posts/vxlan-fortigate-proxmox-1/index.md",
                 "mode": "source",
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
               "title": "index"
@@ -99,7 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "posts/vxlan-fortigate-proxmox-2.25/index.md",
+                "file": "posts/vxlan-fortigate-proxmox-1/index.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +118,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "posts/vxlan-fortigate-proxmox-2.25/index.md",
+                "file": "posts/vxlan-fortigate-proxmox-1/index.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "posts/vxlan-fortigate-proxmox-2.25/index.md",
+                "file": "posts/vxlan-fortigate-proxmox-1/index.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -190,9 +190,9 @@
   },
   "active": "e5bd1b6ad3a9a490",
   "lastOpenFiles": [
-    "posts/vxlan-fortigate-proxmox-2.5/index.md",
     "posts/vxlan-fortigate-proxmox-2/index.md",
-    "posts/vxlan-fortigate-proxmox-1/index.md",
-    "posts/vxlan-fortigate-proxmox-2.25/index.md"
+    "posts/vxlan-fortigate-proxmox-2.5/index.md",
+    "posts/vxlan-fortigate-proxmox-2.25/index.md",
+    "posts/vxlan-fortigate-proxmox-1/index.md"
   ]
 }
