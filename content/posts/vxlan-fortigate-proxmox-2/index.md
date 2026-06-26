@@ -31,12 +31,16 @@ ShowPostNavLinks: true
 ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
+summary: "Part 1's static peer lists don't scale. EVPN makes the fabric learn its own endpoints — here's the working BGP control plane."
+params:
+    thumbCover: true
 cover:
-  image: <image path/url>
-  alt: <alt text>
-  caption: <text>
-  relative: false
-  hidden: true
+    image: "images/pdm-evpn-1.png"
+    alt: "PDM EVPN page"
+    relative: true
+    thumb: true
+    hiddenInSingle: true   # never show it stacked atop the article
+    hiddenInList: false    # but do show it as the list thumbnail
 editPost:
   disaled: true
   URL: https://github.com/<path_to_repo>/content
