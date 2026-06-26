@@ -279,6 +279,11 @@ Proxmox is even less work, because the controller and zone already exist. Add tw
 
 Notice that the route target on the FortiGate and the tag on Proxmox are the same number in both tables, the VNI, just typed on one side and derived on the other. Keeping three segments straight is really just keeping one number lined up across both platforms three times. Which, as the next section's failure mode shows, is exactly where a typo hides.
 
+## Proxmox Datacenter Manager
+
+Proxmox Datacenter Manager (PDM) has been adding in more support for SDN features, including EVPN.  Here is what it looks like currently:
+{{</* figure src="images/pdm-evpn-1.png" alt="Proxmox Datacenter Manager - EVPN Page" caption="Proxmox Datacenter Manager - EVPN Page" */>}}
+
 ## Where this goes next
 
 Everything above is hand typed, and every segment is the identical five object pattern keyed on one VNI, which is exactly the shape that begs to be looped. The next post is automating it: defining the segment list once as data and letting Terraform render both the FortiGate objects and the Proxmox SDN objects, with the route target and the tag both computed from the same number so the "mind your tags" failure mode becomes structurally impossible.
