@@ -60,7 +60,7 @@ I wanted the cleanest A/B I could manage, so I changed exactly one thing. Same V
 
 Both paths route through the same box to the same destination, so if the overlay costs anything, this isolates it. The test itself was nothing fancy:
 
-```
+```bash
 iperf3 -c <server> -t 10
 ```
 
@@ -68,7 +68,7 @@ iperf3 -c <server> -t 10
 
 VXLAN overlay segment:
 
-```
+```bash
 [ ID] Interval           Transfer     Bitrate         Retr
 [  5]   0.00-10.00  sec   654 MBytes   548 Mbits/sec  179   sender
 [  5]   0.00-10.00  sec   651 MBytes   546 Mbits/sec        receiver
@@ -78,7 +78,7 @@ Across several runs this sat in a tight band, roughly 525 to 548 Mbit/sec, alway
 
 Same VM, plain VLAN:
 
-```
+```bash
 [ ID] Interval           Transfer     Bitrate         Retr
 [  5]   0.00-10.00  sec  1.09 GBytes   935 Mbits/sec  109   sender
 [  5]   0.00-10.00  sec  1.09 GBytes   934 Mbits/sec        receiver
@@ -98,7 +98,7 @@ On the VXLAN run, a CPU core jumps for the entire length of the transfer and dro
 
 A few commands make this concrete rather than a vibe:
 
-```
+```FortiOS
 get system performance status
 diagnose sys top 2 20
 ```
@@ -107,7 +107,7 @@ diagnose sys top 2 20
 
 If you want to confirm it at the session level instead of by CPU, pull the flow out of the session table and look at whether it is offloaded:
 
-```
+```FortiOS
 diagnose sys session filter dport 5201
 diagnose sys session list
 ```
@@ -120,7 +120,7 @@ That same software datapath filling up under load is what produces the steady re
 
 This is a FortiGate 70F:
 
-```
+```FortiSpecs
 Model name: FortiGate-70F
 ASIC version: SOC4
 CPU: ARMv8

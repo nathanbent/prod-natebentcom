@@ -83,7 +83,7 @@ Sanitized parameters:
 
 Structurally this is the part 1 VXLAN block with the static `remote-ip` removed, plus an EVPN instance and a BGP stanza. The EVPN instance carries the route distinguisher and route targets. The VXLAN links to it by `evpn-id`. BGP carries the routes.
 
-```
+```FortiOS
 config system evpn
     edit 1
         set rd "10.0.50.1:4099"
@@ -171,13 +171,13 @@ Once the route targets matched, the Proxmox side told the whole story. `show bgp
 
 The commands worth banking, FortiGate then Proxmox:
 
-```
+```FortiOS
 get router info bgp neighbors <peer>     # L2VPN EVPN: accepted/announced counts
 get l2vpn evpn table
 diagnose sys vxlan fdb list <vxlan-name>
 ```
 
-```
+```bash
 vtysh -c "show bgp l2vpn evpn summary"
 vtysh -c "show bgp l2vpn evpn"
 vtysh -c "show evpn vni"
@@ -207,7 +207,7 @@ Once the first segment works, this is where the EVPN setup starts paying off, be
 
 On the FortiGate that is three EVPN instances, three VXLANs, three software switches, and three switch IPs. I have renamed the first segment's objects to sit alongside its siblings, but it is the same VNI 4099 segment from above:
 
-```
+```FortiOS
 config system evpn
     edit 1
         set rd "10.0.50.1:4099"
