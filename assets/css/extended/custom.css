@@ -1,30 +1,96 @@
-/* Custom styles added to demo */
+/* Custom styles added to natebent.com */
 
-:root { --accent: #748CAB; }
-.dark { --accent: #8fa8c9; }
+:root {
+    --main-width: 1100px;
+    /* wide canvas: code, tables, images breathe */
+    --measure: 72ch;
+    /* comfortable reading width for prose */
+}
+
+/* Constrain text to a readable measure; everything else stays full width */
+.post-content>p,
+.post-content>ul,
+.post-content>ol,
+.post-content>dl,
+.post-content>blockquote,
+.post-content>h1,
+.post-content>h2,
+.post-content>h3,
+.post-content>h4,
+.post-content>h5,
+.post-content>h6 {
+    max-width: var(--measure);
+    margin-inline: auto;
+}
+
+:root {
+    --accent: #748CAB;
+}
+
+.dark {
+    --accent: #8fa8c9;
+}
 
 .post-content a,
-.toc a:hover { color: var(--accent); }
-::selection { background: var(--accent); color: #fff; }
+.toc a:hover {
+    color: var(--accent);
+}
 
-html { scroll-behavior: smooth; }
-.post-content h1, .post-content h2, .post-content h3,
-.post-content h4, .post-content h5, .post-content h6 { scroll-margin-top: 80px; }
+::selection {
+    background: var(--accent);
+    color: #fff;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+    scroll-margin-top: 80px;
+}
 
 .post-title,
-.post-content h1, .post-content h2, .post-content h3 { text-wrap: balance; }
-.post-content p { text-wrap: pretty; }
+.post-content h1,
+.post-content h2,
+.post-content h3 {
+    text-wrap: balance;
+}
 
-.post-content table { font-variant-numeric: tabular-nums; }
+.post-content p {
+    text-wrap: pretty;
+}
 
-.post-content img { border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,.12); }
-.dark .post-content img { box-shadow: 0 2px 12px rgba(0,0,0,.4); }
+.post-content table {
+    font-variant-numeric: tabular-nums;
+}
 
-.post-content a { transition: color .15s ease, box-shadow .15s ease; }
+.post-content img {
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+
+.dark .post-content img {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .4);
+}
+
+.post-content a {
+    transition: color .15s ease, box-shadow .15s ease;
+}
 
 /* Code-block language labels */
-.code-wrap { position: relative; margin: 10px auto; }
-.code-wrap > .highlight { margin: 0; }
+.code-wrap {
+    position: relative;
+    margin: 10px auto;
+}
+
+.code-wrap>.highlight {
+    margin: 0;
+}
 
 .code-wrap[data-lang]::before {
     content: attr(data-lang);
@@ -42,17 +108,21 @@ html { scroll-behavior: smooth; }
 }
 
 /* Fade the label out on hover so the copy button gets the corner to itself */
-.code-wrap:hover[data-lang]::before { opacity: 0; }
+.code-wrap:hover[data-lang]::before {
+    opacity: 0;
+}
 
 /* Reading progress bar */
 #reading-progress {
     position: fixed;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 3px;
     z-index: 1000;
     pointer-events: none;
 }
+
 #reading-progress span {
     display: block;
     width: 0;
@@ -62,8 +132,14 @@ html { scroll-behavior: smooth; }
 }
 
 /* Active TOC link */
-#TableOfContents a { transition: color .15s ease; }
-#TableOfContents a.active { color: var(--accent); font-weight: 600; }
+#TableOfContents a {
+    transition: color .15s ease;
+}
+
+#TableOfContents a.active {
+    color: var(--accent);
+    font-weight: 600;
+}
 
 .twitter-tweet {
     margin: auto;

@@ -301,11 +301,11 @@
 <h2 id="verifying">Verifying<a hidden class="anchor" aria-hidden="true" href="#verifying">#</a></h2>
 <p>From the VM, <code>ping 172.31.99.1</code>. If that comes back, the interop is proven.</p>
 <p>On the FortiGate I watched the forwarding table and the encapsulated packets go by:</p>
-<div class="code-wrap"><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">diagnose sys vxlan fdb list vxlan-poc
+<div class="code-wrap" data-lang="FortiOS"><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">diagnose sys vxlan fdb list vxlan-poc
 </span></span><span class="line"><span class="cl">diagnose sniffer packet lan &#39;udp port 4789&#39; 4</span></span></code></pre></div></div>
 <p>On Proxmox the same flows show up mirrored:</p>
-<div class="code-wrap"><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">bridge fdb show | grep vxlan
-</span></span><span class="line"><span class="cl">tcpdump -ni &lt;underlay-iface&gt; udp port 4789</span></span></code></pre></div></div>
+<div class="code-wrap" data-lang="bash"><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">bridge fdb show <span class="p">|</span> grep vxlan
+</span></span><span class="line"><span class="cl">tcpdump -ni &lt;underlay-iface&gt; udp port <span class="m">4789</span></span></span></code></pre></div></div>
 <p>Once the ping worked, I confirmed large frames survive with <code>ping -M do -s 1400</code> from the VM. A same subnet test will happily pass small pings even with the MTU set wrong, so this step matters before you trust the segment. (If you skip it, the MTU mismatch waits to bite you later, much more confusingly, the first time real traffic tries to push full size frames.)</p>
 <h2 id="adding-more-hosts">Adding more hosts<a hidden class="anchor" aria-hidden="true" href="#adding-more-hosts">#</a></h2>
 <p>This was the part I had wrong in my head at first. For more VTEPs on the same segment, you do not create additional VXLAN interfaces. One VNI is one segment. You just add every remote VTEP to the single interface&rsquo;s <code>remote-ip</code>, which is a list:</p>
