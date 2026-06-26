@@ -1,0 +1,43 @@
+{{- if .IsPage }}
+<div id="reading-progress" aria-hidden="true"><span></span></div>
+
+<script>
+(function () {
+  // Reading progress bar
+  var bar = document.querySelector('#reading-progress span');
+  if (bar) {
+    var update = function () {
+      var el = document.documentElement;
+      var max = el.scrollHeight - el.clientHeight;
+      bar.style.width = (max > 0 ? (el.scrollTop / max) * 100 : 0) + '%';
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  }
+
+  // Scroll-tracking TOC highlight
+  var toc = document.getElementById('TableOfContents');
+  if (toc) {
+    var links = {};
+    toc.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      try { links[decodeURIComponent(a.getAttribute('href').slice(1))] = a; } catch (e) {}
+    });
+    var headings = document.querySelectorAll(
+      '.post-content h1[id], .post-content h2[id], .post-content h3[id], .post-content h4[id]'
+    );
+    if (headings.length) {
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && links[entry.target.id]) {
+            toc.querySelectorAll('a.active').forEach(function (a) { a.classList.remove('active'); });
+            links[entry.target.id].classList.add('active');
+          }
+        });
+      }, { rootMargin: '0px 0px -80% 0px', threshold: 0 });
+      headings.forEach(function (h) { obs.observe(h); });
+    }
+  }
+})();
+</script>
+{{- end }}

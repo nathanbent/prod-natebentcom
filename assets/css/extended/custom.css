@@ -44,6 +44,27 @@ html { scroll-behavior: smooth; }
 /* Fade the label out on hover so the copy button gets the corner to itself */
 .code-wrap:hover[data-lang]::before { opacity: 0; }
 
+/* Reading progress bar */
+#reading-progress {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 3px;
+    z-index: 1000;
+    pointer-events: none;
+}
+#reading-progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--accent);
+    transition: width .1s linear;
+}
+
+/* Active TOC link */
+#TableOfContents a { transition: color .15s ease; }
+#TableOfContents a.active { color: var(--accent); font-weight: 600; }
+
 .twitter-tweet {
     margin: auto;
 }

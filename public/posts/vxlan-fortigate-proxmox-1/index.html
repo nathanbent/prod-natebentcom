@@ -309,7 +309,7 @@ tcpdump -ni &lt;underlay-iface&gt; udp port 4789
 </code></pre><p>Once the ping worked, I confirmed large frames survive with <code>ping -M do -s 1400</code> from the VM. A same subnet test will happily pass small pings even with the MTU set wrong, so this step matters before you trust the segment. (If you skip it, the MTU mismatch waits to bite you later, much more confusingly, the first time real traffic tries to push full size frames.)</p>
 <h2 id="adding-more-hosts">Adding more hosts<a hidden class="anchor" aria-hidden="true" href="#adding-more-hosts">#</a></h2>
 <p>This was the part I had wrong in my head at first. For more VTEPs on the same segment, you do not create additional VXLAN interfaces. One VNI is one segment. You just add every remote VTEP to the single interface&rsquo;s <code>remote-ip</code>, which is a list:</p>
-<pre tabindex="0"><code>config system vxlan
+<pre tabindex="0"><code class="language-FortiOS" data-lang="FortiOS">config system vxlan
     edit &#34;vxlan-poc&#34;
         set interface &#34;lan&#34;
         set vni 4099
