@@ -292,6 +292,8 @@ html { scroll-behavior: smooth; }
 
 /* 8. NAVIGATION & TAGS -------------------------------------- */
 
+#menu { padding-bottom: 5px; }
+
 .nav .logo a { transition: color .15s ease; }
 
 #menu a { position: relative; }
