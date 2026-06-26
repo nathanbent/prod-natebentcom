@@ -12,7 +12,7 @@
 <meta name="description" content="Posts - NateBent.com">
 <meta name="author" content="Nathan Bent">
 <link rel="canonical" href="https://natebent.com/posts/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.09ad11f53b21b8c4387be74508c8cca03934f5f2b57dd0d8c857ae7cdb5ccbdb.css" integrity="sha256-Ca0R9TshuMQ4e&#43;dFCMjMoDk09fK1fdDYyFeufNtcy9s=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.6c8c2649d4e79336cc83a578eca3f7ff743777fc1d387047e77ac6ae2cc5ad14.css" integrity="sha256-bIwmSdTnkzbMg6V47KP3/3Q3d/wdOHBH53rGrizFrRQ=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://natebent.com/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://natebent.com/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://natebent.com/favicon-32x32.png">
@@ -164,8 +164,7 @@
   </header>
   <div class="entry-content">
     <p>The thing that actually makes this interesting The fun of this setup was never VXLAN for its own sake. It is that the FortiGate is the only router for every overlay segment, which means traffic I normally cannot see gets inspected like everything else. That sentence is the whole security story, so it is worth unpacking before anything else.
-A quick disclaimer up front, because it is the most common misconception: VXLAN is not a security feature. It does not encrypt anything, it does not authenticate anything, and an overlay is not inherently safer than a VLAN. What the overlay gives you is an architecture in which certain strong patterns become cheap and natural. The security comes from the patterns, not the encapsulation. The rest of this post is those patterns, then an honest list of what the overlay does not do for you.
-...</p>
+A quick disclaimer up front, because it is the most common misconception: VXLAN is not a security feature....</p>
   </div>
   <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;10 min&nbsp;·&nbsp;1957 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/"></a>
@@ -177,8 +176,7 @@ A quick disclaimer up front, because it is the most common misconception: VXLAN 
     </h2>
   </header>
   <div class="entry-content">
-    <p>The setup, and the question A while back I built an EVPN/VXLAN overlay between a FortiGate and a three node Proxmox cluster. The overlay segments come out of Proxmox SDN (an EVPN zone with a handful of VNets), and the FortiGate plays anycast gateway for them. I wrote up the build itself in a separate post; this one is only about the thing I wanted to know once it was actually working: what does all that encapsulation cost me in throughput?
-...</p>
+    <p>The setup, and the question A while back I built an EVPN/VXLAN overlay between a FortiGate and a three node Proxmox cluster. The overlay segments come out of Proxmox SDN (an EVPN zone with a handful of VNets), and the FortiGate plays anycast gateway for them. I wrote up the build itself in a separate post; this one is only about the thing I wanted to know once it was actually working: what does all that encapsulation cost me in throughput?...</p>
   </div>
   <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;1555 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Performance on a FortiGate 70F: The Software Switching Tax" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/"></a>
@@ -190,8 +188,7 @@ A quick disclaimer up front, because it is the most common misconception: VXLAN 
     </h2>
   </header>
   <div class="entry-content">
-    <p>Recap, and the problem with where we left off In part 1 I convinced a FortiGate and a Proxmox cluster to form a working VXLAN segment with nothing more than matching VNI, port, and a static list of peer addresses. That works, but it has a built in tax: every VTEP has to list every other VTEP. Adding a host means editing the peer list on every existing box, and the only way a VTEP learns which MAC lives behind which remote VTEP is to flood unknown traffic everywhere and watch the replies.
-...</p>
+    <p>Recap, and the problem with where we left off In part 1 I convinced a FortiGate and a Proxmox cluster to form a working VXLAN segment with nothing more than matching VNI, port, and a static list of peer addresses. That works, but it has a built in tax: every VTEP has to list every other VTEP. Adding a host means editing the peer list on every existing box, and the only way a VTEP learns which MAC lives behind which remote VTEP is to flood unknown traffic everywhere and watch the replies....</p>
   </div>
   <footer class="entry-footer"><span title='2026-06-23 01:00:00 +0000 UTC'>June 23, 2026</span>&nbsp;·&nbsp;13 min&nbsp;·&nbsp;2621 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2: EVPN" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2/"></a>
@@ -203,8 +200,7 @@ A quick disclaimer up front, because it is the most common misconception: VXLAN 
     </h2>
   </header>
   <div class="entry-content">
-    <p>Why VXLAN I already run VLANs through my core switch to carve up the lab, and that works well enough. What I wanted to play with was decoupling a segment from the physical switch entirely. VXLAN does that by wrapping the guest’s Layer 2 frame inside a UDP packet (destination port 4789 by default) and shipping it to whatever VXLAN Tunnel Endpoint (VTEP) holds the other end. To a VM the bridge looks like any other bridge, but the “wire” underneath it is now an IP path I control instead of a switchport.
-...</p>
+    <p>Why VXLAN I already run VLANs through my core switch to carve up the lab, and that works well enough. What I wanted to play with was decoupling a segment from the physical switch entirely. VXLAN does that by wrapping the guest’s Layer 2 frame inside a UDP packet (destination port 4789 by default) and shipping it to whatever VXLAN Tunnel Endpoint (VTEP) holds the other end. To a VM the bridge looks like any other bridge, but the “wire” underneath it is now an IP path I control instead of a switchport....</p>
   </div>
   <footer class="entry-footer"><span title='2026-06-21 01:00:00 +0000 UTC'>June 21, 2026</span>&nbsp;·&nbsp;6 min&nbsp;·&nbsp;1249 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox" href="https://natebent.com/posts/vxlan-fortigate-proxmox-1/"></a>
@@ -216,10 +212,9 @@ A quick disclaimer up front, because it is the most common misconception: VXLAN 
     </h2>
   </header>
   <div class="entry-content">
-    <p>Concept Managing server fan speed is crucial for maintaining an optimal balance between cooling efficiency and noise levels, especially in environments where temperature control and acoustics are important. Dell servers, like many other enterprise-grade hardware, come equipped with Intelligent Platform Management Interface (IPMI) capabilities. With the help of ipmi-tools, we can access and control various hardware components of the server, including fan speed, remotely or locally, without needing direct access to the operating system.
-...</p>
+    <p>Concept Managing server fan speed is crucial for maintaining an optimal balance between cooling efficiency and noise levels, especially in environments where temperature control and acoustics are important. Dell servers, like many other enterprise-grade hardware, come equipped with Intelligent Platform Management Interface (IPMI) capabilities. With the help of ipmi-tools, we can access and control various hardware components of the server, including fan speed, remotely or locally, without needing direct access to the operating system....</p>
   </div>
-  <footer class="entry-footer"><span title='2024-09-25 11:54:26 -0500 -0500'>September 25, 2024</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;625 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2024-09-25 11:54:26 -0500 CDT'>September 25, 2024</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;625 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to iDRAC Fan Control" href="https://natebent.com/posts/idrac-fan-control/"></a>
 </article>
 
@@ -230,8 +225,7 @@ A quick disclaimer up front, because it is the most common misconception: VXLAN 
   </header>
   <div class="entry-content">
     <p>Context This project has been a culmination of a few projects coalescing together at the same time: I’ve been wanting to play with Cloud-Init in a local environment for a little while now, and I’ve been finding myself spinning up more and more VMs to test some networking automation.
-After a couple of nights of tweaking, I’ve found myself feeling really enjoying the amount of time I saved compared to manually creating VMs, and I wanted to summarize up my thoughts here.
-...</p>
+After a couple of nights of tweaking, I’ve found myself feeling really enjoying the amount of time I saved compared to manually creating VMs, and I wanted to summarize up my thoughts here....</p>
   </div>
   <footer class="entry-footer"><span title='2024-04-09 23:20:01 +0000 UTC'>April 9, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;234 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to Creating Ubuntu Templates with Cloud-Init in Proxmox" href="https://natebent.com/posts/proxmox-template-ubuntu/"></a>
@@ -244,10 +238,9 @@ After a couple of nights of tweaking, I’ve found myself feeling really enjoyin
   </header>
   <div class="entry-content">
     <p>Context DDNS allows for the dynamic update of DNS entries and attributes - what a fitting name. This can be an extremely valuable resource for professionals and homelabbers who need to deal with dynamically assigned IP addresses in keeping things connected.
-I personally use Cloudflare as a DNS proxy for my various domains, which used to be managed by Google Domains until they sold that business to Squarespace; I’ve since been moving everything to Porkbun.
-...</p>
+I personally use Cloudflare as a DNS proxy for my various domains, which used to be managed by Google Domains until they sold that business to Squarespace; I’ve since been moving everything to Porkbun....</p>
   </div>
-  <footer class="entry-footer"><span title='2024-02-03 20:52:13 -0600 -0600'>February 3, 2024</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;572 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2024-02-03 20:52:13 -0600 CST'>February 3, 2024</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;572 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to DDNS, ddclient and Cloudflare" href="https://natebent.com/posts/ddns-ddclient-and-cloudflare/"></a>
 </article>
 
@@ -258,16 +251,15 @@ I personally use Cloudflare as a DNS proxy for my various domains, which used to
   </header>
   <div class="entry-content">
     <p>I have been trying to gather my thoughts about using Ansible as a network engineer for a while now; but I’ve never found a good perspective to tell the story through. Even to begin to summarize how useful Ansible can be in a network setting can be a daunting task; my ongoing Obsidian web of notes seems to grow exponentially the more I explore.
-Intro and context Since I have to start somewhere, I think that covering the basic framework of how I use Ansible, and some of the most common tasks that I have been able to automate and speed up over time.
-...</p>
+Intro and context Since I have to start somewhere, I think that covering the basic framework of how I use Ansible, and some of the most common tasks that I have been able to automate and speed up over time....</p>
   </div>
-  <footer class="entry-footer"><span title='2024-01-13 15:18:50 -0600 -0600'>January 13, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;354 words&nbsp;·&nbsp;Nate</footer>
-  <a class="entry-link" aria-label="post link to Ansible & Network Engineers, Pt. I" href="https://natebent.com/posts/ansible-net-eng-1/"></a>
+  <footer class="entry-footer"><span title='2024-01-13 15:18:50 -0600 CST'>January 13, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;354 words&nbsp;·&nbsp;Nate</footer>
+  <a class="entry-link" aria-label="post link to Ansible &amp; Network Engineers, Pt. I" href="https://natebent.com/posts/ansible-net-eng-1/"></a>
 </article>
 
 <article class="post-entry"> 
 <figure class="entry-cover">
-        <img loading="lazy" srcset="https://natebent.com/posts/playing-with-obsidian/images/obsidian-feature_hu_75f91b4c28c56c7c.png 360w ,https://natebent.com/posts/playing-with-obsidian/images/obsidian-feature_hu_471413628ca55b17.png 480w ,https://natebent.com/posts/playing-with-obsidian/images/obsidian-feature_hu_1a2802439026a34.png 720w ,https://natebent.com/posts/playing-with-obsidian/images/obsidian-feature.png 800w" 
+        <img loading="lazy" srcset="https://natebent.com/posts/playing-with-obsidian/images/obsidian-feature_hu0c8815220dbc4addc5c730454b01dc64_84952_360x0_resize_box_3.png 360w ,https://natebent.com/posts/playing-with-obsidian/images/obsidian-feature_hu0c8815220dbc4addc5c730454b01dc64_84952_480x0_resize_box_3.png 480w ,https://natebent.com/posts/playing-with-obsidian/images/obsidian-feature_hu0c8815220dbc4addc5c730454b01dc64_84952_720x0_resize_box_3.png 720w ,https://natebent.com/posts/playing-with-obsidian/images/obsidian-feature.png 800w" 
             sizes="(min-width: 768px) 720px, 100vw" src="https://natebent.com/posts/playing-with-obsidian/images/obsidian-feature.png" alt="" 
             width="800" height="200">
 </figure>
@@ -277,10 +269,9 @@ Intro and context Since I have to start somewhere, I think that covering the bas
   </header>
   <div class="entry-content">
     <p>Towards the end of 2023 I decided to try learning markdown as a way to make my notetaking more efficient. Part of this effort was trying out the various markdown editors for Windows and Linux, and there are dozens of good ones. One of the most often recommended programs is Obsidian, which I have really grown to love over this time.
-Calling Obsidian a markdown editor is really underselling it; it is really a Personal Knowledge Management (PKM) system. Without diving too deep into a field I am still very new too myself, Obisidian allows you to link notes and knowledge together in customizable ways.
-...</p>
+Calling Obsidian a markdown editor is really underselling it; it is really a Personal Knowledge Management (PKM) system....</p>
   </div>
-  <footer class="entry-footer"><span title='2024-01-02 05:41:58 -0600 -0600'>January 2, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;257 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2024-01-02 05:41:58 -0600 CST'>January 2, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;257 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to Playing With Obsidian" href="https://natebent.com/posts/playing-with-obsidian/"></a>
 </article>
 
@@ -292,16 +283,16 @@ Calling Obsidian a markdown editor is really underselling it; it is really a Per
   <div class="entry-content">
     <p>Over the last few months, I have been playing around with moving my website from Wordpress where it has lived in one form or another since around 2004. When I first installed it, I believe I was really just looking for some software to run on my newly hacked together LAMP server; I never imagined I would use it for so long.
 A plain quote — stays blue, no label.
-# Note Note Blue, with a “Note” label and info icon.
-# Warning Warning Amber.
-# Caution Caution Red.
-# Insight Really Interesting The xfrm interface has to exist before strongSwan can bind the tunnel to it — which is the kind of ordering detail that costs you an afternoon.
-# Tip Tip Talk to your computers like this “beep boop beep beep”
-# Important Important Vote in your local elections
+[!NOTE] Blue, with a “Note” label and info icon.
+[!WARNING] Amber.
+[!CAUTION] Red.
+[!INSIGHT] The xfrm interface has to exist before strongSwan can bind the tunnel to it — which is the kind of ordering detail that costs you an afternoon.
+[!TIP] Talk to your computers like this “beep boop beep beep”
+[!IMPORTANT] Vote in your local elections
 IDK this is just something
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2024-01-01 17:26:18 -0600 -0600'>January 1, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;352 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2024-01-01 17:26:18 -0600 CST'>January 1, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;339 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to Moving to Hugo" href="https://natebent.com/posts/moving-to-hugo/"></a>
 </article>
     </main>

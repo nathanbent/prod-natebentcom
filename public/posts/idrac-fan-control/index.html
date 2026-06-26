@@ -12,7 +12,7 @@
 <meta name="description" content="Basic iDRAC fan control via impitool">
 <meta name="author" content="Nate">
 <link rel="canonical" href="https://canonical.url/to/page">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.09ad11f53b21b8c4387be74508c8cca03934f5f2b57dd0d8c857ae7cdb5ccbdb.css" integrity="sha256-Ca0R9TshuMQ4e&#43;dFCMjMoDk09fK1fdDYyFeufNtcy9s=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.6c8c2649d4e79336cc83a578eca3f7ff743777fc1d387047e77ac6ae2cc5ad14.css" integrity="sha256-bIwmSdTnkzbMg6V47KP3/3Q3d/wdOHBH53rGrizFrRQ=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://natebent.com/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://natebent.com/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://natebent.com/favicon-32x32.png">
@@ -193,7 +193,7 @@
     <div class="post-description">
       Basic iDRAC fan control via impitool
     </div>
-    <div class="post-meta"><span title='2024-09-25 11:54:26 -0500 -0500'>September 25, 2024</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;625 words&nbsp;·&nbsp;Nate&nbsp;|&nbsp;<a href="https://github.com/%3cpath_to_repo%3e/content/posts/idrac-fan-control/index.md" rel="noopener noreferrer" target="_blank">Suggest Changes</a>
+    <div class="post-meta"><span title='2024-09-25 11:54:26 -0500 CDT'>September 25, 2024</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;625 words&nbsp;·&nbsp;Nate&nbsp;|&nbsp;<a href="https://github.com/%3cpath_to_repo%3e/content/posts/idrac-fan-control/index.md" rel="noopener noreferrer" target="_blank">Suggest Changes</a>
 
 </div>
   </header> <div class="toc">
@@ -227,9 +227,9 @@
 <h2 id="steps-involved">Steps involved<a hidden class="anchor" aria-hidden="true" href="#steps-involved">#</a></h2>
 <h3 id="step-1-install-impitools--enable-ipmi-access-on-device">Step 1: Install impitools &amp; enable IPMI access on device<a hidden class="anchor" aria-hidden="true" href="#step-1-install-impitools--enable-ipmi-access-on-device">#</a></h3>
 <p>You will need to install <code>ipmitool</code></p>
-<div class="code-wrap" data-lang="bash"><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt install ipmitool   <span class="c1"># For Debian/Ubuntu</span>
-</span></span><span class="line"><span class="cl">sudo yum install ipmitool   <span class="c1"># For RHEL/CentOS</span></span></span></code></pre></div></div>
-<h3 id="step-2-verify-ipmi-access">Step 2: Verify IPMI Access<a hidden class="anchor" aria-hidden="true" href="#step-2-verify-ipmi-access">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt install ipmitool   <span class="c1"># For Debian/Ubuntu</span>
+</span></span><span class="line"><span class="cl">sudo yum install ipmitool   <span class="c1"># For RHEL/CentOS</span>
+</span></span></code></pre></div><h3 id="step-2-verify-ipmi-access">Step 2: Verify IPMI Access<a hidden class="anchor" aria-hidden="true" href="#step-2-verify-ipmi-access">#</a></h3>
 <p>First, verify that you can communicate with the IPMI interface using the <code>ipmitool</code> command. If you&rsquo;re accessing a remote server, you’ll use the -H flag for the server’s IP address, the -U flag for the username, and the -P flag for the password.</p>
 <p>Run the following command to check IPMI connection and get a system status overview:</p>
 <p><code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; sdr</code></p>
@@ -241,25 +241,29 @@ Copy code
 ipmitool -I lanplus -H <BMC-IP> -U <username> -P <password> sensor list | grep -i fan
 This will display all the fans in your system along with their current RPM (revolutions per minute). Understanding the current fan speeds will help when making adjustments later.</p>
 <h2 id="commands-to-copy">Commands to copy<a hidden class="anchor" aria-hidden="true" href="#commands-to-copy">#</a></h2>
-<blockquote><p>Replace <code>&lt;BMC-IP&gt;</code>, <code>&lt;username&gt;</code>, <code>&lt;password&gt;</code></p>
-</blockquote><p>Enable manual fan control: <code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x01 0x00</code></p>
+<blockquote>
+<p>Replace <code>&lt;BMC-IP&gt;</code>, <code>&lt;username&gt;</code>, <code>&lt;password&gt;</code></p>
+</blockquote>
+<p>Enable manual fan control: <code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x01 0x00</code></p>
 <p>Disable manual fan control: <code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x01 0x01</code></p>
 <p>Set a specific fan speed: <code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x02 0xff &lt;fan-speed&gt;</code></p>
-<blockquote><p>To break this command out;</p>
+<blockquote>
+<p>To break this command out;</p>
 <ul>
 <li>The <code>0xff</code> indicates that this command applies to all fans</li>
 <li>The <code>&lt;fan-speed&gt;</code> indicates the fan speed (in hexadecimal)</li>
 </ul>
-</blockquote><p>Some examples of specific fan speed commands:</p>
+</blockquote>
+<p>Some examples of specific fan speed commands:</p>
 <p>Set fan speed to 10%: <code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x02 0xff 0x0A</code></p>
 <p>Set fan speed to 20%: <code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x02 0xff 0x14</code></p>
 <p>Set fan speed to 30%: <code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x02 0xff 0x1E</code></p>
 <p>Set fan speed to 50%: <code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x02 0xff 0x32</code></p>
 <p>Set fan speed to 100%: <code>ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x02 0xff 0x64</code></p>
 <p>To enable fan control and set the speed to 30%:</p>
-<div class="code-wrap" data-lang="bash"><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x01 0x00
-</span></span><span class="line"><span class="cl">ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x02 0xff 0x1E</span></span></code></pre></div></div>
-<h2 id="some-notes-about-recent-ish-idrac-updates">Some notes about recent-ish iDRAC updates<a hidden class="anchor" aria-hidden="true" href="#some-notes-about-recent-ish-idrac-updates">#</a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x01 0x00
+</span></span><span class="line"><span class="cl">ipmitool -I lanplus -H &lt;BMC-IP&gt; -U &lt;username&gt; -P &lt;password&gt; raw 0x30 0x30 0x02 0xff 0x1E
+</span></span></code></pre></div><h2 id="some-notes-about-recent-ish-idrac-updates">Some notes about recent-ish iDRAC updates<a hidden class="anchor" aria-hidden="true" href="#some-notes-about-recent-ish-idrac-updates">#</a></h2>
 <p>After iDRAC 9 version3.30.30.30, fan control has been disabled by Dell.  Some forum posts <a href="https://www.dell.com/community/en/conversations/poweredge-hardware-general/dell-eng-is-taking-away-fan-speed-control-away-from-users-idrac-3343434/647f8593f4ccf8a8de47aa9b">here</a> on Dell&rsquo;s support page indicate that this was done to prevent inadvertant damage to servers from people like me doing stuff like this.  This is both a fair point, but also somewhat frustrating for those of us running these in more acoustically-sensitive environments.</p>
 <p>There is a downgrade path that worked for me (<a href="https://www.reddit.com/r/homelab/comments/t9pa13/dell_poweredge_fan_control_with_ipmitool/">from this Reddit thread</a>):
 <code>7.00.00.00 -&gt; 6.10.80.00 -&gt; 6.00.02.00 -&gt; 5.10.50.00 -&gt; 5.00.00.00 -&gt; 4.40.40.00 -&gt; 4.40.10.00 -&gt; 4.00.00.00 -&gt; 3.30.30.30</code></p>

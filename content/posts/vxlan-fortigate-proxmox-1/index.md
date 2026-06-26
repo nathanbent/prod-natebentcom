@@ -128,7 +128,7 @@ Once the ping worked, I confirmed large frames survive with `ping -M do -s 1400`
 
 This was the part I had wrong in my head at first. For more VTEPs on the same segment, you do not create additional VXLAN interfaces. One VNI is one segment. You just add every remote VTEP to the single interface's `remote-ip`, which is a list:
 
-```
+```FortiOS
 config system vxlan
     edit "vxlan-poc"
         set interface "lan"
