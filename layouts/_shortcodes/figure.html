@@ -1,0 +1,10 @@
+{{- $src := .Get "src" -}}
+{{- with .Page.Resources.GetMatch $src -}}
+  <figure>
+    <img src="{{ .RelPermalink }}" alt="{{ $.Get "alt" }}"
+         width="{{ .Width }}" height="{{ .Height }}" loading="lazy">
+    {{- with $.Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end -}}
+  </figure>
+{{- else -}}
+  {{- errorf "figure shortcode: image %q not found in %s" $src $.Page.File.Path -}}
+{{- end -}}

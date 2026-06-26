@@ -1,6 +1,17 @@
 /* Custom styles added to natebent.com */
 
 :root {
+    --accent: #748CAB;
+    --main-width: 1100px;   /* wide canvas: code, tables, images breathe */
+    --measure: 72ch;        /* comfortable reading width for prose */
+}
+
+.dark {
+    --accent: #8fa8c9;
+}
+
+
+:root {
     --main-width: 1100px;
     /* wide canvas: code, tables, images breathe */
     --measure: 72ch;
@@ -23,12 +34,15 @@
     margin-inline: auto;
 }
 
-:root {
-    --accent: #748CAB;
+.post-content h1,
+.post-content h2,
+.post-content h3 {
+    color: var(--accent);
 }
 
-.dark {
-    --accent: #8fa8c9;
+.post-content h2 {
+    border-inline-start: 4px solid var(--accent);
+    padding-inline-start: 12px;
 }
 
 .post-content a,
