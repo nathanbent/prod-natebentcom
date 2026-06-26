@@ -1,0 +1,11 @@
+{{- /* Wraps Hugo's default highlighted output (so PaperMod's copy button and
+       chroma styling keep working) and tags it with the language for a label.
+       Unknown languages (e.g. fortios) render as plain text but still show
+       the label you typed. */ -}}
+{{- $opts := dict -}}
+{{- if not (transform.CanHighlight .Type) -}}
+  {{- $opts = dict "type" "text" -}}
+{{- end -}}
+<div class="code-wrap"{{ with .Type }} data-lang="{{ . }}"{{ end }}>
+  {{- (transform.HighlightCodeBlock . $opts).Wrapped -}}
+</div>

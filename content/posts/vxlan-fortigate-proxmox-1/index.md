@@ -73,7 +73,7 @@ Parameters, all sanitized:
 
 Create the VXLAN interface, drop it into a software switch, and give the switch the gateway IP. The VXLAN object's `interface` is the underlay egress, and that interface's IP becomes the VTEP source.
 
-```
+```FortiOS
 config system vxlan
     edit "vxlan-poc"
         set interface "lan"

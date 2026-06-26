@@ -48,6 +48,17 @@ Over the last few months, I have been playing around with moving my website from
 > [!CAUTION]
 > Red.
 
+> [!INSIGHT]
+> The xfrm interface has to exist *before* strongSwan can bind the tunnel to it — which is the kind of ordering detail that costs you an afternoon.
+
+> [!TIP]
+> Talk to your computers like this "beep boop beep beep"
+
+> [!IMPORTANT]
+> Vote in your local elections
+
+> IDK this is just something
+
 
 <!--more-->
 

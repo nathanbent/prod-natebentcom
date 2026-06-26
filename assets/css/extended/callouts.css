@@ -12,6 +12,7 @@
     --cl-imp-b: #8a63d2;   --cl-imp-bg: rgba(138,99,210,.08);     --cl-imp-f: #7b54c8;
     --cl-warn-b: #d1a017;  --cl-warn-bg: rgba(209,160,23,.10);    --cl-warn-f: #9c7400;
     --cl-caut-b: #d1453b;  --cl-caut-bg: rgba(209,69,59,.08);     --cl-caut-f: #c23730;
+    --cl-insight-b: #2a9d8f;  --cl-insight-bg: rgba(42,157,143,.08);  --cl-insight-f: #1f7a6f;
 }
 
 .dark {
@@ -22,6 +23,7 @@
     --cl-imp-b: #b294e8;   --cl-imp-bg: rgba(178,148,232,.12);    --cl-imp-f: #b294e8;
     --cl-warn-b: #e3b341;  --cl-warn-bg: rgba(227,179,65,.12);    --cl-warn-f: #e3b341;
     --cl-caut-b: #f0857d;  --cl-caut-bg: rgba(240,133,125,.12);   --cl-caut-f: #f0857d;
+    --cl-insight-b: #4fd1c5;  --cl-insight-bg: rgba(79,209,197,.12);  --cl-insight-f: #4fd1c5;
 }
 
 /* Base — plain ">" quotes get the blue callout look */
@@ -40,6 +42,7 @@
 .post-content blockquote.callout-important { --callout-border: var(--cl-imp-b);  --callout-bg: var(--cl-imp-bg);  --callout-fg: var(--cl-imp-f); }
 .post-content blockquote.callout-warning   { --callout-border: var(--cl-warn-b); --callout-bg: var(--cl-warn-bg); --callout-fg: var(--cl-warn-f); }
 .post-content blockquote.callout-caution   { --callout-border: var(--cl-caut-b); --callout-bg: var(--cl-caut-bg); --callout-fg: var(--cl-caut-f); }
+.post-content blockquote.callout-insight { --callout-border: var(--cl-insight-b); --callout-bg: var(--cl-insight-bg); --callout-fg: var(--cl-insight-f); }
 
 /* Title row (icon + label) */
 .post-content blockquote .callout-title {

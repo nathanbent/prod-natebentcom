@@ -1,5 +1,49 @@
 /* Custom styles added to demo */
 
+:root { --accent: #748CAB; }
+.dark { --accent: #8fa8c9; }
+
+.post-content a,
+.toc a:hover { color: var(--accent); }
+::selection { background: var(--accent); color: #fff; }
+
+html { scroll-behavior: smooth; }
+.post-content h1, .post-content h2, .post-content h3,
+.post-content h4, .post-content h5, .post-content h6 { scroll-margin-top: 80px; }
+
+.post-title,
+.post-content h1, .post-content h2, .post-content h3 { text-wrap: balance; }
+.post-content p { text-wrap: pretty; }
+
+.post-content table { font-variant-numeric: tabular-nums; }
+
+.post-content img { border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+.dark .post-content img { box-shadow: 0 2px 12px rgba(0,0,0,.4); }
+
+.post-content a { transition: color .15s ease, box-shadow .15s ease; }
+
+/* Code-block language labels */
+.code-wrap { position: relative; margin: 10px auto; }
+.code-wrap > .highlight { margin: 0; }
+
+.code-wrap[data-lang]::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    z-index: 2;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--secondary);
+    pointer-events: none;
+    transition: opacity .15s ease;
+}
+
+/* Fade the label out on hover so the copy button gets the corner to itself */
+.code-wrap:hover[data-lang]::before { opacity: 0; }
+
 .twitter-tweet {
     margin: auto;
 }
