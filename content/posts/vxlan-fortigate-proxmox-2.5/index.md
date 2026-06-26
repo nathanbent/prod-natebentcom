@@ -1,20 +1,27 @@
 ---
-title: 'VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside'
-date: 2026-06-25T22:02:00Z
-author: "Nate"
-# weight: 1
-# aliases: ["/first"]
-tags: ["VXLAN", "EVPN", "BGP", "FortiGate", "Proxmox", "Security", "Microsegmentation", "Homelab"]
-categories: ["Networking", "Security"]
-#series: ["No-Series"]
+title: "VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside"
+date: 2026-06-25T01:00:00Z
+author: Nate
+tags:
+  - VXLAN
+  - EVPN
+  - BGP
+  - FortiGate
+  - Proxmox
+  - Security
+  - Microsegmentation
+  - Homelab
+categories:
+  - Networking
+  - Security
 showToc: true
 TocOpen: false
 draft: true
 hidemeta: false
 comments: false
-description: "What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs."
-canonicalURL: "https://canonical.url/to/page"
-disableHLJS: true # to disable highlightjs
+description: What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.
+canonicalURL: https://canonical.url/to/page
+disableHLJS: true
 disableShare: true
 hideSummary: false
 searchHidden: true
@@ -25,16 +32,16 @@ ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
-    image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
-    hidden: true # only hide on current single page
+  image: <image path/url>
+  alt: <alt text>
+  caption: <text>
+  relative: false
+  hidden: true
 editPost:
-    disaled: true
-    URL: "https://github.com/<path_to_repo>/content"
-    Text: "Suggest Changes" # edit text
-    appendFilePath: true # to append file path to Edit link
+  disaled: true
+  URL: https://github.com/<path_to_repo>/content
+  Text: Suggest Changes
+  appendFilePath: true
 ---
 
 ## The thing that actually makes this interesting

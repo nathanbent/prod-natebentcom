@@ -1,20 +1,24 @@
 ---
-title: 'VXLAN Between a FortiGate and Proxmox'
-date: 2026-06-21T21:14:00Z
-author: "Nate"
+title: VXLAN Between a FortiGate and Proxmox
+date: 2026-06-21T01:00:00Z
+author: Nate
 weight: 1
-# aliases: ["/first"]
-tags: ["VXLAN", "FortiGate", "Proxmox", "SDN", "Homelab"]
-categories: ["Networking"]
-#series: ["Proxmox Software-Defined Network"]
+tags:
+  - VXLAN
+  - FortiGate
+  - Proxmox
+  - SDN
+  - Homelab
+categories:
+  - Networking
 showToc: true
 TocOpen: false
 draft: false
 hidemeta: false
 comments: false
-description: "Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity."
-canonicalURL: "https://canonical.url/to/page"
-disableHLJS: true # to disable highlightjs
+description: Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity.
+canonicalURL: https://canonical.url/to/page
+disableHLJS: true
 disableShare: true
 hideSummary: false
 searchHidden: true
@@ -25,16 +29,16 @@ ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
-    image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
-    hidden: true # only hide on current single page
+  image: <image path/url>
+  alt: <alt text>
+  caption: <text>
+  relative: false
+  hidden: true
 editPost:
-    disaled: true
-    URL: "https://github.com/<path_to_repo>/content"
-    Text: "Suggest Changes" # edit text
-    appendFilePath: true # to append file path to Edit link
+  disaled: true
+  URL: https://github.com/<path_to_repo>/content
+  Text: Suggest Changes
+  appendFilePath: true
 ---
 
 ## Why VXLAN
@@ -162,4 +166,4 @@ That is the next post. For now, the feasibility question is answered: a FortiGat
 
 - [VXLAN with MP-BGP EVPN (FortiOS Administration Guide)](https://docs.fortinet.com/document/fortigate/8.0.0/administration-guide/52499/vxlan-with-mp-bgp-evpn) - the FortiGate VXLAN object and software switch pattern
 - [Proxmox VE: Software-Defined Network](https://pve.proxmox.com/pve-docs/chapter-pvesdn.html) - SDN zones, VNets, and the VXLAN peer list
-- ##### [RFC 7348 - Virtual eXtensible Local Area Network (VXLAN)](https://datatracker.ietf.org/doc/html/rfc7348) - the encapsulation itself, if you want the wire format
+- [RFC 7348 - Virtual eXtensible Local Area Network (VXLAN)](https://datatracker.ietf.org/doc/html/rfc7348) - the encapsulation itself, if you want the wire format

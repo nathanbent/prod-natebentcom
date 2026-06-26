@@ -1,20 +1,27 @@
 ---
-title: 'VXLAN Performance on a FortiGate 70F: The Software Switching Tax'
-date: 2026-06-25T23:40:00Z
-author: "Nate"
+title: "VXLAN Performance on a FortiGate 70F: The Software Switching Tax"
+date: 2026-06-25T01:00:00Z
+author: Nate
 weight: 1
-# aliases: ["/first"]
-tags: ["VXLAN", "EVPN", "FortiGate", "Proxmox", "SDN", "Performance", "NP7", "Homelab"]
-categories: ["Networking"]
-#series: ["No-Series"]
+tags:
+  - VXLAN
+  - EVPN
+  - FortiGate
+  - Proxmox
+  - SDN
+  - Performance
+  - NP7
+  - Homelab
+categories:
+  - Networking
 showToc: true
 TocOpen: false
 draft: false
 hidemeta: false
 comments: false
-description: "Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon."
-canonicalURL: "https://canonical.url/to/page"
-disableHLJS: true # to disable highlightjs
+description: Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.
+canonicalURL: https://canonical.url/to/page
+disableHLJS: true
 disableShare: true
 hideSummary: false
 searchHidden: true
@@ -25,16 +32,16 @@ ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
-    image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
-    hidden: true # only hide on current single page
+  image: <image path/url>
+  alt: <alt text>
+  caption: <text>
+  relative: false
+  hidden: true
 editPost:
-    disaled: true
-    URL: "https://github.com/<path_to_repo>/content"
-    Text: "Suggest Changes" # edit text
-    appendFilePath: true # to append file path to Edit link
+  disaled: true
+  URL: https://github.com/<path_to_repo>/content
+  Text: Suggest Changes
+  appendFilePath: true
 ---
 
 ## The setup, and the question
