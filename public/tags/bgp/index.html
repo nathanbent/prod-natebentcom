@@ -12,7 +12,7 @@
 <meta name="description" content="Nate Bent&#39;s website and portfolio">
 <meta name="author" content="Nathan Bent">
 <link rel="canonical" href="https://natebent.com/tags/bgp/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.e07551f223b7e9625504ca8a8430ce15bfee5d728bd86383aa8a3227e89b5db2.css" integrity="sha256-4HVR8iO36WJVBMqKhDDOFb/uXXKL2GODqooyJ&#43;ibXbI=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.83984c4c84c08ffd39e130e6b6a138d015a76b1676a3009bb2e9f605949f9f3a.css" integrity="sha256-g5hMTITAj/054TDmtqE40BWnaxZ2owCbsun2BZSfnzo=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://natebent.com/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://natebent.com/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://natebent.com/favicon-32x32.png">
@@ -149,7 +149,8 @@
   </header>
   <div class="entry-content">
     <p>The thing that actually makes this interesting The fun of this setup was never VXLAN for its own sake. It is that the FortiGate is the only router for every overlay segment, which means traffic I normally cannot see gets inspected like everything else. That sentence is the whole security story, so it is worth unpacking before anything else.
-A quick disclaimer up front, because it is the most common misconception: VXLAN is not a security feature....</p>
+A quick disclaimer up front, because it is the most common misconception: VXLAN is not a security feature. It does not encrypt anything, it does not authenticate anything, and an overlay is not inherently safer than a VLAN. What the overlay gives you is an architecture in which certain strong patterns become cheap and natural. The security comes from the patterns, not the encapsulation. The rest of this post is those patterns, then an honest list of what the overlay does not do for you.
+...</p>
   </div>
   <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;10 min&nbsp;·&nbsp;1957 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/"></a>
@@ -161,7 +162,8 @@ A quick disclaimer up front, because it is the most common misconception: VXLAN 
     </h2>
   </header>
   <div class="entry-content">
-    <p>Recap, and the problem with where we left off In part 1 I convinced a FortiGate and a Proxmox cluster to form a working VXLAN segment with nothing more than matching VNI, port, and a static list of peer addresses. That works, but it has a built in tax: every VTEP has to list every other VTEP. Adding a host means editing the peer list on every existing box, and the only way a VTEP learns which MAC lives behind which remote VTEP is to flood unknown traffic everywhere and watch the replies....</p>
+    <p>Recap, and the problem with where we left off In part 1 I convinced a FortiGate and a Proxmox cluster to form a working VXLAN segment with nothing more than matching VNI, port, and a static list of peer addresses. That works, but it has a built in tax: every VTEP has to list every other VTEP. Adding a host means editing the peer list on every existing box, and the only way a VTEP learns which MAC lives behind which remote VTEP is to flood unknown traffic everywhere and watch the replies.
+...</p>
   </div>
   <footer class="entry-footer"><span title='2026-06-23 01:00:00 +0000 UTC'>June 23, 2026</span>&nbsp;·&nbsp;13 min&nbsp;·&nbsp;2621 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2: EVPN" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2/"></a>
