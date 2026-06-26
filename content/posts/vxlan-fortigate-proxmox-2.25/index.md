@@ -21,6 +21,7 @@ draft: false
 hidemeta: false
 comments: false
 description: Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.
+summary: Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.
 canonicalURL: https://canonical.url/to/page
 disableHLJS: true
 disableShare: true

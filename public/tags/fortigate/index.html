@@ -148,9 +148,7 @@
     </h2>
   </header>
   <div class="entry-content">
-    <p>The thing that actually makes this interesting The fun of this setup was never VXLAN for its own sake. It is that the FortiGate is the only router for every overlay segment, which means traffic I normally cannot see gets inspected like everything else. That sentence is the whole security story, so it is worth unpacking before anything else.
-A quick disclaimer up front, because it is the most common misconception: VXLAN is not a security feature. It does not encrypt anything, it does not authenticate anything, and an overlay is not inherently safer than a VLAN. What the overlay gives you is an architecture in which certain strong patterns become cheap and natural. The security comes from the patterns, not the encapsulation. The rest of this post is those patterns, then an honest list of what the overlay does not do for you.
-...</p>
+    <p>What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.</p>
   </div>
   <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;10 min&nbsp;·&nbsp;1957 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/"></a>
@@ -162,8 +160,7 @@ A quick disclaimer up front, because it is the most common misconception: VXLAN 
     </h2>
   </header>
   <div class="entry-content">
-    <p>The setup, and the question A while back I built an EVPN/VXLAN overlay between a FortiGate and a three node Proxmox cluster. The overlay segments come out of Proxmox SDN (an EVPN zone with a handful of VNets), and the FortiGate plays anycast gateway for them. I wrote up the build itself in a separate post; this one is only about the thing I wanted to know once it was actually working: what does all that encapsulation cost me in throughput?
-...</p>
+    <p>Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.</p>
   </div>
   <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;1555 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Performance on a FortiGate 70F: The Software Switching Tax" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/"></a>
@@ -192,8 +189,7 @@ A quick disclaimer up front, because it is the most common misconception: VXLAN 
     </h2>
   </header>
   <div class="entry-content">
-    <p>Why VXLAN I already run VLANs through my core switch to carve up the lab, and that works well enough. What I wanted to play with was decoupling a segment from the physical switch entirely. VXLAN does that by wrapping the guest’s Layer 2 frame inside a UDP packet (destination port 4789 by default) and shipping it to whatever VXLAN Tunnel Endpoint (VTEP) holds the other end. To a VM the bridge looks like any other bridge, but the “wire” underneath it is now an IP path I control instead of a switchport.
-...</p>
+    <p>Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity.</p>
   </div>
   <footer class="entry-footer"><span title='2026-06-21 01:00:00 +0000 UTC'>June 21, 2026</span>&nbsp;·&nbsp;6 min&nbsp;·&nbsp;1249 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox" href="https://natebent.com/posts/vxlan-fortigate-proxmox-1/"></a>

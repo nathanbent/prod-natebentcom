@@ -22,6 +22,7 @@ draft: false
 hidemeta: false
 comments: false
 description: What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.
+summary: What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.
 canonicalURL: https://canonical.url/to/page
 disableHLJS: true
 disableShare: true
