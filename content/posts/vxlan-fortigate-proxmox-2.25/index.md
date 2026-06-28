@@ -167,7 +167,7 @@ vs the [datasheet for the 401G](https://www.fortinet.com/content/dam/fortinet/as
 So it looks like the full-fat NP7 is where the VXLAN offloading begins.  Looking at the Fortinet documentation for [Network processors (NP7, NP7Lite, NP6, NP6XLite, and NP6Lite)](https://docs.fortinet.com/document/fortigate/8.0.0/hardware-acceleration/575471/network-processors-np7-np7lite-np6-np6xlite-and-np6lite), it says:
 
 > [!QUOTE] [Network processors (NP7, NP7Lite, NP6, NP6XLite, and NP6Lite)](https://docs.fortinet.com/document/fortigate/8.0.0/hardware-acceleration/575471/network-processors-np7-np7lite-np6-np6xlite-and-np6lite)
-> NP7 | NP7 processors offload most IPv4 and IPv6 traffic, IPsec VPN encryption (including Suite B), GTP traffic, CAPWAP traffic, VXLAN traffic, multicast traffic, NAT session setup for NAT44, NAT66, NAT64 and NAT46 traffic, and DoS protection.
+> NP7 | NP7 processors offload most IPv4 and IPv6 traffic, IPsec VPN encryption (including Suite B), GTP traffic, CAPWAP traffic, **VXLAN traffic**, multicast traffic, NAT session setup for NAT44, NAT66, NAT64 and NAT46 traffic, and DoS protection.
 
 While the NP7Lite, and other ASICs below make no mention of VXLAN capabilities whatsoever.  That all said, I had the opportunity to poke around a 201G and found this:
 

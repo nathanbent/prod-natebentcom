@@ -275,6 +275,29 @@ html { scroll-behavior: smooth; }
     .entry-cover-thumb img { width: 100%; height: 160px; }
 }
 
+/* PaperMod hides covers on term/series pages — re-show ours */
+.tag-entry .entry-cover-thumb {
+    display: block;
+}
+
+/* Series/taxonomy term pages wrap entries in .post-entry.tag-entry —
+   make the thumbnail grid apply there too */
+.tag-entry:has(.entry-cover-thumb) {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    grid-auto-rows: min-content;
+    column-gap: 16px;
+    row-gap: 0;
+    align-items: start;
+    align-content: start;
+}
+.tag-entry:has(.entry-cover-thumb) .entry-header,
+.tag-entry:has(.entry-cover-thumb) .entry-content,
+.tag-entry:has(.entry-cover-thumb) .entry-footer {
+    grid-column: 2;
+    margin-top: 0;
+}
+
 /* 7c. Single-post cover — cap the big banner height */
 .post-single .entry-cover,
 .post-cover {
