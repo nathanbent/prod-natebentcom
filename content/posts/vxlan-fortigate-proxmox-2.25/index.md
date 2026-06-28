@@ -143,6 +143,63 @@ The trap is specifically the NP6XLite, because the name pattern matches to the N
 
 > One caveat so this does not get over-applied: offload is both platform and configuration dependent. Even on hardware that can offload VXLAN, the moment you put UTM inspection on the flow (IPS, AV, SSL inspection) it goes back to the CPU, because inspection cannot run on the NP. There is also a `vxlan-offload` toggle, and on NP7 the `learn-from-traffic` setting on the VXLAN interface quietly controls whether the overlay gets hardware accelerated at all. So "does my box offload VXLAN" is really two questions: can the silicon do it, and does my config let it stay offloaded. Watch the CPU and check the session flags either way.
 
+## Some confusion about the NP7/NP7lite
+
+At home I run a FortiGate 70F and a 201F at the "lab", which both use the NP6xlite, which is from the previous generation of Fortinet network ASICs.  While looking at the [datasheet for the 201G](https://www.fortinet.com/content/dam/fortinet/assets/data-sheets/pdf/fortigate-200g-series.pdf), it says the following:
+
+> [!QUOTE] FortiGate 201G datasheet
+> Network processor NP7Lite
+> Fortinet’s new, breakthrough SPU NP7Lite network processor works in line with FortiOS
+> functions delivering:
+> • Superior firewall performance for IPv4/IPv6, SCTP, and multicast traffic with ultra-low latency
+> • VPN, CAPWAP, and IP tunnel acceleration
+> • Anomaly-based intrusion prevention, checksum offload, and packet defragmentation
+> • Traffic shaping and priority queuing
+
+vs the [datasheet for the 401G](https://www.fortinet.com/content/dam/fortinet/assets/data-sheets/pdf/fortigate-400g-series.pdf)
+
+> [!QUOTE] FortiGate 401G datasheet
+> Network processor NP7
+> Network processors operate in line to deliver unmatched performance and scalability for
+> critical network functions. Fortinet’s breakthrough SPU NP7 works in line with FortiOS functions
+> to deliver:
+> • Hyperscale firewall, accelerated session setup, and ultra-low latency
+> • Industry-leading performance for VPN, VXLAN termination, hardware logging, and elephant
+> flows
+
+So it looks like the full-fat NP7 is where the VXLAN offloading begins.  That said, I had the opportunity to poke around a 201G and found this:
+
+```
+FortiGate-201G # get hardware status
+Model name: FortiGate-201G
+ASIC version: CP10
+CPU: Intel(R) Xeon(R) D-1726 CPU @ 2.90GHz
+Number of CPUs: 12
+RAM: 22607 MB
+Compact Flash: 61296 MB /dev/nvme0n1
+Hard disk: 457862 MB /dev/nvme1n1
+USB Flash: not available
+Network Card chipset: Intel(R) Gigabit Ethernet Network Driver (rev.0003)
+Network Card chipset: FortiASIC NP7LITE Adapter (rev.)
+
+FortiGate-201G # config system npu
+
+FortiGate-201G (npu) # set
+dedicated-management-cpu          Enable to dedicate one CPU for GUI and CLI connections when NPs are busy.
+shadow-virtual-switch             Enable/disable shadow virtual switch.
+mcs-auto-start                    Enable/disable NPU MCS auto start.
+capwap-offload                    Enable/disable offloading managed FortiAP and FortiLink CAPWAP sessions.
+vxlan-offload                     Enable/disable offloading vxlan.
+default-qos-type                  Set default QoS type.
+(more option omitted for brevity)
+
+FortiGate-201G (npu) # show full | grep vxlan
+    set vxlan-offload enable
+
+```
+
+So maybe it's not as cut-and-dry as the NP7 being the key to VXLAN offloading.  I don't have the opportunity to play with VXLAN with this specific 201G (I don't think), but I am curious to see where this will go!
+
 ## An MTU aside, because it hid all of this at first
 
 Before any of the above made sense, the overlay was doing about 9 Mbit/sec, not 540, and iperf would push a short burst and then collapse to zero. That was not the CPU. That was a textbook MTU black hole: the guest NIC was still at 1500 while the overlay path is 1450, so the moment TCP grew its segments past the small stuff, the full size frames got silently dropped. Dropping the guest NIC to 1450 fixed it and uncovered the real 540 ceiling sitting underneath.

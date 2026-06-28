@@ -64,7 +64,7 @@ Three things, none of which a single node test can demonstrate, which is worth s
 - **Flooding mostly stops.** MACs are pre distributed as routes, so the gateway can answer ARP locally instead of flooding it across the link to the other site.
 - **The gateway can live everywhere at once.** An anycast gateway puts the same gateway IP and MAC on every VTEP, so a VM is routed by whatever box it sits on and can migrate between nodes without re ARPing. Static VXLAN structurally cannot do this.
 
-> [!INSIGHT]
+> [!NOTE]
 > The anycast gateway is the piece that makes live migration actually clean. Normally a gateway is one box, so when a VM moves to another node its first hop still lives back on the original one, and every routed packet has to trombone back across the overlay just to get out. An anycast gateway makes that distance disappear: the same gateway IP and MAC are live on every VTEP, so the first hop is always whatever node the VM is currently sitting on. The VM can land anywhere in the fabric and route locally, with nothing to relearn.
 >
 > The mechanism is that the guest ARPs its gateway once and caches gateway-IP to gateway-MAC, and that entry never goes stale because the MAC is local on every node. It is the same idea as anycasting a public DNS resolver, except the nearest instance is always the machine you happen to be on. Static VXLAN cannot fake this: in flood and learn a MAC lives behind one remote VTEP at a time, so the same gateway MAC on every node just looks like one MAC frantically moving around, a duplicate rather than a gateway. It takes the EVPN control plane to declare that this MAC is meant to be everywhere at once, which is most of why EVPN earns its place here.
