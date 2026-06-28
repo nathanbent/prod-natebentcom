@@ -141,7 +141,7 @@ So the real tell when you are shopping is generational, not "Lite versus not." I
 
 The trap is specifically the NP6XLite, because the name pattern matches to the NP7Lite era when it does not belong to it. Do not read "XLite" as "small NP7." Check the FortiOS hardware acceleration guide's offload tables for the actual processor in your model, and confirm it on your own box, rather than trusting a marketing datasheet blurb, which varies in what it bothers to spell out.
 
-> ![NOTE]
+> [!NOTE]
 > One caveat so this does not get over-applied: offload is both platform and configuration dependent. Even on hardware that can offload VXLAN, the moment you put UTM inspection on the flow (IPS, AV, SSL inspection) it goes back to the CPU, because inspection cannot run on the NP. There is also a `vxlan-offload` toggle, and on NP7 the `learn-from-traffic` setting on the VXLAN interface quietly controls whether the overlay gets hardware accelerated at all. So "does my box offload VXLAN" is really two questions: can the silicon do it, and does my config let it stay offloaded. Watch the CPU and check the session flags either way.
 
 ## Some confusion about the NP7/NP7lite
