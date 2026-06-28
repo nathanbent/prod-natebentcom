@@ -148,37 +148,27 @@ The trap is specifically the NP6XLite, because the name pattern matches to the N
 At home I run a FortiGate 70F and a 201F at the "lab", which both use the NP6xlite, which is from the previous generation of Fortinet network ASICs.  While looking at the [datasheet for the 201G](https://www.fortinet.com/content/dam/fortinet/assets/data-sheets/pdf/fortigate-200g-series.pdf), it says the following:
 
 > [!QUOTE] FortiGate 201G datasheet
-> Network processor NP7Lite
-> Fortinet’s new, breakthrough SPU NP7Lite network processor works in line with FortiOS
-> functions delivering:
-> • Superior firewall performance for IPv4/IPv6, SCTP, and multicast traffic with ultra-low latency
-> • VPN, CAPWAP, and IP tunnel acceleration
-> • Anomaly-based intrusion prevention, checksum offload, and packet defragmentation
-> • Traffic shaping and priority queuing
+> Network processor NP7Lite — Fortinet's new, breakthrough SPU NP7Lite network processor works in line with FortiOS functions delivering:
+>
+> - Superior firewall performance for IPv4/IPv6, SCTP, and multicast traffic with ultra-low latency
+> - VPN, CAPWAP, and IP tunnel acceleration
+> - Anomaly-based intrusion prevention, checksum offload, and packet defragmentation
+> - Traffic shaping and priority queuing
 
 vs the [datasheet for the 401G](https://www.fortinet.com/content/dam/fortinet/assets/data-sheets/pdf/fortigate-400g-series.pdf)
 
 > [!QUOTE] FortiGate 401G datasheet
-> Network processor NP7
-> Network processors operate in line to deliver unmatched performance and scalability for
-> critical network functions. Fortinet’s breakthrough SPU NP7 works in line with FortiOS functions
-> to deliver:
-> • Hyperscale firewall, accelerated session setup, and ultra-low latency
-> • Industry-leading performance for VPN, VXLAN termination, hardware logging, and elephant
-> flows
+> Network processor NP7 - Fortinet’s breakthrough SPU NP7 works in line with FortiOS functions to deliver:
+>
+> - Hyperscale firewall, accelerated session setup, and ultra-low latency
+> - Industry-leading performance for VPN, **VXLAN termination**, hardware logging, and elephant flows
 
 So it looks like the full-fat NP7 is where the VXLAN offloading begins.  That said, I had the opportunity to poke around a 201G and found this:
 
-```
+```FortiOS
 FortiGate-201G # get hardware status
 Model name: FortiGate-201G
-ASIC version: CP10
-CPU: Intel(R) Xeon(R) D-1726 CPU @ 2.90GHz
-Number of CPUs: 12
-RAM: 22607 MB
-Compact Flash: 61296 MB /dev/nvme0n1
-Hard disk: 457862 MB /dev/nvme1n1
-USB Flash: not available
+(more info omitted for brevity)
 Network Card chipset: Intel(R) Gigabit Ethernet Network Driver (rev.0003)
 Network Card chipset: FortiASIC NP7LITE Adapter (rev.)
 

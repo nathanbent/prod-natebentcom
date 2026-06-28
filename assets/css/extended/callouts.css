@@ -46,7 +46,6 @@
 .post-content blockquote.callout-caution   { --callout-border: var(--cl-caut-b); --callout-bg: var(--cl-caut-bg); --callout-fg: var(--cl-caut-f); }
 .post-content blockquote.callout-insight { --callout-border: var(--cl-insight-b); --callout-bg: var(--cl-insight-bg); --callout-fg: var(--cl-insight-f); }
 .post-content blockquote.callout-quote { --callout-border: var(--cl-quote-b); --callout-bg: var(--cl-quote-bg); --callout-fg: var(--cl-quote-f); }
-
 .post-content blockquote.callout-quote { font-style: italic; }
 .post-content blockquote.callout-quote .callout-cite {
     font-style: normal;
@@ -56,6 +55,12 @@
 }
 .post-content blockquote.callout-quote .callout-cite::before {
     content: "— ";   /* em dash, the classic attribution mark */
+}
+
+.post-content blockquote ul,
+.post-content blockquote ol {
+    margin-bottom: 0;
+    padding-inline-start: 1.4em;
 }
 
 /* Title row (icon + label) */
