@@ -14,7 +14,7 @@ tags:
   - Homelab
 categories:
   - Networking
-series: ["Proxmox Software-Defined Networking"]
+series: ["Proxmox SDN"]
 showToc: true
 TocOpen: false
 draft: false

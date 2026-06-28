@@ -59,6 +59,12 @@ Over the last few months, I have been playing around with moving my website from
 
 > IDK this is just something
 
+> [!QUOTE] Neil Breen
+> Network processor NP7 - Fortinet’s breakthrough SPU NP7 works in line with FortiOS functions to deliver:
+
+> [!QUOTE]
+> Network processor NP7 - Fortinet’s breakthrough SPU NP7 works in line with FortiOS functions to deliver:
+
 
 <!--more-->
 

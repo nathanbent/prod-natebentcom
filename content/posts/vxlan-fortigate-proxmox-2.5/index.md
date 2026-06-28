@@ -15,7 +15,7 @@ tags:
 categories:
   - Networking
   - Security
-series: ["Proxmox Software-Defined Networking"]
+series: ["Proxmox SDN"]
 showToc: true
 TocOpen: false
 draft: false
