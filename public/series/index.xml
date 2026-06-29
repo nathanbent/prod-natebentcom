@@ -14,10 +14,10 @@
     <lastBuildDate>Thu, 25 Jun 2026 01:00:00 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/series/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Proxmox Software-Defined Networking</title>
-      <link>https://natebent.com/series/proxmox-software-defined-networking/</link>
+      <title>Proxmox SDN</title>
+      <link>https://natebent.com/series/proxmox-sdn/</link>
       <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
-      <guid>https://natebent.com/series/proxmox-software-defined-networking/</guid>
+      <guid>https://natebent.com/series/proxmox-sdn/</guid>
       <description></description>
     </item>
   </channel>
