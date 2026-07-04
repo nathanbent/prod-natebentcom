@@ -11,33 +11,40 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 25 Jun 2026 01:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 30 Jun 2026 01:00:00 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/tags/vxlan/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>VXLAN Between a FortiGate and Proxmox, Part 3: Automating It With Terraform</title>
+      <link>https://natebent.com/posts/vxlan-fortigate-proxmox-3/</link>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-3/</guid>
+      <description>Taking the hand-built FortiGate and Proxmox EVPN fabric and reproducing it entirely in code, one Terraform workspace driving both platforms, with every wall I hit along the way written down so you do not have to hit them too.</description>
+    </item>
     <item>
       <title>VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Sat, 27 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/</guid>
       <description>What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.</description>
     </item>
     <item>
       <title>VXLAN Performance on a FortiGate 70F: The Software Switching Tax</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Thu, 25 Jun 2026 03:00:00 +0000</pubDate>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/</guid>
       <description>Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.</description>
     </item>
     <item>
       <title>VXLAN Between a FortiGate and Proxmox, Part 2: EVPN</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-2/</link>
-      <pubDate>Tue, 23 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-2/</guid>
       <description>Swapping the static VXLAN peer list for a BGP EVPN control plane across a FortiGate and a three node Proxmox cluster, and every place the two platforms tripped me up by disagreeing on what to state versus what to derive.</description>
     </item>
     <item>
       <title>VXLAN Between a FortiGate and Proxmox</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-1/</link>
-      <pubDate>Sun, 21 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 23 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-1/</guid>
       <description>Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity.</description>
     </item>

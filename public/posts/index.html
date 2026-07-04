@@ -159,13 +159,26 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">VXLAN Between a FortiGate and Proxmox, Part 3: Automating It With Terraform
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Where this picks up By the end of part 2 I had a working EVPN/VXLAN fabric: a three node Proxmox cluster and a FortiGate sharing overlay segments, with the FortiGate as the anycast gateway for each. Every bit of it was built by hand, CLI on the FortiGate and GUI clicks on the Proxmox SDN. That works, but each new segment is the same five object dance on the FortiGate and the same clicking on Proxmox, and the two platforms have to agree on a set of numbers (the VNI, the route target) that are easy to fat finger. Part 2 was one long lesson in what happens when those numbers drift.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-06-30 01:00:00 +0000 UTC'>June 30, 2026</span>&nbsp;·&nbsp;17 min&nbsp;·&nbsp;3612 words&nbsp;·&nbsp;Nate</footer>
+  <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 3: Automating It With Terraform" href="https://natebent.com/posts/vxlan-fortigate-proxmox-3/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside
     </h2>
   </header>
   <div class="entry-content">
     <p>What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.</p>
   </div>
-  <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;10 min&nbsp;·&nbsp;1957 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2026-06-27 01:00:00 +0000 UTC'>June 27, 2026</span>&nbsp;·&nbsp;10 min&nbsp;·&nbsp;1957 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/"></a>
 </article>
 
@@ -175,26 +188,23 @@
     </h2>
   </header>
   <div class="entry-content">
-    <p>Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.</p>
+    <p>The setup, and the question A while back I built an EVPN/VXLAN overlay between a FortiGate and a three node Proxmox cluster. The overlay segments come out of Proxmox SDN (an EVPN zone with a handful of VNets), and the FortiGate plays anycast gateway for them. I wrote up the build itself in a separate post; this one is only about the thing I wanted to know once it was actually working: what does all that encapsulation cost me in throughput?
+...</p>
   </div>
-  <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;9 min&nbsp;·&nbsp;1904 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2026-06-25 03:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;1643 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Performance on a FortiGate 70F: The Software Switching Tax" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/"></a>
 </article>
 
 <article class="post-entry"> 
-<figure class="entry-cover entry-cover-list entry-cover-thumb">
-        <img loading="lazy" srcset="https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_c141d57fb4ac20d.png 360w ,https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_97efac99e5578821.png 480w ,https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_595a66a6d55f48cf.png 720w ,https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_8aaf46ff6b8126d1.png 1080w ,https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_4c52edbb1112e347.png 1500w ,https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1.png 2220w"
-            sizes="(min-width: 768px) 720px, 100vw" src="https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1.png" alt="PDM EVPN page"
-            width="2220" height="643">
-</figure>
   <header class="entry-header">
     <h2 class="entry-hint-parent">VXLAN Between a FortiGate and Proxmox, Part 2: EVPN
     </h2>
   </header>
   <div class="entry-content">
-    <p>Part 1’s static peer lists don’t scale. EVPN makes the fabric learn its own endpoints — here’s the working BGP control plane.</p>
+    <p>Recap, and the problem with where we left off In part 1 I proved a FortiGate and a Proxmox host will form a working VXLAN segment with nothing more than a matching VNI, port, and a static list of peer addresses. That works, but it comes with a built in tax: every VTEP has to list every other VTEP. Adding a host means editing the peer list on every existing box, and the only way a VTEP learns which MAC lives behind which remote VTEP is to flood unknown traffic everywhere and watch the replies come back.
+...</p>
   </div>
-  <footer class="entry-footer"><span title='2026-06-23 01:00:00 +0000 UTC'>June 23, 2026</span>&nbsp;·&nbsp;13 min&nbsp;·&nbsp;2653 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2026-06-25 01:00:00 +0000 UTC'>June 25, 2026</span>&nbsp;·&nbsp;12 min&nbsp;·&nbsp;2469 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox, Part 2: EVPN" href="https://natebent.com/posts/vxlan-fortigate-proxmox-2/"></a>
 </article>
 
@@ -204,9 +214,10 @@
     </h2>
   </header>
   <div class="entry-content">
-    <p>Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity.</p>
+    <p>Why VXLAN I already run VLANs through my core switch to carve up the lab, and that works fine. What I wanted to play with was decoupling a segment from the physical switch entirely. VXLAN does that by wrapping the guest’s Layer 2 frame inside a UDP packet (destination port 4789 by default) and shipping it to whatever VXLAN Tunnel Endpoint (VTEP) holds the other end. To a VM the bridge looks like any other bridge, but the “wire” underneath it is now an IP path I control instead of a switchport.
+...</p>
   </div>
-  <footer class="entry-footer"><span title='2026-06-21 01:00:00 +0000 UTC'>June 21, 2026</span>&nbsp;·&nbsp;6 min&nbsp;·&nbsp;1249 words&nbsp;·&nbsp;Nate</footer>
+  <footer class="entry-footer"><span title='2026-06-23 01:00:00 +0000 UTC'>June 23, 2026</span>&nbsp;·&nbsp;7 min&nbsp;·&nbsp;1309 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to VXLAN Between a FortiGate and Proxmox" href="https://natebent.com/posts/vxlan-fortigate-proxmox-1/"></a>
 </article>
 
@@ -283,37 +294,12 @@ Calling Obsidian a markdown editor is really underselling it; it is really a Per
   <footer class="entry-footer"><span title='2024-01-02 05:41:58 -0600 CST'>January 2, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;257 words&nbsp;·&nbsp;Nate</footer>
   <a class="entry-link" aria-label="post link to Playing With Obsidian" href="https://natebent.com/posts/playing-with-obsidian/"></a>
 </article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Moving to Hugo
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Over the last few months, I have been playing around with moving my website from Wordpress where it has lived in one form or another since around 2004. When I first installed it, I believe I was really just looking for some software to run on my newly hacked together LAMP server; I never imagined I would use it for so long.
-A plain quote — stays blue, no label.
-Note
-Blue, with a “Note” label and info icon.
-Warning
-Amber.
-Caution
-Red.
-Really Interesting!
-The xfrm interface has to exist before strongSwan can bind the tunnel to it — which is the kind of ordering detail that costs you an afternoon.
-Tip
-Talk to your computers like this “beep boop beep beep”
-Important
-Vote in your local elections
-IDK this is just something
-QuoteNeil Breen
-Network processor NP7 - Fortinet’s breakthrough SPU NP7 works in line with FortiOS functions to deliver:
-Quote
-Network processor NP7 - Fortinet’s breakthrough SPU NP7 works in line with FortiOS functions to deliver:
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2024-01-01 17:26:18 -0600 CST'>January 1, 2024</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;375 words&nbsp;·&nbsp;Nate</footer>
-  <a class="entry-link" aria-label="post link to Moving to Hugo" href="https://natebent.com/posts/moving-to-hugo/"></a>
-</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="https://natebent.com/posts/page/2/">Next&nbsp;2/2&nbsp;»
+    </a>
+  </nav>
+</footer>
     </main>
     
 <footer class="footer">

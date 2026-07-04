@@ -1,12 +1,12 @@
 ---
 title: 'VXLAN Between a FortiGate and Proxmox, Part 3: Automating It With Terraform'
-date: 2026-06-26T01:30:00Z
+date: 2026-06-30T01:00:00Z
 author: "Nate"
-# weight: 1
+weight: 1
 # aliases: ["/first"]
 tags: ["Terraform", "VXLAN", "EVPN", "FortiGate", "Proxmox", "SDN", "IaC", "Automation", "Homelab"]
 categories: ["Networking", "Automation"]
-#series: ["No-Series"]
+series: ["Proxmox SDN"]
 showToc: true
 TocOpen: false
 draft: false
@@ -100,6 +100,9 @@ terraform init
 ```
 
 `init` downloads both plugins and writes `.terraform.lock.hcl` (commit that, it pins provider versions). Set up gitignore right away so secrets and state never leak, because state holds secrets in plaintext:
+
+> [!CAUTION]
+> Terraform state is not encrypted. Your FortiGate token, your Proxmox token, and anything else sensitive sit in `terraform.tfstate` in the clear. Gitignore `*.tfstate` and `*.tfvars` *before* your first `apply`, not after you spot them in `git status`.
 
 ```bash
 cat > .gitignore << 'EOF'
@@ -439,7 +442,8 @@ pvesh set /cluster/sdn    # drop the local gateway
 
 After that, the VM's gateway ARP was no longer answered locally, so it flooded across VXLAN, reached the FortiGate, and the gateway answered. Traffic crossed the overlay.
 
-The lesson is worth stating plainly: reproducing a working config faithfully sometimes means leaving something out, and the tooling's instinct toward completeness is exactly what diverged the automated version from the proven one. The subnet block looked like completeness. It was the bug.
+> [!INSIGHT]
+> Reproducing a working config faithfully sometimes means leaving something out. The tooling's pull toward completeness, a subnet resource that will happily take a gateway, is exactly what diverged the automated version from the proven one. The subnet block looked like completeness. It was the bug.
 
 ## Verifying it worked, end to end
 

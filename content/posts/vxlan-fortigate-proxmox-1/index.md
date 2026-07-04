@@ -1,26 +1,20 @@
 ---
-title: VXLAN Between a FortiGate and Proxmox
-date: 2026-06-21T01:00:00Z
-author: Nate
+title: 'VXLAN Between a FortiGate and Proxmox'
+date: 2026-06-23T01:00:00Z
+author: "Nate"
 weight: 1
-tags:
-  - VXLAN
-  - FortiGate
-  - Proxmox
-  - SDN
-  - Homelab
-categories:
-  - Networking
+# aliases: ["/first"]
+tags: ["VXLAN", "FortiGate", "Proxmox", "SDN", "Homelab"]
+categories: ["Networking"]
 series: ["Proxmox SDN"]
 showToc: true
 TocOpen: false
 draft: false
 hidemeta: false
 comments: false
-description: Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity.
-summary: Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity.
-canonicalURL: https://canonical.url/to/page
-disableHLJS: true
+description: "Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity."
+canonicalURL: "https://canonical.url/to/page"
+disableHLJS: true # to disable highlightjs
 disableShare: true
 hideSummary: false
 searchHidden: true
@@ -31,25 +25,25 @@ ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
-  image: <image path/url>
-  alt: <alt text>
-  caption: <text>
-  relative: false
-  hidden: true
+    image: "<image path/url>" # image path/url
+    alt: "<alt text>" # alt text
+    caption: "<text>" # display caption under cover
+    relative: false # when using page bundles set this to true
+    hidden: true # only hide on current single page
 editPost:
-  disaled: true
-  URL: https://github.com/<path_to_repo>/content
-  Text: Suggest Changes
-  appendFilePath: true
+    disaled: true
+    URL: "https://github.com/<path_to_repo>/content"
+    Text: "Suggest Changes" # edit text
+    appendFilePath: true # to append file path to Edit link
 ---
 
 ## Why VXLAN
 
-I already run VLANs through my core switch to carve up the lab, and that works well enough. What I wanted to play with was decoupling a segment from the physical switch entirely. VXLAN does that by wrapping the guest's Layer 2 frame inside a UDP packet (destination port 4789 by default) and shipping it to whatever VXLAN Tunnel Endpoint (VTEP) holds the other end. To a VM the bridge looks like any other bridge, but the "wire" underneath it is now an IP path I control instead of a switchport.
+I already run VLANs through my core switch to carve up the lab, and that works fine. What I wanted to play with was decoupling a segment from the physical switch entirely. VXLAN does that by wrapping the guest's Layer 2 frame inside a UDP packet (destination port 4789 by default) and shipping it to whatever VXLAN Tunnel Endpoint (VTEP) holds the other end. To a VM the bridge looks like any other bridge, but the "wire" underneath it is now an IP path I control instead of a switchport.
 
 The longer term goal is to stretch a single segment across two sites joined by an IPsec tunnel, with the FortiGate acting as the gateway and inspection point for that overlay, all without re-cabling anything or touching switch VLAN config. Before any of that, though, I wanted to answer one small question: will a FortiGate and a Proxmox host actually form a working VXLAN segment between them? This post is just that feasibility test.
 
-The FortiGate is on FortiOS 7.6 branch (7.6.7 as of writing) and the Proxmox host is on the 9.2 branch (9.3.2 as of writing).
+The FortiGate is on FortiOS 8.0.0 and the Proxmox host is on the 9.x branch.
 
 ## Scoping the test
 
@@ -74,7 +68,7 @@ Parameters, all sanitized:
 
 Create the VXLAN interface, drop it into a software switch, and give the switch the gateway IP. The VXLAN object's `interface` is the underlay egress, and that interface's IP becomes the VTEP source.
 
-```FortiOS
+```
 config system vxlan
     edit "vxlan-poc"
         set interface "lan"
@@ -84,8 +78,15 @@ config system vxlan
     next
 end
 
+config system switch-interface
+    edit "vxsw"
+        set type switch
+        set member "vxlan-poc"
+    next
+end
+
 config system interface
-    edit "vxlan-poc"
+    edit "vxsw"
         set ip 172.31.99.1 255.255.255.0
         set allowaccess ping
         set mtu-override enable
@@ -111,25 +112,28 @@ From the VM, `ping 172.31.99.1`. If that comes back, the interop is proven.
 
 On the FortiGate I watched the forwarding table and the encapsulated packets go by:
 
-```FortiOS
+```
 diagnose sys vxlan fdb list vxlan-poc
 diagnose sniffer packet lan 'udp port 4789' 4
 ```
 
 On Proxmox the same flows show up mirrored:
 
-```bash
+```
 bridge fdb show | grep vxlan
 tcpdump -ni <underlay-iface> udp port 4789
 ```
 
 Once the ping worked, I confirmed large frames survive with `ping -M do -s 1400` from the VM. A same subnet test will happily pass small pings even with the MTU set wrong, so this step matters before you trust the segment. (If you skip it, the MTU mismatch waits to bite you later, much more confusingly, the first time real traffic tries to push full size frames.)
 
+> [!TIP]
+> A same subnet ping is a liar. It succeeds even when the path MTU is wrong, because small packets fit either way. `ping -M do -s 1400` forces a large frame with the don't fragment bit set, so a broken MTU fails right here, loudly, instead of three layers deep in something else a week later.
+
 ## Adding more hosts
 
 This was the part I had wrong in my head at first. For more VTEPs on the same segment, you do not create additional VXLAN interfaces. One VNI is one segment. You just add every remote VTEP to the single interface's `remote-ip`, which is a list:
 
-```FortiOS
+```
 config system vxlan
     edit "vxlan-poc"
         set interface "lan"

@@ -1,6 +1,6 @@
 ---
 title: "VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside"
-date: 2026-06-25T01:00:00Z
+date: 2026-06-27T01:00:00Z
 author: Nate
 weight: 1
 tags:

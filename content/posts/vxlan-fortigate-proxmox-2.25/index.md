@@ -1,29 +1,20 @@
 ---
-title: "VXLAN Performance on a FortiGate 70F: The Software Switching Tax"
-date: 2026-06-25T01:00:00Z
-author: Nate
+title: 'VXLAN Performance on a FortiGate 70F: The Software Switching Tax'
+date: 2026-06-25T03:00:00Z
+author: "Nate"
 weight: 1
-tags:
-  - VXLAN
-  - EVPN
-  - FortiGate
-  - Proxmox
-  - SDN
-  - Performance
-  - NP7
-  - Homelab
-categories:
-  - Networking
+# aliases: ["/first"]
+tags: ["VXLAN", "EVPN", "FortiGate", "Proxmox", "SDN", "Performance", "NP7", "Homelab"]
+categories: ["Networking"]
 series: ["Proxmox SDN"]
 showToc: true
 TocOpen: false
 draft: false
 hidemeta: false
 comments: false
-description: Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.
-summary: Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.
-canonicalURL: https://canonical.url/to/page
-disableHLJS: true
+description: "Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon."
+canonicalURL: "https://canonical.url/to/page"
+disableHLJS: true # to disable highlightjs
 disableShare: true
 hideSummary: false
 searchHidden: true
@@ -34,16 +25,16 @@ ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
-  image: <image path/url>
-  alt: <alt text>
-  caption: <text>
-  relative: false
-  hidden: true
+    image: "<image path/url>" # image path/url
+    alt: "<alt text>" # alt text
+    caption: "<text>" # display caption under cover
+    relative: false # when using page bundles set this to true
+    hidden: true # only hide on current single page
 editPost:
-  disaled: true
-  URL: https://github.com/<path_to_repo>/content
-  Text: Suggest Changes
-  appendFilePath: true
+    disaled: true
+    URL: "https://github.com/<path_to_repo>/content"
+    Text: "Suggest Changes" # edit text
+    appendFilePath: true # to append file path to Edit link
 ---
 
 ## The setup, and the question
@@ -61,7 +52,7 @@ I wanted the cleanest A/B I could manage, so I changed exactly one thing. Same V
 
 Both paths route through the same box to the same destination, so if the overlay costs anything, this isolates it. The test itself was nothing fancy:
 
-```bash
+```
 iperf3 -c <server> -t 10
 ```
 
@@ -69,7 +60,7 @@ iperf3 -c <server> -t 10
 
 VXLAN overlay segment:
 
-```bash
+```
 [ ID] Interval           Transfer     Bitrate         Retr
 [  5]   0.00-10.00  sec   654 MBytes   548 Mbits/sec  179   sender
 [  5]   0.00-10.00  sec   651 MBytes   546 Mbits/sec        receiver
@@ -79,7 +70,7 @@ Across several runs this sat in a tight band, roughly 525 to 548 Mbit/sec, alway
 
 Same VM, plain VLAN:
 
-```bash
+```
 [ ID] Interval           Transfer     Bitrate         Retr
 [  5]   0.00-10.00  sec  1.09 GBytes   935 Mbits/sec  109   sender
 [  5]   0.00-10.00  sec  1.09 GBytes   934 Mbits/sec        receiver
@@ -99,7 +90,7 @@ On the VXLAN run, a CPU core jumps for the entire length of the transfer and dro
 
 A few commands make this concrete rather than a vibe:
 
-```FortiOS
+```
 get system performance status
 diagnose sys top 2 20
 ```
@@ -108,7 +99,7 @@ diagnose sys top 2 20
 
 If you want to confirm it at the session level instead of by CPU, pull the flow out of the session table and look at whether it is offloaded:
 
-```FortiOS
+```
 diagnose sys session filter dport 5201
 diagnose sys session list
 ```
@@ -121,7 +112,7 @@ That same software datapath filling up under load is what produces the steady re
 
 This is a FortiGate 70F:
 
-```FortiSpecs
+```
 Model name: FortiGate-70F
 ASIC version: SOC4
 CPU: ARMv8
@@ -134,6 +125,11 @@ The line that matters is the NP6XLite, and here is the part that took me a secon
 
 VXLAN offload arrived with the NP7 generation. NP7 explicitly offloads VXLAN (and VXLAN over IPsec). And, worth stating clearly because I had this slightly wrong at first: the NP7Lite parts offload VXLAN too. The 50G/70G/90G/120G/200G class boxes run NP7Lite and will fast path VXLAN. There is even a Fortinet KB about a VXLAN over NP7Lite session bug, which you can only have if the thing is being offloaded in the first place.
 
+> [!QUOTE] Fortinet, FortiOS Hardware Acceleration Guide
+> VXLAN and VXLAN over IPsec.
+
+That line is straight out of the NP7's list of offloadable tunneling protocols, which is exactly the list the NP6 generation does not have.
+
 So the real tell when you are shopping is generational, not "Lite versus not." It breaks down like this:
 
 - NP6 family (NP6, NP6XLite, NP6Lite): no VXLAN offload. Software switched, CPU bound. The 70F lives here.
@@ -141,55 +137,11 @@ So the real tell when you are shopping is generational, not "Lite versus not." I
 
 The trap is specifically the NP6XLite, because the name pattern matches to the NP7Lite era when it does not belong to it. Do not read "XLite" as "small NP7." Check the FortiOS hardware acceleration guide's offload tables for the actual processor in your model, and confirm it on your own box, rather than trusting a marketing datasheet blurb, which varies in what it bothers to spell out.
 
-> [!NOTE]
+> [!INSIGHT]
+> "XLite" and "Lite" both read like a modern, trimmed down part, but they belong to different generations: NP6XLite is NP6 era silicon, NP7Lite is NP7 era. The generation is the tell, the "Lite" is the trap. A newer or bigger model number tells you nothing about VXLAN offload on its own.
+
+> [!WARNING]
 > One caveat so this does not get over-applied: offload is both platform and configuration dependent. Even on hardware that can offload VXLAN, the moment you put UTM inspection on the flow (IPS, AV, SSL inspection) it goes back to the CPU, because inspection cannot run on the NP. There is also a `vxlan-offload` toggle, and on NP7 the `learn-from-traffic` setting on the VXLAN interface quietly controls whether the overlay gets hardware accelerated at all. So "does my box offload VXLAN" is really two questions: can the silicon do it, and does my config let it stay offloaded. Watch the CPU and check the session flags either way.
-
-## Some confusion about the NP7/NP7lite
-
-At home I run a FortiGate 70F and a 201F at the "lab", which both use the NP6xlite, which is from the previous generation of Fortinet network ASICs.  While looking at the [datasheet for the 201G](https://www.fortinet.com/content/dam/fortinet/assets/data-sheets/pdf/fortigate-200g-series.pdf), it says the following:
-
-> [!QUOTE] FortiGate 201G datasheet
-> Network processor NP7Lite — Fortinet's new, breakthrough SPU NP7Lite network processor works in line with FortiOS functions delivering:
->
-> - Superior firewall performance for IPv4/IPv6, SCTP, and multicast traffic with ultra-low latency
-> - VPN, CAPWAP, and IP tunnel acceleration
-> - Anomaly-based intrusion prevention, checksum offload, and packet defragmentation
-> - Traffic shaping and priority queuing
-
-vs the [datasheet for the 401G](https://www.fortinet.com/content/dam/fortinet/assets/data-sheets/pdf/fortigate-400g-series.pdf)
-
-> [!QUOTE] FortiGate 401G datasheet
-> Network processor NP7 - Fortinet’s breakthrough SPU NP7 works in line with FortiOS functions to deliver:
->
-> - Hyperscale firewall, accelerated session setup, and ultra-low latency
-> - Industry-leading performance for VPN, **VXLAN termination**, hardware logging, and elephant flows
-
-So it looks like the full-fat NP7 is where the VXLAN offloading begins.  Looking at the Fortinet documentation for [Network processors (NP7, NP7Lite, NP6, NP6XLite, and NP6Lite)](https://docs.fortinet.com/document/fortigate/8.0.0/hardware-acceleration/575471/network-processors-np7-np7lite-np6-np6xlite-and-np6lite), it says:
-
-> [!QUOTE] [Network processors (NP7, NP7Lite, NP6, NP6XLite, and NP6Lite)](https://docs.fortinet.com/document/fortigate/8.0.0/hardware-acceleration/575471/network-processors-np7-np7lite-np6-np6xlite-and-np6lite)
-> NP7 | NP7 processors offload most IPv4 and IPv6 traffic, IPsec VPN encryption (including Suite B), GTP traffic, CAPWAP traffic, **VXLAN traffic**, multicast traffic, NAT session setup for NAT44, NAT66, NAT64 and NAT46 traffic, and DoS protection.
-
-While the NP7Lite, and other ASICs below make no mention of VXLAN capabilities whatsoever.  That all said, I had the opportunity to poke around a 201G and found this:
-
-```FortiOS
-FortiGate-201G # get hardware status
-Model name: FortiGate-201G
-(more info omitted for brevity)
-Network Card chipset: Intel(R) Gigabit Ethernet Network Driver (rev.0003)
-Network Card chipset: FortiASIC NP7LITE Adapter (rev.)
-
-FortiGate-201G # config system npu
-
-FortiGate-201G (npu) # set
-(more option omitted for brevity)
-vxlan-offload                     Enable/disable offloading vxlan.
-(more option omitted for brevity)
-
-FortiGate-201G (npu) # show full | grep vxlan
-    set vxlan-offload enable
-```
-
-So maybe it's not as cut-and-dry as the NP7 being the key to VXLAN offloading.  I don't have the opportunity to play with VXLAN with this specific 201G (I don't think), but I am curious to see where this will go!
 
 ## An MTU aside, because it hid all of this at first
 

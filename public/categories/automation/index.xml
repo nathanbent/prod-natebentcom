@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Automation on NateBent.com</title>
+    <link>https://natebent.com/categories/automation/</link>
+    <description>Recent content in Automation on NateBent.com</description>
+    <image>
+      <title>NateBent.com</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 30 Jun 2026 01:00:00 +0000</lastBuildDate>
+    <atom:link href="https://natebent.com/categories/automation/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>VXLAN Between a FortiGate and Proxmox, Part 3: Automating It With Terraform</title>
+      <link>https://natebent.com/posts/vxlan-fortigate-proxmox-3/</link>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-3/</guid>
+      <description>Taking the hand-built FortiGate and Proxmox EVPN fabric and reproducing it entirely in code, one Terraform workspace driving both platforms, with every wall I hit along the way written down so you do not have to hit them too.</description>
+    </item>
+  </channel>
+</rss>

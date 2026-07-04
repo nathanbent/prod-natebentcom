@@ -11,12 +11,12 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 25 Jun 2026 01:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 27 Jun 2026 01:00:00 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/tags/microsegmentation/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Sat, 27 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/</guid>
       <description>What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.</description>
     </item>

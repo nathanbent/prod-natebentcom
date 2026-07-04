@@ -11,83 +11,104 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 25 Jun 2026 01:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 30 Jun 2026 01:00:00 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>BGP</title>
-      <link>https://natebent.com/tags/bgp/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
-      <guid>https://natebent.com/tags/bgp/</guid>
+      <title>Automation</title>
+      <link>https://natebent.com/tags/automation/</link>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/automation/</guid>
       <description></description>
     </item>
     <item>
       <title>EVPN</title>
       <link>https://natebent.com/tags/evpn/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/tags/evpn/</guid>
       <description></description>
     </item>
     <item>
       <title>FortiGate</title>
       <link>https://natebent.com/tags/fortigate/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/tags/fortigate/</guid>
       <description></description>
     </item>
     <item>
       <title>Homelab</title>
       <link>https://natebent.com/tags/homelab/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/tags/homelab/</guid>
       <description></description>
     </item>
     <item>
-      <title>Microsegmentation</title>
-      <link>https://natebent.com/tags/microsegmentation/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
-      <guid>https://natebent.com/tags/microsegmentation/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>NP7</title>
-      <link>https://natebent.com/tags/np7/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
-      <guid>https://natebent.com/tags/np7/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Performance</title>
-      <link>https://natebent.com/tags/performance/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
-      <guid>https://natebent.com/tags/performance/</guid>
+      <title>IaC</title>
+      <link>https://natebent.com/tags/iac/</link>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/iac/</guid>
       <description></description>
     </item>
     <item>
       <title>Proxmox</title>
       <link>https://natebent.com/tags/proxmox/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/tags/proxmox/</guid>
       <description></description>
     </item>
     <item>
       <title>SDN</title>
       <link>https://natebent.com/tags/sdn/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/tags/sdn/</guid>
       <description></description>
     </item>
     <item>
-      <title>Security</title>
-      <link>https://natebent.com/tags/security/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
-      <guid>https://natebent.com/tags/security/</guid>
+      <title>Terraform</title>
+      <link>https://natebent.com/tags/terraform/</link>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/terraform/</guid>
       <description></description>
     </item>
     <item>
       <title>VXLAN</title>
       <link>https://natebent.com/tags/vxlan/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/tags/vxlan/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>BGP</title>
+      <link>https://natebent.com/tags/bgp/</link>
+      <pubDate>Sat, 27 Jun 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/bgp/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Microsegmentation</title>
+      <link>https://natebent.com/tags/microsegmentation/</link>
+      <pubDate>Sat, 27 Jun 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/microsegmentation/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Security</title>
+      <link>https://natebent.com/tags/security/</link>
+      <pubDate>Sat, 27 Jun 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/security/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>NP7</title>
+      <link>https://natebent.com/tags/np7/</link>
+      <pubDate>Thu, 25 Jun 2026 03:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/np7/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Performance</title>
+      <link>https://natebent.com/tags/performance/</link>
+      <pubDate>Thu, 25 Jun 2026 03:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/performance/</guid>
       <description></description>
     </item>
     <item>
