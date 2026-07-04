@@ -20,6 +20,9 @@
     <loc>https://natebent.com/posts/vxlan-fortigate-proxmox-1/</loc>
     <lastmod>2026-06-23T01:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://natebent.com/posts/proxmox-best-practices-guest-storage/</loc>
+    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://natebent.com/posts/idrac-fan-control/</loc>
     <lastmod>2024-09-25T11:54:26-05:00</lastmod>
   </url><url>
@@ -109,6 +112,18 @@
   </url><url>
     <loc>https://natebent.com/tags/performance/</loc>
     <lastmod>2026-06-25T03:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/storage/</loc>
+    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/virtualization/</loc>
+    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/virtualization/</loc>
+    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/zfs/</loc>
+    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/experiences/</loc>
     <lastmod>2024-09-25T11:54:26-05:00</lastmod>

@@ -1,6 +1,6 @@
 ---
 title: "Proxmox Best Practices - Guest Storage"
-date: 2026-5-27
+date: 2026-05-27T01:00:00Z
 author: "Nate"
 weight: 1
 # aliases: ["/first"]
@@ -150,7 +150,7 @@ The OS quadrants still govern guest-side tuning: drivers, balloon, cluster size.
 
 I have genericized the hostnames and VM IDs below, but the configs and the deltas I found are the real ones.
 
-Generalized Linux, `app-01` (201) and `app-02` (202). Already correct: `virtio-scsi-single`, `iothread=1`, `discard=on`, `ssd=1`, inheriting `cache=none` and `aio=io_uring`. No changes. These are the reference implementation for the lane. One of them runs the same [code-server setup I wrote up separately]({{< ref "exposing-code-server-to-the-internet" >}}), which is a good example of the generalized Linux profile in practice.
+Generalized Linux, `app-01` (201) and `app-02` (202). Already correct: `virtio-scsi-single`, `iothread=1`, `discard=on`, `ssd=1`, inheriting `cache=none` and `aio=io_uring`. No changes. These are the reference implementation for the lane. One of them runs the same [code-server setup I wrote up separately](https://natebent.com/posts/self-hosting-codeserver/), which is a good example of the generalized Linux profile in practice.
 
 Specialty Linux, `ai-01` (701). Core is correct: on the `SSD-r10` ZFS pool, `cache=none` and `io_uring` inherited, `balloon=0`, NUMA-pinned, GPU passthrough. One delta: `scsi0` has `discard=on,ssd=1` but the `scsi2` 256G data disk had neither. Align it:
 

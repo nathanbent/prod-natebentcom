@@ -48,5 +48,12 @@
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-1/</guid>
       <description>Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity.</description>
     </item>
+    <item>
+      <title>Proxmox Best Practices - Guest Storage</title>
+      <link>https://natebent.com/posts/proxmox-best-practices-guest-storage/</link>
+      <pubDate>Wed, 27 May 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/posts/proxmox-best-practices-guest-storage/</guid>
+      <description>How I set cache, aio, iothread, and discard on Proxmox VMs, decided by how each VM is used rather than the OS inside it, plus the ZFS foundations that keep those choices safe to leave alone for years.</description>
+    </item>
   </channel>
 </rss>

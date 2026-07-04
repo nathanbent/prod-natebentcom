@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Virtualization on NateBent.com</title>
+    <link>https://natebent.com/tags/virtualization/</link>
+    <description>Recent content in Virtualization on NateBent.com</description>
+    <image>
+      <title>NateBent.com</title>
+      <url>https://natebent.com/images/papermod-cover.png</url>
+      <link>https://natebent.com/images/papermod-cover.png</link>
+    </image>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 27 May 2026 01:00:00 +0000</lastBuildDate>
+    <atom:link href="https://natebent.com/tags/virtualization/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Proxmox Best Practices - Guest Storage</title>
+      <link>https://natebent.com/posts/proxmox-best-practices-guest-storage/</link>
+      <pubDate>Wed, 27 May 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/posts/proxmox-best-practices-guest-storage/</guid>
+      <description>How I set cache, aio, iothread, and discard on Proxmox VMs, decided by how each VM is used rather than the OS inside it, plus the ZFS foundations that keep those choices safe to leave alone for years.</description>
+    </item>
+  </channel>
+</rss>
