@@ -25,11 +25,12 @@ ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
-    image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
-    hidden: true # only hide on current single page
+    image: "images/pdm-evpn-1.png"
+    alt: "PDM EVPN page"
+    relative: true
+    thumb: true
+    hiddenInSingle: true   # never show it stacked atop the article
+    hiddenInList: false    # but do show it as the list thumbnail
 editPost:
     disaled: true
     URL: "https://github.com/<path_to_repo>/content"
@@ -206,6 +207,12 @@ First, BGP discovery. Instead of hand defining each Proxmox node as a neighbor, 
 Second, multiple segments over one session. Each additional segment is its own EVPN instance plus its own VXLAN plus its own software switch on the FortiGate, and its own VNet on Proxmox, all riding the same BGP session. You never touch BGP to add a segment. That is the payoff restated: segments scale by adding objects, the peering never grows. The mental model that holds it together is that the VNI is the segment, the EVPN instance is that segment's identity in BGP, the route target is the matching key, and one BGP session carries all of them.
 
 The capability that only shows up once you have multiple nodes is the anycast gateway. With the same gateway IP live on every VTEP, a VM can move between nodes and keep using the same gateway because it is local wherever it lands. That is the concrete reason the whole EVPN detour pays for itself, and it is completely invisible on one node.
+
+## Proxmox Datacenter Manager
+
+Proxmox Datacenter Manager (PDM) has been adding in more support for SDN features, including EVPN.  Here is what it looks like currently:
+
+{{< figure src="images/pdm-evpn-1.png" alt="Proxmox Datacenter Manager - EVPN Page" caption="Proxmox Datacenter Manager - EVPN Page" >}}
 
 ## Where this goes next
 

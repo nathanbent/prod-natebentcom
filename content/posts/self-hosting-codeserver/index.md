@@ -25,11 +25,12 @@ ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
-    image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
-    hidden: true # only hide on current single page
+    image: "images/screenshot-1.png"
+    alt: "code-server example screenshot, this shows the homepage upon install"
+    relative: true
+    thumb: true
+    hiddenInSingle: true   # never show it stacked atop the article
+    hiddenInList: false    # but do show it as the list thumbnail
 editPost:
     disaled: true
     URL: "https://github.com/<path_to_repo>/content"
@@ -40,6 +41,8 @@ editPost:
 ## What code-server is
 
 code-server is Visual Studio Code running as a service on a remote machine, accessed entirely through a web browser. Instead of running VS Code locally on a laptop, you run it on a server, and the full editor experience (file tree, integrated terminal, extensions, git integration) is delivered over HTTP to any browser you point at it.
+
+{{< figure src="images/screenshot-1.png" alt="code-server example screenshot, this shows the homepage upon install" caption="code-server home page" >}}
 
 The appeal is obvious: a single, consistent development environment that follows you everywhere. Open a Chromebook, a tablet, a locked-down work laptop, or a friend's machine, and you land in the exact same editor with the exact same tools, extensions, and open projects. Nothing to install on the client. The heavy lifting (compiling, running containers, filesystem access) happens on the server where the resources actually are.
 
