@@ -9,7 +9,7 @@ categories: ["Networking", "Automation"]
 #series: ["No-Series"]
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: false
 description: "Taking the hand-built FortiGate and Proxmox EVPN fabric and reproducing it entirely in code, one Terraform workspace driving both platforms, with every wall I hit along the way written down so you do not have to hit them too."
