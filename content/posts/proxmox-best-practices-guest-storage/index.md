@@ -1,6 +1,6 @@
 ---
 title: "Proxmox Best Practices - Guest Storage"
-date: 2026-05-27T01:00:00Z
+date: 2026-05-11T01:00:00Z
 author: "Nate"
 weight: 1
 # aliases: ["/first"]
