@@ -2,6 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://natebent.com/posts/self-hosting-codeserver/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://natebent.com/posts/vxlan-fortigate-proxmox-3/</loc>
     <lastmod>2026-06-30T01:00:00+00:00</lastmod>
   </url><url>
@@ -26,34 +29,55 @@
     <loc>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</loc>
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
   </url><url>
+    <loc>https://natebent.com/tags/caddy/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/code-server/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/docker/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/fortigate/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/homelab/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/oauth2-proxy/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/posts/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/security/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/security/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/</loc>
+    <lastmod>2026-07-02T01:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://natebent.com/categories/automation/</loc>
     <lastmod>2026-06-30T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/automation/</loc>
     <lastmod>2026-06-30T01:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://natebent.com/categories/</loc>
-    <lastmod>2026-06-30T01:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://natebent.com/tags/evpn/</loc>
-    <lastmod>2026-06-30T01:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/tags/fortigate/</loc>
-    <lastmod>2026-06-30T01:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/tags/homelab/</loc>
     <lastmod>2026-06-30T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/iac/</loc>
     <lastmod>2026-06-30T01:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://natebent.com/</loc>
-    <lastmod>2026-06-30T01:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://natebent.com/categories/networking/</loc>
-    <lastmod>2026-06-30T01:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/posts/</loc>
     <lastmod>2026-06-30T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/proxmox/</loc>
@@ -68,9 +92,6 @@
     <loc>https://natebent.com/series/</loc>
     <lastmod>2026-06-30T01:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://natebent.com/tags/</loc>
-    <lastmod>2026-06-30T01:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://natebent.com/tags/terraform/</loc>
     <lastmod>2026-06-30T01:00:00+00:00</lastmod>
   </url><url>
@@ -81,12 +102,6 @@
     <lastmod>2026-06-27T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/microsegmentation/</loc>
-    <lastmod>2026-06-27T01:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/categories/security/</loc>
-    <lastmod>2026-06-27T01:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/tags/security/</loc>
     <lastmod>2026-06-27T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/np7/</loc>
@@ -117,9 +132,6 @@
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/ddns/</loc>
-    <lastmod>2024-02-03T20:52:13-06:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/tags/docker/</loc>
     <lastmod>2024-02-03T20:52:13-06:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/ansible/</loc>

@@ -11,8 +11,57 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 30 Jun 2026 01:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 02 Jul 2026 01:00:00 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Caddy</title>
+      <link>https://natebent.com/tags/caddy/</link>
+      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/caddy/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Code-Server</title>
+      <link>https://natebent.com/tags/code-server/</link>
+      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/code-server/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Docker</title>
+      <link>https://natebent.com/tags/docker/</link>
+      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/docker/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>FortiGate</title>
+      <link>https://natebent.com/tags/fortigate/</link>
+      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/fortigate/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Homelab</title>
+      <link>https://natebent.com/tags/homelab/</link>
+      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/homelab/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Oauth2-Proxy</title>
+      <link>https://natebent.com/tags/oauth2-proxy/</link>
+      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/oauth2-proxy/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Security</title>
+      <link>https://natebent.com/tags/security/</link>
+      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/tags/security/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Automation</title>
       <link>https://natebent.com/tags/automation/</link>
@@ -25,20 +74,6 @@
       <link>https://natebent.com/tags/evpn/</link>
       <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/tags/evpn/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>FortiGate</title>
-      <link>https://natebent.com/tags/fortigate/</link>
-      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
-      <guid>https://natebent.com/tags/fortigate/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Homelab</title>
-      <link>https://natebent.com/tags/homelab/</link>
-      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
-      <guid>https://natebent.com/tags/homelab/</guid>
       <description></description>
     </item>
     <item>
@@ -91,13 +126,6 @@
       <description></description>
     </item>
     <item>
-      <title>Security</title>
-      <link>https://natebent.com/tags/security/</link>
-      <pubDate>Sat, 27 Jun 2026 01:00:00 +0000</pubDate>
-      <guid>https://natebent.com/tags/security/</guid>
-      <description></description>
-    </item>
-    <item>
       <title>NP7</title>
       <link>https://natebent.com/tags/np7/</link>
       <pubDate>Thu, 25 Jun 2026 03:00:00 +0000</pubDate>
@@ -137,13 +165,6 @@
       <link>https://natebent.com/tags/ddns/</link>
       <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate>
       <guid>https://natebent.com/tags/ddns/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Docker</title>
-      <link>https://natebent.com/tags/docker/</link>
-      <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate>
-      <guid>https://natebent.com/tags/docker/</guid>
       <description></description>
     </item>
     <item>
