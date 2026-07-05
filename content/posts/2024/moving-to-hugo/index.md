@@ -126,6 +126,17 @@ plain fenced block with no language — should show no label but still copy
 
 #### Heading level four (should NOT be accent-colored)
 
+## Footnotes
+
+A sentence with a footnote[^1] and another[^long].
+
+[^1]: A short one.
+[^long]: A longer one with `inline code` and a [link](https://gohugo.io/) —
+    both should style correctly, and the ↩ should jump back with a brief
+    accent flash on the reference.
+
+## Code and other stuff
+
 Some prose with `inline code`, a [link](https://gohugo.io/), **bold**, and *italic*.
 
 1. Ordered item

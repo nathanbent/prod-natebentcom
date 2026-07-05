@@ -274,6 +274,43 @@ html {
     box-shadow: inset 3px 0 0 var(--accent);
 }
 
+/* Footnotes — Goldmark builtin; refs are sup > a.footnote-ref,
+   the collected block is div.footnotes with backref ↩ links */
+
+/* The block: match the prose measure (the div isn't caught by the
+   >p/>ul measure selectors), quieter type, divider on top */
+.post-content > .footnotes {
+    max-width: var(--measure);
+    margin-inline: auto;
+    margin-top: 48px;
+    font-size: 14px;
+    color: var(--secondary);
+}
+
+.post-content .footnotes hr {
+    margin-bottom: 12px;
+}
+
+/* Don't let the ref superscript inflate line height */
+.post-content sup[id^="fnref"] {
+    line-height: 0;
+}
+
+/* Jump feedback: land offset below the sticky header, and flash the
+   target with the 8% accent wash from the tint scale so your eye
+   finds the right note (works both directions — note and backref) */
+.post-content .footnotes li,
+.post-content sup[id^="fnref"] {
+    scroll-margin-top: 80px;
+}
+
+/* Footnotes */
+
+.post-content .footnotes li:target,
+.post-content sup[id^="fnref"]:target {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    border-radius: 4px;
+}
 
 /* 3. POST CONTENT — MEDIA ----------------------------------- */
 
