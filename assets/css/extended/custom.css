@@ -20,16 +20,81 @@
 
 /* 1. DESIGN TOKENS ------------------------------------------- */
 :root {
-    --accent: #748CAB;
     --main-width: 1100px;
     /* wide canvas: code, tables, images breathe */
     --measure: 72ch;
     /* comfortable reading width for prose */
+    --accent: #748CAB;
+    /* STOCK BELOW*/
+    --theme: rgb(255, 255, 255);
+    --entry: rgb(255, 255, 255);
+    --primary: rgb(30, 30, 30);
+    --secondary: rgb(108, 108, 108);
+    --tertiary: rgb(214, 214, 214);
+    --content: rgb(31, 31, 31);
+    --code-block-bg: rgb(28, 29, 33);
+    --code-bg: rgb(245, 245, 245);
+    --border: rgb(238, 238, 238);
 }
 
 .dark {
     --accent: #8fa8c9;
+    /* STOCK BELOW*/
+    --entry: rgb(46, 46, 51);
+    --theme: rgb(29, 30, 32);
+    --entry: rgb(46, 46, 51);
+    --primary: rgb(218, 218, 219);
+    --secondary: rgb(155, 156, 157);
+    --tertiary: rgb(65, 66, 68);
+    --content: rgb(196, 196, 197);
+    --code-block-bg: rgb(46, 46, 51);
+    --code-bg: rgb(55, 56, 62);
+    --border: rgb(51, 51, 51);
 }
+
+/* --- PaperMod theme token reference (theme-vars.css defaults) ---------------
+   NOT live. This is a copy of every variable the theme defines in
+   themes/hugo-PaperMod/assets/css/core/theme-vars.css, for reference while
+   planning a palette. To actually change one, add a real declaration in the
+   :root / .dark block above (or its own new block) — do NOT uncomment these
+   directly without deliberately deciding to.
+
+   :root (light mode) {
+       --gap: 24px;
+       --content-gap: 20px;
+       --nav-width: 1024px;
+       --main-width: 1000px;          (site overrides this to 1100px above)
+       --header-height: 60px;
+       --footer-height: 60px;
+       --radius: 8px;
+       --theme: rgb(255, 255, 255);
+       --entry: rgb(255, 255, 255);
+       --primary: rgb(30, 30, 30);
+       --secondary: rgb(108, 108, 108);
+       --tertiary: rgb(214, 214, 214);
+       --content: rgb(31, 31, 31);
+       --code-block-bg: rgb(28, 29, 33);
+       --code-bg: rgb(245, 245, 245);
+       --border: rgb(238, 238, 238);
+   }
+
+   .dark {
+       --theme: rgb(29, 30, 32);
+       --entry: rgb(46, 46, 51);
+       --primary: rgb(218, 218, 219);
+       --secondary: rgb(155, 156, 157);
+       --tertiary: rgb(65, 66, 68);
+       --content: rgb(196, 196, 197);
+       --code-block-bg: rgb(46, 46, 51);
+       --code-bg: rgb(55, 56, 62);
+       --border: rgb(51, 51, 51);
+   }
+
+   Also in theme-vars.css (not variables, direct rules — relevant if palette
+   work touches list-page backgrounds):
+   .list        { background: var(--code-bg); }
+   .dark.list   { background: var(--theme); }
+------------------------------------------------------------------------- */
 
 
 /* 2. POST CONTENT — TYPOGRAPHY ------------------------------- */
@@ -417,13 +482,13 @@ html {
     color: var(--primary);
     font-weight: 600;
     letter-spacing: .05em;
-    font-size: 14px;
+    font-size: 16px;
     font-style: italic;
 }
 
 .series-nav-name {
     color: var(--accent);
-    font-weight: 600;
+    font-weight: 900;
     text-transform: uppercase;
     font-size: 16px;
     font-style: normal;
