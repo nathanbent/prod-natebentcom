@@ -154,6 +154,12 @@ html {
     max-height: 95vh;
 }
 
+.lightbox-inner img[src$=".svg"] {
+    width: 90vw;
+    max-width: 1200px;
+    height: auto;
+}
+
 .lightbox-inner img {
     max-width: 95vw;
     max-height: 95vh;

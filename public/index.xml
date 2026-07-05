@@ -16,14 +16,14 @@
       <description>&lt;h2 id=&#34;what-code-server-is&#34;&gt;What code-server is&lt;/h2&gt;
 &lt;p&gt;code-server is Visual Studio Code running as a service on a remote machine, accessed entirely through a web browser. Instead of running VS Code locally on a laptop, you run it on a server, and the full editor experience (file tree, integrated terminal, extensions, git integration) is delivered over HTTP to any browser you point at it.&lt;/p&gt;
 &lt;figure&gt;
-      &lt;img
-        src=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp&#34;
-        srcset=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_e834b822f9581d36.webp 640w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp 1024w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_14eee16a3e0e3089.webp 1600w&#34;
-        sizes=&#34;(min-width: 768px) 720px, 100vw&#34;
-        data-full=&#34;/posts/self-hosting-codeserver/images/screenshot-1.png&#34;
-        alt=&#34;code-server example screenshot, this shows the homepage upon install&#34;
-        width=&#34;1519&#34; height=&#34;988&#34;
-        loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;code-server home page&lt;/figcaption&gt;&lt;/figure&gt;
+        &lt;img
+          src=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp&#34;
+          srcset=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_e834b822f9581d36.webp 640w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp 1024w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_14eee16a3e0e3089.webp 1600w&#34;
+          sizes=&#34;(min-width: 768px) 720px, 100vw&#34;
+          data-full=&#34;/posts/self-hosting-codeserver/images/screenshot-1.png&#34;
+          alt=&#34;code-server example screenshot, this shows the homepage upon install&#34;
+          width=&#34;1519&#34; height=&#34;988&#34;
+          loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;code-server home page&lt;/figcaption&gt;&lt;/figure&gt;
 &lt;p&gt;The appeal is obvious: a single, consistent development environment that follows you everywhere. Open a Chromebook, a tablet, a locked-down work laptop, or a friend&amp;rsquo;s machine, and you land in the exact same editor with the exact same tools, extensions, and open projects. Nothing to install on the client. The heavy lifting (compiling, running containers, filesystem access) happens on the server where the resources actually are.&lt;/p&gt;
 &lt;p&gt;For a homelab or a personal cloud VM, this is genuinely useful. You get a real, always-on dev environment you can reach from anywhere.&lt;/p&gt;
 &lt;h2 id=&#34;why-exposing-it-publicly-is-dangerous&#34;&gt;Why exposing it publicly is dangerous&lt;/h2&gt;
@@ -869,14 +869,14 @@ True, and almost never the reason a homelab reaches for VXLAN. The 24 bit VNI sp
 &lt;h2 id=&#34;proxmox-datacenter-manager&#34;&gt;Proxmox Datacenter Manager&lt;/h2&gt;
 &lt;p&gt;Proxmox Datacenter Manager (PDM) has been adding in more support for SDN features, including EVPN.  Here is what it looks like currently:&lt;/p&gt;
 &lt;figure&gt;
-      &lt;img
-        src=&#34;https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_4b6da540cf0233d2.webp&#34;
-        srcset=&#34;https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_6179e94603c8a8e4.webp 640w, https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_4b6da540cf0233d2.webp 1024w, https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_74a6acc14c3e17ef.webp 1600w&#34;
-        sizes=&#34;(min-width: 768px) 720px, 100vw&#34;
-        data-full=&#34;/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1.png&#34;
-        alt=&#34;Proxmox Datacenter Manager - EVPN Page&#34;
-        width=&#34;2220&#34; height=&#34;643&#34;
-        loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;Proxmox Datacenter Manager - EVPN Page&lt;/figcaption&gt;&lt;/figure&gt;
+        &lt;img
+          src=&#34;https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_4b6da540cf0233d2.webp&#34;
+          srcset=&#34;https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_6179e94603c8a8e4.webp 640w, https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_4b6da540cf0233d2.webp 1024w, https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_74a6acc14c3e17ef.webp 1600w&#34;
+          sizes=&#34;(min-width: 768px) 720px, 100vw&#34;
+          data-full=&#34;/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1.png&#34;
+          alt=&#34;Proxmox Datacenter Manager - EVPN Page&#34;
+          width=&#34;2220&#34; height=&#34;643&#34;
+          loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;Proxmox Datacenter Manager - EVPN Page&lt;/figcaption&gt;&lt;/figure&gt;
 &lt;h2 id=&#34;where-this-goes-next&#34;&gt;Where this goes next&lt;/h2&gt;
 &lt;p&gt;Everything above is hand typed, and every segment is the identical five object pattern keyed on one VNI, which is exactly the shape that begs to be looped. The next post is automating it: defining the segment list once as data and letting Terraform render both the FortiGate objects and the Proxmox SDN objects, with the route target and the tag both computed from the same number so the &amp;ldquo;mind your tags&amp;rdquo; failure mode becomes structurally impossible.&lt;/p&gt;
 &lt;p&gt;The order matters, though. Build it by hand first, hit these walls, understand every object and how it fails. Then codify the pattern you now actually understand. Automating before you understand it just gives you a black box that deploys broken configs faster. Earning the mental model the hard way is the right moment to hand the typing off to a tool.&lt;/p&gt;
@@ -1514,10 +1514,19 @@ True, and almost never the reason a homelab reaches for VXLAN. The 24 bit VNI sp
       <description>&lt;p&gt;Cox gets a lot of criticism, and most of it&amp;rsquo;s earned. But there&amp;rsquo;s one thing they do right that a lot of ISPs still don&amp;rsquo;t: they hand out a full /56 IPv6 prefix via DHCPv6 Prefix Delegation (DHCPv6-PD). That&amp;rsquo;s 256 individual /64 subnets, which is more than enough for a homelab, however sprawling it gets. This post walks through how I&amp;rsquo;m using that /56 today, why part of my network still requires manual intervention, and what I want to fix down the road.&lt;/p&gt;
 &lt;p&gt;If you&amp;rsquo;ve never worked with IPv6 prefix delegation before, this should also work as a decent introduction to the concept.&lt;/p&gt;
 &lt;h2 id=&#34;a-quick-ipv6-primer&#34;&gt;A quick IPv6 primer&lt;/h2&gt;
-&lt;p&gt;Skip ahead if you already live and breathe this stuff.&lt;/p&gt;
-&lt;p&gt;IPv4 gives us roughly 4.3 billion addresses, a number that felt inexhaustible in 1981 and turned out to be laughably small once every phone, laptop, doorbell, and light bulb wanted one. We&amp;rsquo;ve spent the last two decades patching around that shortage with NAT, which lets thousands of devices share a single public IP by having a router quietly rewrite packet headers as traffic passes through. It works, but it broke the original end-to-end model of the internet. Anything that needs true bidirectional connectivity (VoIP, peer-to-peer apps, some VPN configurations) ends up needing workarounds like STUN, TURN, or port forwarding just to punch through.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-note&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Note&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Skip ahead to &lt;a href=&#34;https://natebent.com/posts/ipv6-and-cox-cable/#the-quick-version-of-dhcpv6-pd&#34;&gt;The quick version of DHCPv6-PD&lt;/a&gt; if you already live and breathe this stuff.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;IPv4 gives us roughly 4.3 billion addresses, a number that felt inexhaustible in 1981 and turned out to be laughably small once every phone, laptop, doorbell, and light bulb wanted one. We&amp;rsquo;ve spent the last two decades patching around that shortage with NAT, which lets thousands of devices share a single public IP by having a router quietly rewrite packet headers as traffic passes through. It works, but it broke the original end-to-end model of the internet. Anything that needs true bidirectional connectivity (VoIP, peer-to-peer apps, some VPN configurations) ends up needing workarounds like STUN, TURN, or port forwarding just to punch through.&lt;/p&gt;
 &lt;p&gt;IPv6 was designed to make that shortage, and the NAT workaround, unnecessary. Instead of 32-bit addresses, IPv6 uses 128 bits: roughly 340 undecillion addresses, or enough to assign a unique address to every grain of sand on Earth several times over. The practical effect is that NAT stops being a requirement. Every device on your network can have its own globally routable address.&lt;/p&gt;
 &lt;p&gt;That single change ripples into how IPv6 networks are actually built. Rather than your ISP handing you one address to share, they hand you a prefix, a block of addresses you subnet yourself. Cox delegates a /56 to my FortiGate, which is 256 individual /64 networks to divide up however I like. This happens through DHCPv6-PD: your router requests a prefix and the ISP&amp;rsquo;s infrastructure hands one back, the same way DHCP hands out a single IPv4 lease, just at a much larger scale.&lt;/p&gt;
+&lt;p&gt;Here&amp;rsquo;s what that actually looks like inside one of my addresses:&lt;/p&gt;
+&lt;figure&gt;
+      &lt;img src=&#34;https://natebent.com/posts/ipv6-and-cox-cable/images/ipv6-address-anatomy.svg&#34; alt=&#34;Anatomy of an IPv6 address from my /56, showing the 56-bit Cox prefix, 8-bit subnet ID, and 64-bit interface ID&#34;
+           data-full=&#34;/posts/ipv6-and-cox-cable/images/ipv6-address-anatomy.svg&#34;
+           loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;Anatomy of an IPv6 address from my /56, showing the 56-bit Cox prefix, 8-bit subnet ID, and 64-bit interface ID&lt;/figcaption&gt;&lt;/figure&gt;
 &lt;p&gt;Address configuration also works differently day to day. IPv4 devices almost universally get their address via DHCP. IPv6 supports that too, but it also supports SLAAC (Stateless Address Autoconfiguration), where a device constructs its own address by listening to router advertisements and combining the announced prefix with its own interface identifier, no DHCP server required. Two flags in the router advertisement control the division of labor: the Managed flag tells hosts to get full configuration from DHCPv6, and the Other flag tells hosts to keep using SLAAC for addressing but pull other details (like DNS servers) from DHCPv6. Networks often run both simultaneously.&lt;/p&gt;
 &lt;p&gt;The /64 boundary is another convention worth internalizing. In IPv4 you might run a /29 for a point-to-point link or a /22 for a large user segment, sizing subnets tightly around host count. IPv6 throws that scarcity mindset out entirely: /64 is the standard subnet size almost everywhere, because SLAAC&amp;rsquo;s addressing math is built around a 64-bit network portion and a 64-bit host portion. A single /64 contains more addresses than the entire IPv4 internet, so there&amp;rsquo;s no meaningful reason to subnet tighter.&lt;/p&gt;
 &lt;p&gt;Plenty carries over from IPv4, though. OSPF still works the same way conceptually, just with an IPv6-specific version (OSPFv3) running alongside the IPv4 one. VLANs, trunking, and switch fundamentals don&amp;rsquo;t change at all. The real shift is philosophical: IPv4 design is an exercise in conserving a scarce resource, while IPv6 design assumes abundance and focuses on keeping addressing logically organized.&lt;/p&gt;
@@ -1530,6 +1539,11 @@ True, and almost never the reason a homelab reaches for VXLAN. The 24 bit VNI sp
 &lt;li&gt;IAID (Identity Association ID): an identifier tied to a specific delegation request. If you have multiple WAN interfaces or want multiple independent delegations, the IAID is how the client and server keep them straight.&lt;/li&gt;
 &lt;li&gt;Prefix hint: the client can ask for a specific size, like &lt;code&gt;::/56&lt;/code&gt;. The server isn&amp;rsquo;t obligated to honor it, but Cox does.&lt;/li&gt;
 &lt;/ul&gt;
+&lt;p&gt;Put together, the whole delegation chain in my network looks like this, including the part where it stops being automatic:&lt;/p&gt;
+&lt;figure&gt;
+      &lt;img src=&#34;https://natebent.com/posts/ipv6-and-cox-cable/images/dhcpv6-pd-flow.svg&#34; alt=&#34;The DHCPv6-PD delegation chain from Cox to the FortiGate, the /56 carved into /64 subnets, and the Brocade where addresses are configured by hand&#34;
+           data-full=&#34;/posts/ipv6-and-cox-cable/images/dhcpv6-pd-flow.svg&#34;
+           loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;The DHCPv6-PD delegation chain from Cox to the FortiGate, the /56 carved into /64 subnets, and the Brocade where addresses are configured by hand&lt;/figcaption&gt;&lt;/figure&gt;
 &lt;h2 id=&#34;my-setup&#34;&gt;My setup&lt;/h2&gt;
 &lt;p&gt;&lt;strong&gt;WAN side (Cox-facing):&lt;/strong&gt;&lt;/p&gt;
 &lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config system interface
@@ -1691,7 +1705,8 @@ True, and almost never the reason a homelab reaches for VXLAN. The 24 bit VNI sp
 &lt;p&gt;The moment you enable IPv6 on a segment, dual-stack hosts start preferring it. There&amp;rsquo;s no gradual rollout; a working router advertisement changes traffic paths immediately. Make sure your IPv6 firewall policy exists before the RA does, because on the FortiGate, IPv6 policies are a separate policy set from IPv4. The default is deny, which is safe, but &amp;ldquo;safe&amp;rdquo; here means &amp;ldquo;IPv6 silently doesn&amp;rsquo;t pass traffic,&amp;rdquo; which is its own fun debugging session.&lt;/p&gt;
 &lt;p&gt;If you need addresses that survive a re-delegation, ULA space (&lt;code&gt;fd00::/8&lt;/code&gt; from RFC 4193) is the standard answer for stable internal addressing alongside the global prefix. I&amp;rsquo;ve avoided it so far because running two prefixes per segment brings its own source-address-selection headaches, but it&amp;rsquo;s the escape hatch if the renumbering pain ever outgrows the scripting.&lt;/p&gt;
 &lt;h2 id=&#34;useful-debug-commands&#34;&gt;Useful debug commands&lt;/h2&gt;
-&lt;p&gt;A few commands I lean on when troubleshooting this setup:&lt;/p&gt;
+&lt;p&gt;A few commands I lean on when troubleshooting this setup.&lt;/p&gt;
+&lt;h3 id=&#34;state-and-routing-tables&#34;&gt;State and routing tables&lt;/h3&gt;
 &lt;p&gt;&lt;strong&gt;FortiGate:&lt;/strong&gt;&lt;/p&gt;
 &lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose ipv6 address list
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;get router info6 ospf neighbor
@@ -1704,6 +1719,34 @@ True, and almost never the reason a homelab reaches for VXLAN. The 24 bit VNI sp
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;show ipv6 route
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;show ipv6 ospf neighbor
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;show ipv6 ospf database&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&#34;ping-the-ipv6-way&#34;&gt;Ping, the IPv6 way&lt;/h3&gt;
+&lt;p&gt;Ping is still the fastest sanity check, but IPv6 adds a wrinkle worth knowing on both platforms: a plain ping only proves the path from the router&amp;rsquo;s default source address. After a renumber, the failure you&amp;rsquo;re hunting is usually a &lt;em&gt;return&lt;/em&gt; path for one specific segment, and for that you need to control the source.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;FortiGate.&lt;/strong&gt; The IPv6 ping is &lt;code&gt;execute ping6&lt;/code&gt;, and its behavior is shaped by a persistent set of options under &lt;code&gt;execute ping6-options&lt;/code&gt; (they stick for the session, so &lt;code&gt;reset&lt;/code&gt; when you&amp;rsquo;re done):&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;# basic reachability to the Brocade&amp;#39;s side of the transit link
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;execute ping6 2001:db8:1234:b200::2
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;# prove a specific VLAN&amp;#39;s prefix routes end to end:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;# source from that segment&amp;#39;s gateway and ping something external
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;execute ping6-options source6 2001:db8:1234:b214::1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;execute ping6-options repeat-count 5
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;execute ping6 2001:4860:4860::8888
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;# check what you&amp;#39;ve left set, then put it back
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;execute ping6-options view-settings
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;execute ping6-options reset&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;If that sourced ping works, the whole chain is healthy for that VLAN: the prefix is current, the FortiGate is routing it, and Cox is accepting traffic sourced from it. One caveat from Fortinet&amp;rsquo;s own troubleshooting guidance: don&amp;rsquo;t source a ping from one of the FortiGate&amp;rsquo;s interface addresses to another of its own interface addresses. That fails by design and tells you nothing.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Brocade ICX.&lt;/strong&gt; FastIron&amp;rsquo;s version is &lt;code&gt;ping ipv6&lt;/code&gt;, with &lt;code&gt;source&lt;/code&gt; and &lt;code&gt;outgoing-interface&lt;/code&gt; as the useful knobs:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;! basic reachability to the FortiGate&amp;#39;s side of the transit link
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ping ipv6 2001:db8:1234:b200::1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;! same end-to-end test from the switch&amp;#39;s side:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;! source from a VLAN gateway and ping something external
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ping ipv6 2001:4860:4860::8888 source 2001:db8:1234:b214::1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;! ping a link-local neighbor (needs the interface, since
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;! fe80:: addresses are ambiguous without one)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ping ipv6 fe80::xxxx:xxxx:xxxx:xxxx outgoing-interface ve 665&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;That last one is the IPv6-specific habit to build. Link-local addresses exist on every interface simultaneously, so the switch has no idea which segment you mean unless you tell it. It&amp;rsquo;s also the ping that keeps working when your global prefix is stale, which makes it the cleanest way to separate &amp;ldquo;the transit link is down&amp;rdquo; from &amp;ldquo;my addressing is out of date.&amp;rdquo; If the link-local ping to the FortiGate succeeds but the global one fails, you already know which problem you have.&lt;/p&gt;
 &lt;blockquote class=&#34;callout callout-tip&#34;&gt;
     &lt;p class=&#34;callout-title&#34;&gt;
       &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
@@ -1717,6 +1760,8 @@ True, and almost never the reason a homelab reaches for VXLAN. The 24 bit VNI sp
 &lt;li&gt;&lt;a href=&#34;https://datatracker.ietf.org/doc/html/rfc9915&#34;&gt;RFC 9915: Dynamic Host Configuration Protocol for IPv6 (DHCPv6)&lt;/a&gt; - the current DHCPv6 spec, including prefix delegation. It recently replaced RFC 8415, which itself absorbed the original PD spec (RFC 3633).&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://community.fortinet.com/t5/Support-Forum/Getting-DHCPv6-IAID-and-DHCPv6-Client-DUID-on-an-interface/td-p/267387&#34;&gt;Getting DHCPv6 IAID and DHCPv6 Client DUID on an interface, Fortinet Community&lt;/a&gt; - confirms FortiOS uses DUID-LLT as its DHCPv6 client identity, and how to see it in debug output.&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://weberblog.net/dhcpv6-prefix-delegation-on-a-fortigate-firewall/&#34;&gt;DHCPv6 Prefix Delegation on a FortiGate Firewall, Weberblog&lt;/a&gt; - a thorough hands-on walkthrough of the same FortiOS PD machinery, including the gotchas around &lt;code&gt;ip6-subnet&lt;/code&gt; defaults.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://community.fortinet.com/t5/FortiGate/Troubleshooting-Tip-Using-PING-options-from-the-FortiGate-CLI/ta-p/190774&#34;&gt;Using PING options from the FortiGate CLI, Fortinet Community&lt;/a&gt; - the full &lt;code&gt;ping6-options&lt;/code&gt; reference, including the local-interface-to-local-interface caveat.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.ruckuswireless.com/fastiron/08.0.40/fastiron-08040a-l3guide/GUID-30897B48-C10B-4CE5-8994-0B5A1D4E6CE5.html&#34;&gt;Pinging an IPv6 address, FastIron Layer 3 Routing Configuration Guide&lt;/a&gt; - the &lt;code&gt;ping ipv6&lt;/code&gt; syntax on the ICX, with the &lt;code&gt;source&lt;/code&gt; and &lt;code&gt;outgoing-interface&lt;/code&gt; parameters.&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>
@@ -1881,23 +1926,27 @@ This is very similar with a normal VM, with a few differences:
       <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</guid>
       <description>&lt;h2 id=&#34;context&#34;&gt;Context&lt;/h2&gt;
-&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Dynamic_DNS&#34;&gt;DDNS&lt;/a&gt; allows for the dynamic update of DNS entries and attributes - what a fitting name.  This can be an extremely valuable resource for professionals and homelabbers who need to deal with dynamically assigned IP addresses in keeping things connected.&lt;/p&gt;
-&lt;p&gt;I personally use &lt;a href=&#34;https://www.cloudflare.com/&#34;&gt;Cloudflare&lt;/a&gt; as a DNS proxy for my various domains, which used to be managed by &lt;a href=&#34;https://domains.google.com/&#34;&gt;Google Domains&lt;/a&gt; until they &lt;a href=&#34;https://domains.squarespace.com/google-domains&#34;&gt;sold that business&lt;/a&gt; to &lt;a href=&#34;https://domains.squarespace.com/&#34;&gt;Squarespace&lt;/a&gt;; I&amp;rsquo;ve since been moving everything to &lt;a href=&#34;https://porkbun.com/&#34;&gt;Porkbun&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;Recently, I wanted to organize all of my Cloud and on-prem resources better, and decided to use a singular domain name to help organize everything.  I wanted to be sure that the subdomains I would be assigning out through A records would always be accurate, and thus my project began.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Dynamic_DNS&#34;&gt;DDNS&lt;/a&gt; allows for the dynamic update of DNS entries and attributes, a fitting name if there ever was one. This can be an extremely valuable resource for professionals and homelabbers who need to deal with dynamically assigned IP addresses in keeping things connected.&lt;/p&gt;
+&lt;p&gt;I personally use &lt;a href=&#34;https://www.cloudflare.com/&#34;&gt;Cloudflare&lt;/a&gt; as a DNS proxy for my various domains, which used to be managed by &lt;a href=&#34;https://domains.google.com/&#34;&gt;Google Domains&lt;/a&gt; until they &lt;a href=&#34;https://domains.squarespace.com/google-domains&#34;&gt;sold that business&lt;/a&gt; to &lt;a href=&#34;https://domains.squarespace.com/&#34;&gt;Squarespace&lt;/a&gt;. I&amp;rsquo;ve since been moving everything to &lt;a href=&#34;https://porkbun.com/&#34;&gt;Porkbun&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Recently, I wanted to organize all of my cloud and on-prem resources better, and decided to use a singular domain name to help organize everything. I wanted to be sure that the subdomains I would be assigning out through A records would always be accurate, and thus my project began.&lt;/p&gt;
 &lt;h2 id=&#34;setup&#34;&gt;Setup&lt;/h2&gt;
-&lt;p&gt;To update the DNS A records, there are a few simple things that will need to be setup.&lt;/p&gt;
+&lt;p&gt;To update the DNS A records, there are a few simple things that need to be set up.&lt;/p&gt;
 &lt;ol&gt;
-&lt;li&gt;There will need to be an &lt;a href=&#34;https://www.cloudflare.com/learning/dns/dns-records/dns-a-record/_&#34;&gt;A record&lt;/a&gt; in Cloudflare for ddclient to update&lt;/li&gt;
-&lt;li&gt;ddclient will need authentication into Cloudflare using an &lt;a href=&#34;https://developers.cloudflare.com/fundamentals/api/get-started/create-token/&#34;&gt;API token&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;ddclient will need to check it&amp;rsquo;s own IP address to compare&lt;/li&gt;
+&lt;li&gt;There needs to be an &lt;a href=&#34;https://www.cloudflare.com/learning/dns/dns-records/dns-a-record/&#34;&gt;A record&lt;/a&gt; in Cloudflare for ddclient to update.&lt;/li&gt;
+&lt;li&gt;ddclient needs authentication into Cloudflare using an &lt;a href=&#34;https://developers.cloudflare.com/fundamentals/api/get-started/create-token/&#34;&gt;API token&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;ddclient needs to check its own IP address to compare against what&amp;rsquo;s on record.&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;Creating the &lt;code&gt;A record&lt;/code&gt; is straightforward, opening DNS and then Records will allow you to create away.&lt;/p&gt;
-&lt;p&gt;Authenticating ddclient into Cloudflare is a little trickier, I prefer to create an API key that has read/write access to the domain zone in Cloudflare.  This can be accomplished under Profile -&amp;gt; API Keys, and then by following the wizard.&lt;/p&gt;
-&lt;p&gt;Finally, ddclient will need some way to check it&amp;rsquo;s own IP and see if the records need updated.  Oddly enough, this seems to be the hardest service to keep consistently working.  There are dozens of  decent to great DDNS services out there that have been around, and yet IP checking services disappear with the winds.  Go figure.&lt;/p&gt;
-&lt;p&gt;Because I have a number of VMs running among the different cloud providers, running ddclient in a docker container works wonderfully.  Once I install docker and docker compose, I&amp;rsquo;m easily able to use basically the same two files to keep every VM host updated.&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;&lt;strong&gt;It should be noted&lt;/strong&gt;&lt;/em&gt; that without a pre-made config/ddclient.conf file, the ddclient container will download a default one.  This needs to be altered slightly to work.&lt;/p&gt;
-&lt;h2 id=&#34;my-docker-composeyml-and-ddclientconf&#34;&gt;My docker-compose.yml and ddclient.conf&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;docker-compose.yml&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Creating the A record is straightforward: open DNS, then Records, and create away.&lt;/p&gt;
+&lt;p&gt;Authenticating ddclient into Cloudflare is a little trickier. I prefer to create an API key that has read/write access to the domain zone in Cloudflare. This can be accomplished under Profile, API Keys, and then by following the wizard.&lt;/p&gt;
+&lt;p&gt;Finally, ddclient needs some way to check its own IP and see if the records need to be updated. Oddly enough, this seems to be the hardest part to keep consistently working. There are dozens of decent to great DDNS services out there that have been around for years, and yet IP checking services disappear with the winds. Go figure.&lt;/p&gt;
+&lt;p&gt;Because I have a number of VMs running among different cloud providers, running ddclient in a docker container works wonderfully. Once I install docker and docker compose, I&amp;rsquo;m easily able to use basically the same two files to keep every VM host updated.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-note&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Note&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Without a pre-made &lt;code&gt;config/ddclient.conf&lt;/code&gt; file, the ddclient container will download a default one. That default needs to be altered slightly to actually work, see below.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;my-docker-composeyml-and-ddclientconf&#34;&gt;My docker-compose.yml and ddclient.conf&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;docker-compose.yml&lt;/code&gt;&lt;/p&gt;
 &lt;div class=&#34;code-wrap&#34; data-lang=&#34;yaml&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c&#34;&gt;## docker-compose.yml&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nn&#34;&gt;---&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nt&#34;&gt;services&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
@@ -1911,7 +1960,7 @@ This is very similar with a normal VM, with a few differences:
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;volumes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;l&#34;&gt;./config:/config&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;restart&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;unless-stopped&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;&lt;strong&gt;config/ddclient.conf&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;config/ddclient.conf&lt;/code&gt;&lt;/p&gt;
 &lt;div class=&#34;code-wrap&#34; data-lang=&#34;yaml&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c&#34;&gt;## ddclient.conf&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;use=web&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;web=dynamicdns.park-your-domain.com/getip&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
@@ -1922,19 +1971,24 @@ This is very similar with a normal VM, with a few differences:
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;login=token, \&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;password=&amp;lt;api-token&amp;gt; \&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;test-subdomain.domain.tld&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;Once everything has been loaded into place, running &lt;code&gt;sudo docker compose pull &amp;amp;&amp;amp; sudo docker compose up -d&lt;/code&gt; will get it running.  ddclient can be configured to log externally, though I used &lt;a href=&#34;https://www.portainer.io/&#34;&gt;Portainer&lt;/a&gt; to view the logs and troubleshoot along the way.&lt;/p&gt;
+&lt;p&gt;Once everything has been loaded into place, running &lt;code&gt;sudo docker compose pull &amp;amp;&amp;amp; sudo docker compose up -d&lt;/code&gt; will get it running. ddclient can be configured to log externally, though I used &lt;a href=&#34;https://www.portainer.io/&#34;&gt;Portainer&lt;/a&gt; to view the logs and troubleshoot along the way.&lt;/p&gt;
 &lt;h2 id=&#34;troubleshooting&#34;&gt;Troubleshooting&lt;/h2&gt;
 &lt;p&gt;I ran into several errors this most recent go-round, as well as before.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;Failure to get IPv4 address&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;At some point, the default &lt;code&gt;use web&lt;/code&gt; option to get the public IP stopped working for me.  Adding the specific web address seems to have mostly fixed it for good; we&amp;rsquo;ll see.&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;Failure to communicate with Cloudflare&#39;s API&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;I had some difficulties in working with the Cloudflare DDNS API as it exists in the default configuration that downloads with the docker compose pull.  This seems to be an older version of the config, which references the API in a way that no longer works.&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;Edit 2024-08-18 - This seems to have been fixed.&lt;/p&gt;
-&lt;/blockquote&gt;&lt;h2 id=&#34;references-and-resources&#34;&gt;References and Resources&lt;/h2&gt;
+&lt;p&gt;At some point, the default &lt;code&gt;use=web&lt;/code&gt; option to get the public IP stopped working for me. Adding the specific web address seems to have mostly fixed it for good, we&amp;rsquo;ll see.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-tip&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Tip&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;If ddclient&amp;rsquo;s IP detection starts silently failing, don&amp;rsquo;t assume ddclient itself is broken. Point &lt;code&gt;web=&lt;/code&gt; at a specific, known-good IP echo service first; the built in default is usually the thing that quietly stopped working.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;&lt;code&gt;Failure to communicate with Cloudflare&#39;s API&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;I had some difficulties working with the Cloudflare DDNS API as it exists in the default configuration that downloads with the docker compose pull. This seemed to be an older version of the config, which referenced the API in a way that no longer worked.&lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;Edit, 2024-08-18: this seems to have been fixed.&lt;/p&gt;
+&lt;/blockquote&gt;&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;https://ddclient.net/&#34;&gt;ddclient website&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/ddclient/ddclient&#34;&gt;ddclient github&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/linuxserver/docker-ddclient&#34;&gt;LinuxServer&amp;rsquo;s ddclient github&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/ddclient/ddclient&#34;&gt;ddclient GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/linuxserver/docker-ddclient&#34;&gt;LinuxServer&amp;rsquo;s ddclient GitHub&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>

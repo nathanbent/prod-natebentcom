@@ -16,14 +16,14 @@
       <description>&lt;h2 id=&#34;what-code-server-is&#34;&gt;What code-server is&lt;/h2&gt;
 &lt;p&gt;code-server is Visual Studio Code running as a service on a remote machine, accessed entirely through a web browser. Instead of running VS Code locally on a laptop, you run it on a server, and the full editor experience (file tree, integrated terminal, extensions, git integration) is delivered over HTTP to any browser you point at it.&lt;/p&gt;
 &lt;figure&gt;
-      &lt;img
-        src=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp&#34;
-        srcset=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_e834b822f9581d36.webp 640w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp 1024w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_14eee16a3e0e3089.webp 1600w&#34;
-        sizes=&#34;(min-width: 768px) 720px, 100vw&#34;
-        data-full=&#34;/posts/self-hosting-codeserver/images/screenshot-1.png&#34;
-        alt=&#34;code-server example screenshot, this shows the homepage upon install&#34;
-        width=&#34;1519&#34; height=&#34;988&#34;
-        loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;code-server home page&lt;/figcaption&gt;&lt;/figure&gt;
+        &lt;img
+          src=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp&#34;
+          srcset=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_e834b822f9581d36.webp 640w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp 1024w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_14eee16a3e0e3089.webp 1600w&#34;
+          sizes=&#34;(min-width: 768px) 720px, 100vw&#34;
+          data-full=&#34;/posts/self-hosting-codeserver/images/screenshot-1.png&#34;
+          alt=&#34;code-server example screenshot, this shows the homepage upon install&#34;
+          width=&#34;1519&#34; height=&#34;988&#34;
+          loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;code-server home page&lt;/figcaption&gt;&lt;/figure&gt;
 &lt;p&gt;The appeal is obvious: a single, consistent development environment that follows you everywhere. Open a Chromebook, a tablet, a locked-down work laptop, or a friend&amp;rsquo;s machine, and you land in the exact same editor with the exact same tools, extensions, and open projects. Nothing to install on the client. The heavy lifting (compiling, running containers, filesystem access) happens on the server where the resources actually are.&lt;/p&gt;
 &lt;p&gt;For a homelab or a personal cloud VM, this is genuinely useful. You get a real, always-on dev environment you can reach from anywhere.&lt;/p&gt;
 &lt;h2 id=&#34;why-exposing-it-publicly-is-dangerous&#34;&gt;Why exposing it publicly is dangerous&lt;/h2&gt;
@@ -260,23 +260,27 @@
       <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</guid>
       <description>&lt;h2 id=&#34;context&#34;&gt;Context&lt;/h2&gt;
-&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Dynamic_DNS&#34;&gt;DDNS&lt;/a&gt; allows for the dynamic update of DNS entries and attributes - what a fitting name.  This can be an extremely valuable resource for professionals and homelabbers who need to deal with dynamically assigned IP addresses in keeping things connected.&lt;/p&gt;
-&lt;p&gt;I personally use &lt;a href=&#34;https://www.cloudflare.com/&#34;&gt;Cloudflare&lt;/a&gt; as a DNS proxy for my various domains, which used to be managed by &lt;a href=&#34;https://domains.google.com/&#34;&gt;Google Domains&lt;/a&gt; until they &lt;a href=&#34;https://domains.squarespace.com/google-domains&#34;&gt;sold that business&lt;/a&gt; to &lt;a href=&#34;https://domains.squarespace.com/&#34;&gt;Squarespace&lt;/a&gt;; I&amp;rsquo;ve since been moving everything to &lt;a href=&#34;https://porkbun.com/&#34;&gt;Porkbun&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;Recently, I wanted to organize all of my Cloud and on-prem resources better, and decided to use a singular domain name to help organize everything.  I wanted to be sure that the subdomains I would be assigning out through A records would always be accurate, and thus my project began.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Dynamic_DNS&#34;&gt;DDNS&lt;/a&gt; allows for the dynamic update of DNS entries and attributes, a fitting name if there ever was one. This can be an extremely valuable resource for professionals and homelabbers who need to deal with dynamically assigned IP addresses in keeping things connected.&lt;/p&gt;
+&lt;p&gt;I personally use &lt;a href=&#34;https://www.cloudflare.com/&#34;&gt;Cloudflare&lt;/a&gt; as a DNS proxy for my various domains, which used to be managed by &lt;a href=&#34;https://domains.google.com/&#34;&gt;Google Domains&lt;/a&gt; until they &lt;a href=&#34;https://domains.squarespace.com/google-domains&#34;&gt;sold that business&lt;/a&gt; to &lt;a href=&#34;https://domains.squarespace.com/&#34;&gt;Squarespace&lt;/a&gt;. I&amp;rsquo;ve since been moving everything to &lt;a href=&#34;https://porkbun.com/&#34;&gt;Porkbun&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Recently, I wanted to organize all of my cloud and on-prem resources better, and decided to use a singular domain name to help organize everything. I wanted to be sure that the subdomains I would be assigning out through A records would always be accurate, and thus my project began.&lt;/p&gt;
 &lt;h2 id=&#34;setup&#34;&gt;Setup&lt;/h2&gt;
-&lt;p&gt;To update the DNS A records, there are a few simple things that will need to be setup.&lt;/p&gt;
+&lt;p&gt;To update the DNS A records, there are a few simple things that need to be set up.&lt;/p&gt;
 &lt;ol&gt;
-&lt;li&gt;There will need to be an &lt;a href=&#34;https://www.cloudflare.com/learning/dns/dns-records/dns-a-record/_&#34;&gt;A record&lt;/a&gt; in Cloudflare for ddclient to update&lt;/li&gt;
-&lt;li&gt;ddclient will need authentication into Cloudflare using an &lt;a href=&#34;https://developers.cloudflare.com/fundamentals/api/get-started/create-token/&#34;&gt;API token&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;ddclient will need to check it&amp;rsquo;s own IP address to compare&lt;/li&gt;
+&lt;li&gt;There needs to be an &lt;a href=&#34;https://www.cloudflare.com/learning/dns/dns-records/dns-a-record/&#34;&gt;A record&lt;/a&gt; in Cloudflare for ddclient to update.&lt;/li&gt;
+&lt;li&gt;ddclient needs authentication into Cloudflare using an &lt;a href=&#34;https://developers.cloudflare.com/fundamentals/api/get-started/create-token/&#34;&gt;API token&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;ddclient needs to check its own IP address to compare against what&amp;rsquo;s on record.&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;Creating the &lt;code&gt;A record&lt;/code&gt; is straightforward, opening DNS and then Records will allow you to create away.&lt;/p&gt;
-&lt;p&gt;Authenticating ddclient into Cloudflare is a little trickier, I prefer to create an API key that has read/write access to the domain zone in Cloudflare.  This can be accomplished under Profile -&amp;gt; API Keys, and then by following the wizard.&lt;/p&gt;
-&lt;p&gt;Finally, ddclient will need some way to check it&amp;rsquo;s own IP and see if the records need updated.  Oddly enough, this seems to be the hardest service to keep consistently working.  There are dozens of  decent to great DDNS services out there that have been around, and yet IP checking services disappear with the winds.  Go figure.&lt;/p&gt;
-&lt;p&gt;Because I have a number of VMs running among the different cloud providers, running ddclient in a docker container works wonderfully.  Once I install docker and docker compose, I&amp;rsquo;m easily able to use basically the same two files to keep every VM host updated.&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;&lt;strong&gt;It should be noted&lt;/strong&gt;&lt;/em&gt; that without a pre-made config/ddclient.conf file, the ddclient container will download a default one.  This needs to be altered slightly to work.&lt;/p&gt;
-&lt;h2 id=&#34;my-docker-composeyml-and-ddclientconf&#34;&gt;My docker-compose.yml and ddclient.conf&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;docker-compose.yml&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Creating the A record is straightforward: open DNS, then Records, and create away.&lt;/p&gt;
+&lt;p&gt;Authenticating ddclient into Cloudflare is a little trickier. I prefer to create an API key that has read/write access to the domain zone in Cloudflare. This can be accomplished under Profile, API Keys, and then by following the wizard.&lt;/p&gt;
+&lt;p&gt;Finally, ddclient needs some way to check its own IP and see if the records need to be updated. Oddly enough, this seems to be the hardest part to keep consistently working. There are dozens of decent to great DDNS services out there that have been around for years, and yet IP checking services disappear with the winds. Go figure.&lt;/p&gt;
+&lt;p&gt;Because I have a number of VMs running among different cloud providers, running ddclient in a docker container works wonderfully. Once I install docker and docker compose, I&amp;rsquo;m easily able to use basically the same two files to keep every VM host updated.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-note&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Note&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Without a pre-made &lt;code&gt;config/ddclient.conf&lt;/code&gt; file, the ddclient container will download a default one. That default needs to be altered slightly to actually work, see below.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;my-docker-composeyml-and-ddclientconf&#34;&gt;My docker-compose.yml and ddclient.conf&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;docker-compose.yml&lt;/code&gt;&lt;/p&gt;
 &lt;div class=&#34;code-wrap&#34; data-lang=&#34;yaml&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c&#34;&gt;## docker-compose.yml&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nn&#34;&gt;---&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nt&#34;&gt;services&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
@@ -290,7 +294,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;volumes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;l&#34;&gt;./config:/config&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;restart&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;unless-stopped&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;&lt;strong&gt;config/ddclient.conf&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;config/ddclient.conf&lt;/code&gt;&lt;/p&gt;
 &lt;div class=&#34;code-wrap&#34; data-lang=&#34;yaml&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c&#34;&gt;## ddclient.conf&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;use=web&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;web=dynamicdns.park-your-domain.com/getip&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
@@ -301,19 +305,24 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;login=token, \&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;password=&amp;lt;api-token&amp;gt; \&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;test-subdomain.domain.tld&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;Once everything has been loaded into place, running &lt;code&gt;sudo docker compose pull &amp;amp;&amp;amp; sudo docker compose up -d&lt;/code&gt; will get it running.  ddclient can be configured to log externally, though I used &lt;a href=&#34;https://www.portainer.io/&#34;&gt;Portainer&lt;/a&gt; to view the logs and troubleshoot along the way.&lt;/p&gt;
+&lt;p&gt;Once everything has been loaded into place, running &lt;code&gt;sudo docker compose pull &amp;amp;&amp;amp; sudo docker compose up -d&lt;/code&gt; will get it running. ddclient can be configured to log externally, though I used &lt;a href=&#34;https://www.portainer.io/&#34;&gt;Portainer&lt;/a&gt; to view the logs and troubleshoot along the way.&lt;/p&gt;
 &lt;h2 id=&#34;troubleshooting&#34;&gt;Troubleshooting&lt;/h2&gt;
 &lt;p&gt;I ran into several errors this most recent go-round, as well as before.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;Failure to get IPv4 address&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;At some point, the default &lt;code&gt;use web&lt;/code&gt; option to get the public IP stopped working for me.  Adding the specific web address seems to have mostly fixed it for good; we&amp;rsquo;ll see.&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;Failure to communicate with Cloudflare&#39;s API&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;I had some difficulties in working with the Cloudflare DDNS API as it exists in the default configuration that downloads with the docker compose pull.  This seems to be an older version of the config, which references the API in a way that no longer works.&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;Edit 2024-08-18 - This seems to have been fixed.&lt;/p&gt;
-&lt;/blockquote&gt;&lt;h2 id=&#34;references-and-resources&#34;&gt;References and Resources&lt;/h2&gt;
+&lt;p&gt;At some point, the default &lt;code&gt;use=web&lt;/code&gt; option to get the public IP stopped working for me. Adding the specific web address seems to have mostly fixed it for good, we&amp;rsquo;ll see.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-tip&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Tip&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;If ddclient&amp;rsquo;s IP detection starts silently failing, don&amp;rsquo;t assume ddclient itself is broken. Point &lt;code&gt;web=&lt;/code&gt; at a specific, known-good IP echo service first; the built in default is usually the thing that quietly stopped working.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;&lt;code&gt;Failure to communicate with Cloudflare&#39;s API&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;I had some difficulties working with the Cloudflare DDNS API as it exists in the default configuration that downloads with the docker compose pull. This seemed to be an older version of the config, which referenced the API in a way that no longer worked.&lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;Edit, 2024-08-18: this seems to have been fixed.&lt;/p&gt;
+&lt;/blockquote&gt;&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&#34;https://ddclient.net/&#34;&gt;ddclient website&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/ddclient/ddclient&#34;&gt;ddclient github&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/linuxserver/docker-ddclient&#34;&gt;LinuxServer&amp;rsquo;s ddclient github&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/ddclient/ddclient&#34;&gt;ddclient GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/linuxserver/docker-ddclient&#34;&gt;LinuxServer&amp;rsquo;s ddclient GitHub&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>

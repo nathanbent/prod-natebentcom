@@ -1,32 +1,40 @@
 {{- $src := .Get "src" -}}
 {{- with .Page.Resources.GetMatch $src -}}
   {{- $img := . -}}
-  {{- $isPNGorJPG := (or (eq $img.MediaType.SubType "png") (eq $img.MediaType.SubType "jpeg")) -}}
-
-  {{- if and $isPNGorJPG (ge $img.Width 640) -}}
-    {{- /* Generate resized WebP variants for a responsive srcset */ -}}
-    {{- $small  := ($img.Resize "640x webp q82").RelPermalink -}}
-    {{- $medium := ($img.Resize "1024x webp q82").RelPermalink -}}
-    {{- $large  := ($img.Resize "1600x webp q82").RelPermalink -}}
-    <figure>
-      <img
-        src="{{ $medium }}"
-        srcset="{{ $small }} 640w, {{ $medium }} 1024w, {{ $large }} 1600w"
-        sizes="(min-width: 768px) 720px, 100vw"
-        data-full="{{ $img.RelPermalink }}"
-        alt="{{ $.Get "alt" }}"
-        width="{{ $img.Width }}" height="{{ $img.Height }}"
-        loading="lazy" decoding="async">
-      {{- with $.Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end -}}
-    </figure>
-  {{- else -}}
-    {{- /* Small image or non-raster (svg/gif): serve as-is, no processing */ -}}
+  {{- if eq $img.MediaType.SubType "svg" -}}
+    {{- /* SVG: vector, no processing, no width/height */ -}}
     <figure>
       <img src="{{ $img.RelPermalink }}" alt="{{ $.Get "alt" }}"
-           width="{{ $img.Width }}" height="{{ $img.Height }}"
+           data-full="{{ $img.RelPermalink }}"
            loading="lazy" decoding="async">
       {{- with $.Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end -}}
     </figure>
+  {{- else -}}
+    {{- $isPNGorJPG := (or (eq $img.MediaType.SubType "png") (eq $img.MediaType.SubType "jpeg")) -}}
+    {{- if and $isPNGorJPG (ge $img.Width 640) -}}
+      {{- $small  := ($img.Resize "640x webp q82").RelPermalink -}}
+      {{- $medium := ($img.Resize "1024x webp q82").RelPermalink -}}
+      {{- $large  := ($img.Resize "1600x webp q82").RelPermalink -}}
+      <figure>
+        <img
+          src="{{ $medium }}"
+          srcset="{{ $small }} 640w, {{ $medium }} 1024w, {{ $large }} 1600w"
+          sizes="(min-width: 768px) 720px, 100vw"
+          data-full="{{ $img.RelPermalink }}"
+          alt="{{ $.Get "alt" }}"
+          width="{{ $img.Width }}" height="{{ $img.Height }}"
+          loading="lazy" decoding="async">
+        {{- with $.Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end -}}
+      </figure>
+    {{- else -}}
+      <figure>
+        <img src="{{ $img.RelPermalink }}" alt="{{ $.Get "alt" }}"
+             data-full="{{ $img.RelPermalink }}"
+             width="{{ $img.Width }}" height="{{ $img.Height }}"
+             loading="lazy" decoding="async">
+        {{- with $.Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end -}}
+      </figure>
+    {{- end -}}
   {{- end -}}
 {{- else -}}
   {{- errorf "figure shortcode: image %q not found in %s" $src $.Page.File.Path -}}
