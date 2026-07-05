@@ -244,7 +244,7 @@ html {
 
 /* Table header — pale fill + thicker accent underline */
 .post-content table thead th {
-    background: var(--code-bg);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
     border-bottom: 2px solid var(--accent);
     color: var(--primary);
     font-weight: 600;
