@@ -1,24 +1,67 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>IDRAC on NateBent.com</title>
     <link>https://natebent.com/tags/idrac/</link>
     <description>Recent content in IDRAC on NateBent.com</description>
-    <image>
-      <title>NateBent.com</title>
-      <url>https://natebent.com/images/papermod-cover.png</url>
-      <link>https://natebent.com/images/papermod-cover.png</link>
-    </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 25 Sep 2024 11:54:26 -0500</lastBuildDate>
+    <managingEditor> (Nathan Bent)</managingEditor>
     <atom:link href="https://natebent.com/tags/idrac/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>iDRAC Fan Control</title>
       <link>https://natebent.com/posts/idrac-fan-control/</link>
-      <pubDate>Wed, 25 Sep 2024 11:54:26 -0500</pubDate>
+      <pubDate>Wed, 25 Sep 2024 11:54:26 -0500</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/idrac-fan-control/</guid>
-      <description>Basic iDRAC fan control via impitool</description>
+      <description>&lt;h2 id=&#34;concept&#34;&gt;Concept&lt;/h2&gt;
+&lt;p&gt;Managing server fan speed is crucial for maintaining an optimal balance between cooling efficiency and noise levels, especially in environments where temperature control and acoustics are important. Dell servers, like many other enterprise-grade hardware, come equipped with Intelligent Platform Management Interface (IPMI) capabilities. With the help of ipmi-tools, we can access and control various hardware components of the server, including fan speed, remotely or locally, without needing direct access to the operating system.&lt;/p&gt;
+&lt;p&gt;Here, I will walk through some of the basics of how you can control the fan speed of your iDRAC-enabled Dell servers.&lt;/p&gt;
+&lt;h2 id=&#34;steps-involved&#34;&gt;Steps involved&lt;/h2&gt;
+&lt;h3 id=&#34;step-1-install-impitools--enable-ipmi-access-on-device&#34;&gt;Step 1: Install impitools &amp;amp; enable IPMI access on device&lt;/h3&gt;
+&lt;p&gt;You will need to install &lt;code&gt;ipmitool&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo apt install ipmitool   &lt;span class=&#34;c1&#34;&gt;# For Debian/Ubuntu&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo yum install ipmitool   &lt;span class=&#34;c1&#34;&gt;# For RHEL/CentOS&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&#34;step-2-verify-ipmi-access&#34;&gt;Step 2: Verify IPMI Access&lt;/h3&gt;
+&lt;p&gt;First, verify that you can communicate with the IPMI interface using the &lt;code&gt;ipmitool&lt;/code&gt; command. If you&amp;rsquo;re accessing a remote server, you’ll use the -H flag for the server’s IP address, the -U flag for the username, and the -P flag for the password.&lt;/p&gt;
+&lt;p&gt;Run the following command to check IPMI connection and get a system status overview:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; sdr&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;This should return sensor data, including fan speeds, temperatures, and voltages.&lt;/p&gt;
+&lt;h3 id=&#34;step-3-check-current-fan-speed&#34;&gt;Step 3: Check Current Fan Speed&lt;/h3&gt;
+&lt;p&gt;To view the current fan speed, use the following command:&lt;/p&gt;
+&lt;p&gt;bash
+Copy code
+ipmitool -I lanplus -H &lt;!-- raw HTML omitted --&gt; -U &lt;!-- raw HTML omitted --&gt; -P &lt;!-- raw HTML omitted --&gt; sensor list | grep -i fan
+This will display all the fans in your system along with their current RPM (revolutions per minute). Understanding the current fan speeds will help when making adjustments later.&lt;/p&gt;
+&lt;h2 id=&#34;commands-to-copy&#34;&gt;Commands to copy&lt;/h2&gt;
+&lt;blockquote&gt;&lt;p&gt;Replace &lt;code&gt;&amp;lt;BMC-IP&amp;gt;&lt;/code&gt;, &lt;code&gt;&amp;lt;username&amp;gt;&lt;/code&gt;, &lt;code&gt;&amp;lt;password&amp;gt;&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;&lt;p&gt;Enable manual fan control: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x01 0x00&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Disable manual fan control: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x01 0x01&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Set a specific fan speed: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff &amp;lt;fan-speed&amp;gt;&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;To break this command out;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The &lt;code&gt;0xff&lt;/code&gt; indicates that this command applies to all fans&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;&amp;lt;fan-speed&amp;gt;&lt;/code&gt; indicates the fan speed (in hexadecimal)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;&lt;p&gt;Some examples of specific fan speed commands:&lt;/p&gt;
+&lt;p&gt;Set fan speed to 10%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x0A&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Set fan speed to 20%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x14&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Set fan speed to 30%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x1E&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Set fan speed to 50%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x32&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Set fan speed to 100%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x64&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;To enable fan control and set the speed to 30%:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x01 0x00
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x1E&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&#34;some-notes-about-recent-ish-idrac-updates&#34;&gt;Some notes about recent-ish iDRAC updates&lt;/h2&gt;
+&lt;p&gt;After iDRAC 9 version3.30.30.30, fan control has been disabled by Dell.  Some forum posts &lt;a href=&#34;https://www.dell.com/community/en/conversations/poweredge-hardware-general/dell-eng-is-taking-away-fan-speed-control-away-from-users-idrac-3343434/647f8593f4ccf8a8de47aa9b&#34;&gt;here&lt;/a&gt; on Dell&amp;rsquo;s support page indicate that this was done to prevent inadvertant damage to servers from people like me doing stuff like this.  This is both a fair point, but also somewhat frustrating for those of us running these in more acoustically-sensitive environments.&lt;/p&gt;
+&lt;p&gt;There is a downgrade path that worked for me (&lt;a href=&#34;https://www.reddit.com/r/homelab/comments/t9pa13/dell_poweredge_fan_control_with_ipmitool/&#34;&gt;from this Reddit thread&lt;/a&gt;):
+&lt;code&gt;7.00.00.00 -&amp;gt; 6.10.80.00 -&amp;gt; 6.00.02.00 -&amp;gt; 5.10.50.00 -&amp;gt; 5.00.00.00 -&amp;gt; 4.40.40.00 -&amp;gt; 4.40.10.00 -&amp;gt; 4.00.00.00 -&amp;gt; 3.30.30.30&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Though obviously YMMV, and I don&amp;rsquo;t take any responsibility for anything good/bad that happens.&lt;/p&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.reddit.com/r/homelab/comments/t9pa13/dell_poweredge_fan_control_with_ipmitool/&#34;&gt;Reddit thread about iDRAC downgrading&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.reddit.com/r/homelab/comments/u1bwl2/poweredge_g13_fan_control_issues_a_quick_guide/&#34;&gt;PowerEdge G13 Fan Control - Reddit&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
   </channel>
 </rss>

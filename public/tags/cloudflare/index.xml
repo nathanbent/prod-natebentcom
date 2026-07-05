@@ -1,24 +1,75 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Cloudflare on NateBent.com</title>
     <link>https://natebent.com/tags/cloudflare/</link>
     <description>Recent content in Cloudflare on NateBent.com</description>
-    <image>
-      <title>NateBent.com</title>
-      <url>https://natebent.com/images/papermod-cover.png</url>
-      <link>https://natebent.com/images/papermod-cover.png</link>
-    </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 03 Feb 2024 20:52:13 -0600</lastBuildDate>
+    <managingEditor> (Nathan Bent)</managingEditor>
     <atom:link href="https://natebent.com/tags/cloudflare/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>DDNS, ddclient and Cloudflare</title>
       <link>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</link>
-      <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate>
+      <pubDate>Sat, 03 Feb 2024 20:52:13 -0600</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/ddns-ddclient-and-cloudflare/</guid>
-      <description>Setting DDNS up on Cloudflare can be a little tricky, this is my experience with it</description>
+      <description>&lt;h2 id=&#34;context&#34;&gt;Context&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Dynamic_DNS&#34;&gt;DDNS&lt;/a&gt; allows for the dynamic update of DNS entries and attributes - what a fitting name.  This can be an extremely valuable resource for professionals and homelabbers who need to deal with dynamically assigned IP addresses in keeping things connected.&lt;/p&gt;
+&lt;p&gt;I personally use &lt;a href=&#34;https://www.cloudflare.com/&#34;&gt;Cloudflare&lt;/a&gt; as a DNS proxy for my various domains, which used to be managed by &lt;a href=&#34;https://domains.google.com/&#34;&gt;Google Domains&lt;/a&gt; until they &lt;a href=&#34;https://domains.squarespace.com/google-domains&#34;&gt;sold that business&lt;/a&gt; to &lt;a href=&#34;https://domains.squarespace.com/&#34;&gt;Squarespace&lt;/a&gt;; I&amp;rsquo;ve since been moving everything to &lt;a href=&#34;https://porkbun.com/&#34;&gt;Porkbun&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Recently, I wanted to organize all of my Cloud and on-prem resources better, and decided to use a singular domain name to help organize everything.  I wanted to be sure that the subdomains I would be assigning out through A records would always be accurate, and thus my project began.&lt;/p&gt;
+&lt;h2 id=&#34;setup&#34;&gt;Setup&lt;/h2&gt;
+&lt;p&gt;To update the DNS A records, there are a few simple things that will need to be setup.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;There will need to be an &lt;a href=&#34;https://www.cloudflare.com/learning/dns/dns-records/dns-a-record/_&#34;&gt;A record&lt;/a&gt; in Cloudflare for ddclient to update&lt;/li&gt;
+&lt;li&gt;ddclient will need authentication into Cloudflare using an &lt;a href=&#34;https://developers.cloudflare.com/fundamentals/api/get-started/create-token/&#34;&gt;API token&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;ddclient will need to check it&amp;rsquo;s own IP address to compare&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Creating the &lt;code&gt;A record&lt;/code&gt; is straightforward, opening DNS and then Records will allow you to create away.&lt;/p&gt;
+&lt;p&gt;Authenticating ddclient into Cloudflare is a little trickier, I prefer to create an API key that has read/write access to the domain zone in Cloudflare.  This can be accomplished under Profile -&amp;gt; API Keys, and then by following the wizard.&lt;/p&gt;
+&lt;p&gt;Finally, ddclient will need some way to check it&amp;rsquo;s own IP and see if the records need updated.  Oddly enough, this seems to be the hardest service to keep consistently working.  There are dozens of  decent to great DDNS services out there that have been around, and yet IP checking services disappear with the winds.  Go figure.&lt;/p&gt;
+&lt;p&gt;Because I have a number of VMs running among the different cloud providers, running ddclient in a docker container works wonderfully.  Once I install docker and docker compose, I&amp;rsquo;m easily able to use basically the same two files to keep every VM host updated.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;It should be noted&lt;/strong&gt;&lt;/em&gt; that without a pre-made config/ddclient.conf file, the ddclient container will download a default one.  This needs to be altered slightly to work.&lt;/p&gt;
+&lt;h2 id=&#34;my-docker-composeyml-and-ddclientconf&#34;&gt;My docker-compose.yml and ddclient.conf&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;docker-compose.yml&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;yaml&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c&#34;&gt;## docker-compose.yml&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nn&#34;&gt;---&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nt&#34;&gt;services&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;  &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;ddclient&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;image&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;lscr.io/linuxserver/ddclient:latest&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;container_name&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;ddclient&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;environment&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;l&#34;&gt;PUID=&amp;lt;UID&amp;gt;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;l&#34;&gt;PGID=&amp;lt;GID&amp;gt;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;l&#34;&gt;TZ=UTC&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;volumes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;l&#34;&gt;./config:/config&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;restart&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;unless-stopped&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;config/ddclient.conf&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;yaml&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c&#34;&gt;## ddclient.conf&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;use=web&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;web=dynamicdns.park-your-domain.com/getip&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;web-skip=&amp;#39;Current IP Address&amp;#39;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;protocol=cloudflare, \&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;zone=domain.tld, \&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;ttl=1, \&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;login=token, \&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;password=&amp;lt;api-token&amp;gt; \&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;test-subdomain.domain.tld&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Once everything has been loaded into place, running &lt;code&gt;sudo docker compose pull &amp;amp;&amp;amp; sudo docker compose up -d&lt;/code&gt; will get it running.  ddclient can be configured to log externally, though I used &lt;a href=&#34;https://www.portainer.io/&#34;&gt;Portainer&lt;/a&gt; to view the logs and troubleshoot along the way.&lt;/p&gt;
+&lt;h2 id=&#34;troubleshooting&#34;&gt;Troubleshooting&lt;/h2&gt;
+&lt;p&gt;I ran into several errors this most recent go-round, as well as before.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Failure to get IPv4 address&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;At some point, the default &lt;code&gt;use web&lt;/code&gt; option to get the public IP stopped working for me.  Adding the specific web address seems to have mostly fixed it for good; we&amp;rsquo;ll see.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Failure to communicate with Cloudflare&#39;s API&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;I had some difficulties in working with the Cloudflare DDNS API as it exists in the default configuration that downloads with the docker compose pull.  This seems to be an older version of the config, which references the API in a way that no longer works.&lt;/p&gt;
+&lt;blockquote&gt;&lt;p&gt;Edit 2024-08-18 - This seems to have been fixed.&lt;/p&gt;
+&lt;/blockquote&gt;&lt;h2 id=&#34;references-and-resources&#34;&gt;References and Resources&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://ddclient.net/&#34;&gt;ddclient website&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/ddclient/ddclient&#34;&gt;ddclient github&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/linuxserver/docker-ddclient&#34;&gt;LinuxServer&amp;rsquo;s ddclient github&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
   </channel>
 </rss>

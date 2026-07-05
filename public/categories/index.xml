@@ -1,92 +1,87 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on NateBent.com</title>
     <link>https://natebent.com/categories/</link>
     <description>Recent content in Categories on NateBent.com</description>
-    <image>
-      <title>NateBent.com</title>
-      <url>https://natebent.com/images/papermod-cover.png</url>
-      <link>https://natebent.com/images/papermod-cover.png</link>
-    </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 02 Jul 2026 01:00:00 +0000</lastBuildDate>
+    <managingEditor> (Nathan Bent)</managingEditor>
     <atom:link href="https://natebent.com/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Security</title>
       <link>https://natebent.com/categories/security/</link>
-      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate>
+      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/security/</guid>
       <description></description>
     </item>
     <item>
       <title>Automation</title>
       <link>https://natebent.com/categories/automation/</link>
-      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/automation/</guid>
       <description></description>
     </item>
     <item>
       <title>Networking</title>
       <link>https://natebent.com/categories/networking/</link>
-      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/networking/</guid>
       <description></description>
     </item>
     <item>
       <title>Virtualization</title>
       <link>https://natebent.com/categories/virtualization/</link>
-      <pubDate>Mon, 11 May 2026 01:00:00 +0000</pubDate>
+      <pubDate>Mon, 11 May 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/virtualization/</guid>
       <description></description>
     </item>
     <item>
       <title>Proxmox</title>
       <link>https://natebent.com/categories/proxmox/</link>
-      <pubDate>Mon, 04 May 2026 01:00:00 +0000</pubDate>
+      <pubDate>Mon, 04 May 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/proxmox/</guid>
       <description></description>
     </item>
     <item>
       <title>Experiences</title>
       <link>https://natebent.com/categories/experiences/</link>
-      <pubDate>Wed, 25 Sep 2024 11:54:26 -0500</pubDate>
+      <pubDate>Wed, 25 Sep 2024 11:54:26 -0500</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/experiences/</guid>
       <description></description>
     </item>
     <item>
       <title>Cloud-Init</title>
       <link>https://natebent.com/categories/cloud-init/</link>
-      <pubDate>Tue, 09 Apr 2024 23:20:01 +0000</pubDate>
+      <pubDate>Tue, 09 Apr 2024 23:20:01 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/cloud-init/</guid>
       <description></description>
     </item>
     <item>
       <title>Ubuntu</title>
       <link>https://natebent.com/categories/ubuntu/</link>
-      <pubDate>Tue, 09 Apr 2024 23:20:01 +0000</pubDate>
+      <pubDate>Tue, 09 Apr 2024 23:20:01 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/ubuntu/</guid>
       <description></description>
     </item>
     <item>
       <title>Thoughts</title>
       <link>https://natebent.com/categories/thoughts/</link>
-      <pubDate>Sat, 13 Jan 2024 15:18:50 -0600</pubDate>
+      <pubDate>Sat, 13 Jan 2024 15:18:50 -0600</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/thoughts/</guid>
       <description></description>
     </item>
     <item>
       <title>Projects</title>
       <link>https://natebent.com/categories/projects/</link>
-      <pubDate>Mon, 01 Jan 2024 17:26:18 -0600</pubDate>
+      <pubDate>Mon, 01 Jan 2024 17:26:18 -0600</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/projects/</guid>
       <description></description>
     </item>
     <item>
       <title>Meta</title>
       <link>https://natebent.com/categories/meta/</link>
-      <pubDate>Mon, 25 Dec 2023 15:13:33 -0600</pubDate>
+      <pubDate>Mon, 25 Dec 2023 15:13:33 -0600</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/categories/meta/</guid>
       <description></description>
     </item>

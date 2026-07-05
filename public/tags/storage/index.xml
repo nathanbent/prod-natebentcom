@@ -1,24 +1,314 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Storage on NateBent.com</title>
     <link>https://natebent.com/tags/storage/</link>
     <description>Recent content in Storage on NateBent.com</description>
-    <image>
-      <title>NateBent.com</title>
-      <url>https://natebent.com/images/papermod-cover.png</url>
-      <link>https://natebent.com/images/papermod-cover.png</link>
-    </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 11 May 2026 01:00:00 +0000</lastBuildDate>
+    <managingEditor> (Nathan Bent)</managingEditor>
     <atom:link href="https://natebent.com/tags/storage/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Proxmox Best Practices - Guest Storage</title>
       <link>https://natebent.com/posts/proxmox-best-practices-guest-storage/</link>
-      <pubDate>Mon, 11 May 2026 01:00:00 +0000</pubDate>
+      <pubDate>Mon, 11 May 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/proxmox-best-practices-guest-storage/</guid>
-      <description>How I set cache, aio, iothread, and discard on Proxmox VMs, decided by how each VM is used rather than the OS inside it, plus the ZFS foundations that keep those choices safe to leave alone for years.</description>
+      <description>&lt;h2 id=&#34;why-this-post-exists&#34;&gt;Why this post exists&lt;/h2&gt;
+&lt;p&gt;Every time I built a new VM I found myself re-litigating the same disk settings: cache mode, aio, whether iothread was worth it, discard on or off. The answers are scattered across forum threads, half of them stale, and a fair number of them wrong for the storage I actually run. So I sat down and worked out a set of defaults I could stop thinking about, then validated them against my own cluster.&lt;/p&gt;
+&lt;p&gt;This is that reference. The one idea it all hangs on:&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-insight&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;The right disk settings are decided by how a VM is &lt;em&gt;used&lt;/em&gt;, not by the OS inside it. Two questions settle almost everything: can this VM move to another host, and what kind of storage is under it? Answer those and the rest falls out.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;I validated everything below against my own three-node cluster. The version baseline matters more than usual here, because io_uring fallback behavior, ZFS Direct I/O, and ARC defaults are all version-dependent. If you are far from this baseline, re-check the assumptions flagged at the end.&lt;/p&gt;
+&lt;h3 id=&#34;validated-against&#34;&gt;Validated against&lt;/h3&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Component&lt;/th&gt;
+					&lt;th&gt;Version&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Proxmox VE&lt;/td&gt;
+					&lt;td&gt;9.2.4&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Kernel&lt;/td&gt;
+					&lt;td&gt;7.0.14-2-pve&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;pve-qemu-kvm&lt;/td&gt;
+					&lt;td&gt;11.0.2&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;qemu-server&lt;/td&gt;
+					&lt;td&gt;9.1.18&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;OpenZFS&lt;/td&gt;
+					&lt;td&gt;2.4.3&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Two consequences worth stating up front. First, this kernel and QEMU are well past the era where io_uring had rough edges on iSCSI and LVM, so io_uring is safe as a universal default. Second, OpenZFS gained Direct I/O in the 2.3 line, so on a plain file &lt;code&gt;cache=none&lt;/code&gt; now actually honors &lt;code&gt;O_DIRECT&lt;/code&gt; instead of the older behavior of quietly failing the open. That last point has a catch that bit an assumption I had, and I get into it below.&lt;/p&gt;
+&lt;h2 id=&#34;the-short-version&#34;&gt;The short version&lt;/h2&gt;
+&lt;p&gt;Everything here collapses to two storage lanes and a small set of universal guest settings.&lt;/p&gt;
+&lt;p&gt;The shared, HA lane is network iSCSI. Any VM that must be able to move between nodes, whether HA-managed or just live-migratable, lives here. Mobility forces &lt;code&gt;cache=none&lt;/code&gt; for coherency and &lt;code&gt;aio=io_uring&lt;/code&gt; for safety. No writeback, ever, because host page cache is per-node and is not coherent across a migration.&lt;/p&gt;
+&lt;p&gt;The pinned, local lane is local ZFS (or a local dir). Any VM tied to specific hardware through GPU or other PCIe passthrough is pinned here and cannot live-migrate anyway. On ZFS this is still &lt;code&gt;cache=none&lt;/code&gt; plus &lt;code&gt;io_uring&lt;/code&gt;, because ARC is already the cache. The only place writeback is ever correct is a pinned, disposable VM on a non-ZFS local disk.&lt;/p&gt;
+&lt;p&gt;Universal settings, every VM, both lanes, both OSes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;SCSI controller: &lt;code&gt;virtio-scsi-single&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;iothread=1&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;cache=none&lt;/code&gt; (the default; do not override except the one documented writeback case)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;aio=io_uring&lt;/code&gt; (the default; only consider &lt;code&gt;native&lt;/code&gt; on pinned raw-block disks, never on ZFS or qcow2)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;discard=on&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ssd=1&lt;/code&gt; (SSD emulation) on any SSD-backed tier&lt;/li&gt;
+&lt;li&gt;Guest agent installed; balloon off for anything memory-sensitive (domain controllers, AI boxes)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;cache-why-none-and-the-one-exception&#34;&gt;Cache: why none, and the one exception&lt;/h2&gt;
+&lt;p&gt;Proxmox cache modes are combinations of &lt;code&gt;O_DIRECT&lt;/code&gt; and &lt;code&gt;O_DSYNC&lt;/code&gt; semantics. The practical summary:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Mode&lt;/th&gt;
+					&lt;th&gt;Host page cache&lt;/th&gt;
+					&lt;th&gt;Data-loss risk on host crash&lt;/th&gt;
+					&lt;th&gt;Use&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;none&lt;/code&gt; (default)&lt;/td&gt;
+					&lt;td&gt;Bypassed (&lt;code&gt;O_DIRECT&lt;/code&gt;); guest write cache reported present&lt;/td&gt;
+					&lt;td&gt;Low; guest flushes go to storage&lt;/td&gt;
+					&lt;td&gt;Everything here&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;writeback&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Used for read and write&lt;/td&gt;
+					&lt;td&gt;In-flight async writes lost on power loss&lt;/td&gt;
+					&lt;td&gt;Narrow: pinned, disposable, non-ZFS&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;writethrough&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Used for read; writes sync&lt;/td&gt;
+					&lt;td&gt;Low, but slow writes&lt;/td&gt;
+					&lt;td&gt;Rare&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;directsync&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Bypassed; writes sync&lt;/td&gt;
+					&lt;td&gt;Lowest; slowest&lt;/td&gt;
+					&lt;td&gt;Guests that never flush; rarely needed&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;writeback (unsafe)&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Used; ignores guest flushes&lt;/td&gt;
+					&lt;td&gt;Total&lt;/td&gt;
+					&lt;td&gt;Throwaway and templating only&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;why-none-wins-on-zfs&#34;&gt;Why none wins on ZFS&lt;/h3&gt;
+&lt;p&gt;With &lt;code&gt;cache=none&lt;/code&gt;, QEMU opens the disk with &lt;code&gt;O_DIRECT&lt;/code&gt; and the Linux host page cache is not used. On ZFS, reads are served from ARC and async writes buffer in the ZFS dirty cache, which flushes on its own timer (about 5 seconds by default). Sync and flush writes are honored and go to the ZIL or SLOG. ZFS is, in effect, already doing writeback-style buffering internally, and doing it safely.&lt;/p&gt;
+&lt;p&gt;Turning on &lt;code&gt;writeback&lt;/code&gt; stacks the host page cache on top of ARC and the ZFS dirty cache. The same data then lives in the guest, the host page cache, and ARC at once. That inflates RAM usage, and the kernel will happily fill free memory with page cache and start swapping. On ZFS, writeback is a straight loss with added crash risk for no gain.&lt;/p&gt;
+&lt;p&gt;Here is the catch I mentioned, and the part I had wrong in my head at first. Direct I/O in OpenZFS is a dataset feature, and it does not apply to zvols:&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-quote&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M1.75 2.5A1.75 1.75 0 0 0 0 4.25v3.5C0 8.716.784 9.5 1.75 9.5H3c0 1.5-.5 2.5-2 3.5 2.5-.5 4.5-2 4.5-5.25v-3.5A1.75 1.75 0 0 0 3.75 2.5Zm8.5 0A1.75 1.75 0 0 0 8.5 4.25v3.5c0 .966.784 1.75 1.75 1.75h1.25c0 1.5-.5 2.5-2 3.5 2.5-.5 4.5-2 4.5-5.25v-3.5a1.75 1.75 0 0 0-1.75-1.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Quote&lt;/span&gt;&lt;span class=&#34;callout-cite&#34;&gt;OpenZFS, zfsprops(7)&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Direct I/O is &amp;ldquo;not supported with zvols.&amp;rdquo; So on a zvol, &lt;code&gt;cache=none&lt;/code&gt; never bypasses ARC. It bypasses the host page cache, and ARC does the caching, which is exactly what you want anyway.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;So for the great majority of VMs here, which sit on zvols under &lt;code&gt;zfspool&lt;/code&gt; storage, &lt;code&gt;cache=none&lt;/code&gt; was always the right call and its behavior has not changed. Where Direct I/O actually matters is a raw or qcow2 file sitting on a ZFS &lt;em&gt;dataset&lt;/em&gt;, and that is the one place the 2.3 change fixes an old headache. More on that in the Windows template example.&lt;/p&gt;
+&lt;h3 id=&#34;why-none-wins-on-shared-iscsi&#34;&gt;Why none wins on shared iSCSI&lt;/h3&gt;
+&lt;p&gt;Two reasons. The backing store here is a TrueNAS box, which is itself ZFS with its own ARC and ZIL, so writeback at the QEMU layer would double-cache across the network for zero gain. More importantly, writeback holds data in per-node host page cache, which is not coherent across a live migration.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-caution&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.141.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Caution&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Any cache mode other than &lt;code&gt;none&lt;/code&gt; on storage a VM can migrate across is a known corruption vector. The host page cache is per-node, nothing keeps it coherent across a live migration, and nothing warns you. It works fine right up until a migration eats a VM. Mobile VMs stay on &lt;code&gt;none&lt;/code&gt;, full stop.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h3 id=&#34;the-one-legitimate-writeback-case&#34;&gt;The one legitimate writeback case&lt;/h3&gt;
+&lt;p&gt;The official Windows guest best-practices guidance does suggest writeback for performance, and a hardware RAID controller with a battery or PLP-backed cache handles writeback fine. Both assume storage with no other caching layer underneath. In a ZFS-heavy environment that describes exactly one situation: a pinned (passthrough) VM whose disk sits on a plain non-ZFS local device (an ext4 or LVM dir store, or a dedicated passed-through SSD), holding disposable data where losing a few seconds of in-flight writes on a crash is an annoyance, not a loss. A Parsec or VDI gaming VM is the textbook fit. On a disk like that, &lt;code&gt;writeback&lt;/code&gt; (or even &lt;code&gt;writeback (unsafe)&lt;/code&gt; for a pure scratch disk) is correct. The moment that disk is on ZFS, revert to &lt;code&gt;none&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;aio-why-io_uring-and-when-native-or-threads&#34;&gt;aio: why io_uring, and when native or threads&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;aio&lt;/code&gt; selects the async I/O submission path. The headline benchmark finding: &lt;code&gt;native&lt;/code&gt; and &lt;code&gt;io_uring&lt;/code&gt; land within a few percent of each other, &lt;code&gt;native&lt;/code&gt; has a slight edge at QD1 latency, and &lt;code&gt;io_uring&lt;/code&gt; degrades a little less gracefully only under extreme load. So &lt;code&gt;native&lt;/code&gt; looks marginally better on paper, but it comes with a hard constraint.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;aio=native&lt;/code&gt; may only be used on unbuffered, &lt;code&gt;O_DIRECT&lt;/code&gt;, raw block storage with &lt;code&gt;cache=none&lt;/code&gt;. If anything in the I/O path can block on submission, &lt;code&gt;native&lt;/code&gt; blocks the whole submission syscall. That rules it out for:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ZFS (copy-on-write, can block) : use &lt;code&gt;io_uring&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;qcow2 (metadata lookups block) : use &lt;code&gt;io_uring&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;thin LVM (virtual-to-physical metadata) : use &lt;code&gt;io_uring&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;aio=native&lt;/code&gt; is only safe on directly-mapped raw block: a raw iSCSI LUN, thick LVM with no overlay, NVMe, or Ceph and RBD, always with &lt;code&gt;cache=none&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Here is why this environment uses &lt;code&gt;io_uring&lt;/code&gt; everywhere anyway. The shared iSCSI storage is thick LVM, which on its own would tolerate &lt;code&gt;native&lt;/code&gt;. But it has snapshot-as-volume-chain enabled, and that layers a qcow2 overlay on top of the LV whenever a snapshot exists, including during every PBS backup run. Once the active image is qcow2, &lt;code&gt;native&lt;/code&gt; blocks. So &lt;code&gt;io_uring&lt;/code&gt; is the correct, durable choice for the iSCSI lane, and this qcow2-in-the-chain behavior during backups is a very plausible cause of the intermittent iSCSI I/O oddities I chased a while back. For local ZFS, &lt;code&gt;io_uring&lt;/code&gt; is mandatory regardless.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;aio=threads&lt;/code&gt; is the traditional pairing with &lt;code&gt;cache=writeback&lt;/code&gt; (buffered, non-&lt;code&gt;O_DIRECT&lt;/code&gt;). It is valid but generally slower than &lt;code&gt;io_uring&lt;/code&gt;, which also supports buffered I/O. For the one writeback VM, &lt;code&gt;io_uring&lt;/code&gt; is fine and slightly faster; &lt;code&gt;threads&lt;/code&gt; is acceptable and harmless. Go with &lt;code&gt;io_uring&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;the-four-quadrant-matrix&#34;&gt;The four-quadrant matrix&lt;/h2&gt;
+&lt;p&gt;The OS quadrants still govern guest-side tuning: drivers, balloon, cluster size. Storage placement collapses to the two lanes, generalized on shared iSCSI and passthrough on local.&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Setting&lt;/th&gt;
+					&lt;th&gt;Generalized Linux (DNS, Zabbix, Caddy, Ansible, code-server)&lt;/th&gt;
+					&lt;th&gt;Specialty Linux (AI, other passthrough)&lt;/th&gt;
+					&lt;th&gt;Generalized Windows (DC, PKI)&lt;/th&gt;
+					&lt;th&gt;Specialty Windows (VDI, Parsec)&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Lane / storage&lt;/td&gt;
+					&lt;td&gt;Shared iSCSI (HA)&lt;/td&gt;
+					&lt;td&gt;Local ZFS SSD (pinned)&lt;/td&gt;
+					&lt;td&gt;Shared iSCSI (HA)&lt;/td&gt;
+					&lt;td&gt;Local, non-ZFS pinned&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Controller&lt;/td&gt;
+					&lt;td&gt;virtio-scsi-single&lt;/td&gt;
+					&lt;td&gt;virtio-scsi-single&lt;/td&gt;
+					&lt;td&gt;virtio-scsi-single&lt;/td&gt;
+					&lt;td&gt;virtio-scsi-single&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;iothread&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;cache&lt;/td&gt;
+					&lt;td&gt;none&lt;/td&gt;
+					&lt;td&gt;none&lt;/td&gt;
+					&lt;td&gt;none&lt;/td&gt;
+					&lt;td&gt;writeback (only if non-ZFS local and disposable)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;aio&lt;/td&gt;
+					&lt;td&gt;io_uring&lt;/td&gt;
+					&lt;td&gt;io_uring&lt;/td&gt;
+					&lt;td&gt;io_uring&lt;/td&gt;
+					&lt;td&gt;io_uring (or threads)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;discard&lt;/td&gt;
+					&lt;td&gt;on&lt;/td&gt;
+					&lt;td&gt;on&lt;/td&gt;
+					&lt;td&gt;on&lt;/td&gt;
+					&lt;td&gt;on&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;ssd&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;balloon&lt;/td&gt;
+					&lt;td&gt;ok&lt;/td&gt;
+					&lt;td&gt;off&lt;/td&gt;
+					&lt;td&gt;off&lt;/td&gt;
+					&lt;td&gt;off&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Notes&lt;/td&gt;
+					&lt;td&gt;Already the fleet default&lt;/td&gt;
+					&lt;td&gt;Align data disks&lt;/td&gt;
+					&lt;td&gt;Fixed RAM, virtio drivers&lt;/td&gt;
+					&lt;td&gt;Writeback only if backing is non-ZFS; this box is on ZFS, so none&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;real-examples-from-the-cluster&#34;&gt;Real examples from the cluster&lt;/h3&gt;
+&lt;p&gt;I have genericized the hostnames and VM IDs below, but the configs and the deltas I found are the real ones.&lt;/p&gt;
+&lt;p&gt;Generalized Linux, &lt;code&gt;app-01&lt;/code&gt; (201) and &lt;code&gt;app-02&lt;/code&gt; (202). Already correct: &lt;code&gt;virtio-scsi-single&lt;/code&gt;, &lt;code&gt;iothread=1&lt;/code&gt;, &lt;code&gt;discard=on&lt;/code&gt;, &lt;code&gt;ssd=1&lt;/code&gt;, inheriting &lt;code&gt;cache=none&lt;/code&gt; and &lt;code&gt;aio=io_uring&lt;/code&gt;. No changes. These are the reference implementation for the lane. One of them runs the same &lt;a href=&#34;https://natebent.com/posts/self-hosting-codeserver/&#34;&gt;code-server setup I wrote up separately&lt;/a&gt;, which is a good example of the generalized Linux profile in practice.&lt;/p&gt;
+&lt;p&gt;Specialty Linux, &lt;code&gt;ai-01&lt;/code&gt; (701). Core is correct: on the &lt;code&gt;SSD-r10&lt;/code&gt; ZFS pool, &lt;code&gt;cache=none&lt;/code&gt; and &lt;code&gt;io_uring&lt;/code&gt; inherited, &lt;code&gt;balloon=0&lt;/code&gt;, NUMA-pinned, GPU passthrough. One delta: &lt;code&gt;scsi0&lt;/code&gt; has &lt;code&gt;discard=on,ssd=1&lt;/code&gt; but the &lt;code&gt;scsi2&lt;/code&gt; 256G data disk had neither. Align it:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;701&lt;/span&gt; --scsi2 SSD-r10:vm-701-disk-1,discard&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;on,ssd&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;1,iothread&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;m&#34;&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;For large sequential model storage, a bigger &lt;code&gt;volblocksize&lt;/code&gt; (64K to 128K) on that disk&amp;rsquo;s zvol would compress better and read faster than the 16K default. That requires recreating the zvol, which I cover under ZFS Foundations.&lt;/p&gt;
+&lt;p&gt;Generalized Windows, domain controllers and PKI (prescriptive; I do not have a live example captured). Same as generalized Linux plus Windows guest tuning: &lt;code&gt;bios=ovmf&lt;/code&gt;, &lt;code&gt;machine=q35&lt;/code&gt;, the VirtIO SCSI driver loaded at install, qemu-guest-agent, and fixed RAM with balloon off (AD and a CA behave poorly under memory pressure). Do not apply the generic Windows writeback advice here: this data is integrity-critical and lives on shared iSCSI, so &lt;code&gt;cache=none&lt;/code&gt; is mandatory.&lt;/p&gt;
+&lt;p&gt;Specialty Windows, &lt;code&gt;win11-gpu-template&lt;/code&gt; (1903), my Windows 11 template. On &lt;code&gt;local&lt;/code&gt; dir storage (a &lt;code&gt;.raw&lt;/code&gt; file), GPU passthrough, &lt;code&gt;ostype=win11&lt;/code&gt;, and it was running &lt;code&gt;aio=threads,cache=writeback,discard=on,ssd=1&lt;/code&gt;. This is the case that caught me. &lt;code&gt;local&lt;/code&gt; on this node turned out to be a ZFS dataset (&lt;code&gt;rpool/var-lib-vz&lt;/code&gt;), so despite the VM being pinned and disposable, the writeback branch does not apply: the &lt;code&gt;.raw&lt;/code&gt; sits on ZFS, and writeback just double-caches on top of ARC. The correct config is &lt;code&gt;cache=none&lt;/code&gt; plus &lt;code&gt;aio=io_uring&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;1903&lt;/span&gt; --scsi0 local:1903/vm-1903-disk-1.raw,aio&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;io_uring,cache&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;none,discard&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;on,ssd&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;1,iothread&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;m&#34;&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Because this is the template for the whole quadrant, test-boot after the change; every future clone inherits it.&lt;/p&gt;
+&lt;p&gt;Why it was &lt;code&gt;threads&lt;/code&gt; plus &lt;code&gt;writeback&lt;/code&gt; originally: on older OpenZFS, &lt;code&gt;cache=none&lt;/code&gt; on a &lt;em&gt;file&lt;/em&gt; on a ZFS dataset failed to open with &lt;code&gt;O_DIRECT&lt;/code&gt; (the classic &lt;code&gt;could not open disk image&lt;/code&gt;), and buffered I/O via &lt;code&gt;writeback&lt;/code&gt; and &lt;code&gt;threads&lt;/code&gt; was the working fallback. OpenZFS 2.3 added Direct I/O on files, and 2.4.3 here has it, so &lt;code&gt;O_DIRECT&lt;/code&gt; on a file opens cleanly and the workaround is no longer needed. If &lt;code&gt;O_DIRECT&lt;/code&gt; is still somehow rejected, do the architecturally correct thing instead: VM disks on ZFS belong on zvols (&lt;code&gt;zfspool&lt;/code&gt; storage), not raw files on dir storage. Migrating this disk to a zvol-backed store (or the node&amp;rsquo;s &lt;code&gt;local-ssd-2tb-qvo&lt;/code&gt; thin-LVM pool) gives native &lt;code&gt;cache=none&lt;/code&gt; plus &lt;code&gt;io_uring&lt;/code&gt; with no caveats, and puts the box cleanly in the local ZFS pinned lane. Worth noting, since Direct I/O does not touch zvols, moving to a zvol is not about &lt;code&gt;O_DIRECT&lt;/code&gt; at all; it just sidesteps the whole file-on-dataset problem.&lt;/p&gt;
+&lt;h2 id=&#34;zfs-foundations&#34;&gt;ZFS foundations&lt;/h2&gt;
+&lt;p&gt;Guest disk settings sit on top of these. Getting them wrong causes slow, invisible degradation over months, which is exactly why they belong in any storage doc you intend to trust.&lt;/p&gt;
+&lt;h3 id=&#34;current-state&#34;&gt;Current state&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;ashift=12 (4K sectors) on all pools. Correct for these drives, and since ashift is immutable it is locked in well.&lt;/li&gt;
+&lt;li&gt;volblocksize=16K on all zvols (the PVE 8.1+ default). All pools are mirrors or striped mirrors, so there is no RAIDZ parity-padding penalty; 16K is an efficient general default here.&lt;/li&gt;
+&lt;li&gt;compression=lz4 everywhere. Keep it; it is effectively free and often a net throughput gain.&lt;/li&gt;
+&lt;li&gt;sync=standard everywhere. Correct. It honors guest flushes and batches async writes via the transaction group. Do not set &lt;code&gt;sync=disabled&lt;/code&gt; (unsafe) or &lt;code&gt;sync=always&lt;/code&gt; (slow) as a blanket policy.&lt;/li&gt;
+&lt;li&gt;logbias=latency, ARC c_max=64G on 251G RAM (currently around 28G). Healthy and deliberate, and well clear of the PVE default 10% cap.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;volblocksize-alignment&#34;&gt;volblocksize alignment&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;volblocksize&lt;/code&gt; sets the ZFS record size for a zvol and cannot be changed in place; it is fixed at creation, so changing it means creating a new disk. Alignment guidance:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;General Linux guests (ext4, xfs): the 16K default is fine. Leave it.&lt;/li&gt;
+&lt;li&gt;Windows guests: NTFS defaults to 4K clusters. A 4K guest write against a 16K zvol block forces a 16K read-modify-write, up to 4x write amplification on small random writes. Mitigations, in order of preference: format Windows &lt;em&gt;data&lt;/em&gt; volumes with 16K or 64K NTFS clusters to match or exceed volblocksize; or leave the OS volume default and accept the modest overhead (SSD plus lz4 make it tolerable). Do not lose sleep over this on the SSD tiers, but do care about it for write-heavy Windows workloads.&lt;/li&gt;
+&lt;li&gt;Large sequential data (AI models, media): a 64K to 128K volblocksize compresses better and streams faster than 16K. Worth doing on dedicated data zvols, not OS disks.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;storage-level-thin-provisioning&#34;&gt;Storage-level thin provisioning&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;local-zfs-hdd-8tb-r10&lt;/code&gt; has &lt;code&gt;sparse 1&lt;/code&gt; (thin). &lt;code&gt;local-zfs-ssd-8tb-r10&lt;/code&gt; does not, so new disks there are created thick with a &lt;code&gt;refreservation&lt;/code&gt;, which blunts thin provisioning and discard reclaim on the best pool. Add it (affects new disks only):&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# via GUI: Datacenter &amp;gt; Storage &amp;gt; local-zfs-ssd-8tb-r10 &amp;gt; Thin provision = yes&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# existing thick disks stay thick until recreated&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&#34;trim&#34;&gt;TRIM&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;autotrim=off&lt;/code&gt; on all pools. The guest discard chain (&lt;code&gt;fstrim&lt;/code&gt; to &lt;code&gt;discard=on&lt;/code&gt; to the zvol) frees blocks inside ZFS, but nothing TRIMs the physical SSDs unless autotrim is on or a scheduled trim runs. I prefer a scheduled monthly trim over &lt;code&gt;autotrim=on&lt;/code&gt;, since scheduled trim avoids the latency spikes continuous autotrim can cause:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# monthly zpool trim via systemd timer (create on each node with SSD pools)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;systemctl &lt;span class=&#34;nb&#34;&gt;enable&lt;/span&gt; --now zfs-trim-monthly@local-zfs-sas-ssd-r10.timer   &lt;span class=&#34;c1&#34;&gt;# if using a template unit&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# or a simple cron: 0 3 1 * *  /sbin/zpool trim local-zfs-sas-ssd-r10&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&#34;slog-note&#34;&gt;SLOG note&lt;/h3&gt;
+&lt;p&gt;The 8TB HDD pool&amp;rsquo;s SLOG is a consumer SSD with no power-loss protection. A SLOG without PLP can lose the in-flight sync writes it exists to protect on a power event. That is acceptable for a homelab, but it is a known weak point: an enterprise PLP SSD (or the enterprise SAS SSDs already in the box) would be the upgrade path. On UPS, the practical risk narrows to kernel panics and hardware faults.&lt;/p&gt;
+&lt;h2 id=&#34;guest-side-checklists&#34;&gt;Guest-side checklists&lt;/h2&gt;
+&lt;h3 id=&#34;linux&#34;&gt;Linux&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;VirtIO SCSI single controller, &lt;code&gt;iothread=1&lt;/code&gt;, &lt;code&gt;discard=on&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Enable periodic TRIM inside the guest: &lt;code&gt;systemctl enable --now fstrim.timer&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Modern ext4 and xfs honor barriers and flushes by default; nothing to do.&lt;/li&gt;
+&lt;li&gt;qemu-guest-agent installed and running (&lt;code&gt;agent: 1&lt;/code&gt;) for clean quiesce, backup, and shutdown.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;windows&#34;&gt;Windows&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;bios=ovmf&lt;/code&gt;, &lt;code&gt;machine=q35&lt;/code&gt;, TPM as needed.&lt;/li&gt;
+&lt;li&gt;Load the VirtIO SCSI driver from the virtio-win ISO during install; install the full virtio guest tools plus qemu-guest-agent afterward.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ssd=1&lt;/code&gt; so Windows treats the disk as SSD (disables scheduled defrag, enables Retrim). &lt;code&gt;discard=on&lt;/code&gt; so UNMAP reaches the backend.&lt;/li&gt;
+&lt;li&gt;Balloon off with fixed RAM on infrastructure (DCs, CA). The balloon driver can cause slowdowns and memory pressure that AD and PKI dislike.&lt;/li&gt;
+&lt;li&gt;Where volblocksize matters (write-heavy data volumes), format NTFS with a 16K or larger cluster size.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;health-and-hygiene-findings&#34;&gt;Health and hygiene findings&lt;/h2&gt;
+&lt;p&gt;These sit outside the per-VM settings. Ordered by urgency:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;local-zfs-hdd-3tb-mirror&lt;/code&gt; is around 94% full and doubles as the PBS datastore. ZFS write performance and fragmentation degrade sharply past roughly 80 to 85% full. This undermines everything on that pool regardless of VM settings. Reclaim space or relocate the PBS datastore first.&lt;/li&gt;
+&lt;li&gt;No physical TRIM scheduled (autotrim off, no &lt;code&gt;zpool trim&lt;/code&gt; timer). Add a monthly scheduled trim on the SSD pools.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;local-zfs-ssd-8tb-r10&lt;/code&gt; missing &lt;code&gt;sparse 1&lt;/code&gt;. New disks on the best pool are thick. Enable thin provisioning; convert existing thick disks opportunistically.&lt;/li&gt;
+&lt;li&gt;Consumer non-PLP SLOG on the 8TB pool. Document the risk; plan a PLP replacement.&lt;/li&gt;
+&lt;li&gt;Cosmetic: &lt;code&gt;recordsize=16K&lt;/code&gt; set at the SSD pool root is inert for zvols (it governs file datasets, not volumes). Harmless, noted so it is not mistaken for VM tuning.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;what-to-re-verify-when-things-change&#34;&gt;What to re-verify when things change&lt;/h2&gt;
+&lt;p&gt;This doc is durable, not eternal. Re-check these when the environment shifts:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;On a PVE major upgrade: confirm the default &lt;code&gt;aio&lt;/code&gt; is still &lt;code&gt;io_uring&lt;/code&gt; and that no new io_uring or storage fallback was introduced. Re-read the qemu-server changelog for disk-default changes, and confirm the ARC default cap has not moved under you.&lt;/li&gt;
+&lt;li&gt;On an OpenZFS major upgrade: re-check Direct I/O behavior and any change to the default &lt;code&gt;volblocksize&lt;/code&gt; for newly created disks.&lt;/li&gt;
+&lt;li&gt;If the TrueNAS or iSCSI fabric is rebuilt (say, proper 10GbE): re-confirm whether the presentation is still thick LVM with snapshot-as-volume-chain. If it ever becomes thin, &lt;code&gt;native&lt;/code&gt; was already ruled out, but re-verify &lt;code&gt;io_uring&lt;/code&gt; is still the default. If you move to a non-ZFS SAN with BBU cache, the writeback calculus changes for pinned VMs on it.&lt;/li&gt;
+&lt;li&gt;If any pinned Windows VM moves onto ZFS: drop writeback back to &lt;code&gt;cache=none&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;If you add a dedicated SLOG or L2ARC, or change ashift on a rebuild: revisit the sync and volblocksize notes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;quick-reference&#34;&gt;Quick reference&lt;/h2&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Universal:      scsihw=virtio-scsi-single  iothread=1  discard=on  ssd=1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Shared iSCSI:   cache=none  aio=io_uring                 (HA / mobile)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Local ZFS:      cache=none  aio=io_uring                 (pinned)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Local non-ZFS,  cache=writeback  aio=io_uring            (pinned + disposable ONLY)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt; disposable:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Never:          aio=native on ZFS/qcow2/thin-LVM; writeback on ZFS or shared/mobile
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Windows infra:  balloon off, fixed RAM, virtio drivers&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Proxmox, &lt;a href=&#34;https://pve.proxmox.com/wiki/Storage:_LVM&#34;&gt;Storage: LVM (snapshots as volume chains)&lt;/a&gt;. Confirms that snapshot-as-volume-chain layers qcow2 on top of the LV, which is what rules out &lt;code&gt;aio=native&lt;/code&gt; on the iSCSI lane during snapshots and backups.&lt;/li&gt;
+&lt;li&gt;OpenZFS, &lt;a href=&#34;https://openzfs.github.io/openzfs-docs/man/master/7/zfsprops.7.html&#34;&gt;zfsprops(7)&lt;/a&gt;. The &lt;code&gt;direct&lt;/code&gt;, &lt;code&gt;sync&lt;/code&gt;, and volume properties, including that Direct I/O bypasses ARC on datasets and is not supported on zvols.&lt;/li&gt;
+&lt;li&gt;OpenZFS, &lt;a href=&#34;https://github.com/openzfs/zfs/releases&#34;&gt;2.4.0 release notes&lt;/a&gt;. The Direct I/O line and the uncached-I/O fallback behavior referenced above.&lt;/li&gt;
+&lt;li&gt;Proxmox, &lt;a href=&#34;https://pve.proxmox.com/wiki/Roadmap&#34;&gt;Proxmox VE 9.2 release notes&lt;/a&gt;. The version baseline this doc was validated against (kernel 7.0, QEMU 11.0, ZFS 2.4).&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
   </channel>
 </rss>

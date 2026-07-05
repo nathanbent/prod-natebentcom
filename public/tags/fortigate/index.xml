@@ -1,59 +1,1016 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>FortiGate on NateBent.com</title>
     <link>https://natebent.com/tags/fortigate/</link>
     <description>Recent content in FortiGate on NateBent.com</description>
-    <image>
-      <title>NateBent.com</title>
-      <url>https://natebent.com/images/papermod-cover.png</url>
-      <link>https://natebent.com/images/papermod-cover.png</link>
-    </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 02 Jul 2026 01:00:00 +0000</lastBuildDate>
+    <managingEditor> (Nathan Bent)</managingEditor>
     <atom:link href="https://natebent.com/tags/fortigate/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Self hosting code-server</title>
       <link>https://natebent.com/posts/self-hosting-codeserver/</link>
-      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate>
+      <pubDate>Thu, 02 Jul 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/self-hosting-codeserver/</guid>
-      <description>How I put code-server behind a FortiGate, a Caddy proxy chain, and Entra ID single sign-on so its built-in terminal never faces the raw internet.</description>
+      <description>&lt;h2 id=&#34;what-code-server-is&#34;&gt;What code-server is&lt;/h2&gt;
+&lt;p&gt;code-server is Visual Studio Code running as a service on a remote machine, accessed entirely through a web browser. Instead of running VS Code locally on a laptop, you run it on a server, and the full editor experience (file tree, integrated terminal, extensions, git integration) is delivered over HTTP to any browser you point at it.&lt;/p&gt;
+&lt;figure&gt;
+    &lt;img src=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1.png&#34; alt=&#34;code-server example screenshot, this shows the homepage upon install&#34;
+         width=&#34;1519&#34; height=&#34;988&#34; loading=&#34;lazy&#34;&gt;&lt;figcaption&gt;code-server home page&lt;/figcaption&gt;&lt;/figure&gt;
+&lt;p&gt;The appeal is obvious: a single, consistent development environment that follows you everywhere. Open a Chromebook, a tablet, a locked-down work laptop, or a friend&amp;rsquo;s machine, and you land in the exact same editor with the exact same tools, extensions, and open projects. Nothing to install on the client. The heavy lifting (compiling, running containers, filesystem access) happens on the server where the resources actually are.&lt;/p&gt;
+&lt;p&gt;For a homelab or a personal cloud VM, this is genuinely useful. You get a real, always-on dev environment you can reach from anywhere.&lt;/p&gt;
+&lt;h2 id=&#34;why-exposing-it-publicly-is-dangerous&#34;&gt;Why exposing it publicly is dangerous&lt;/h2&gt;
+&lt;p&gt;The same properties that make code-server useful make it a serious liability the moment it faces the public internet.&lt;/p&gt;
+&lt;p&gt;code-server is not just a text editor: it ships with a fully functional integrated terminal, running as whatever user code-server runs as. Anyone who reaches the editor and gets past authentication has an interactive shell on the host.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-insight&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;code-server isn&amp;rsquo;t an editor with a terminal bolted on, it&amp;rsquo;s a shell with an editor in front of it. Remote code execution is the feature, not a bug, and that should set the whole threat model.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;That changes the calculus completely. A misconfigured blog might leak some data. A misconfigured code-server hands an attacker a shell. The stakes are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Arbitrary command execution as the code-server user&lt;/li&gt;
+&lt;li&gt;Full filesystem access to anything that user can read&lt;/li&gt;
+&lt;li&gt;A pivot point into the rest of your network from a trusted internal host&lt;/li&gt;
+&lt;li&gt;Credential theft if SSH keys, cloud tokens, or &lt;code&gt;.env&lt;/code&gt; files live where that user can read them&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;code-server&amp;rsquo;s built-in authentication is a single shared password. That is fine for a machine on your LAN. It is nowhere near enough for something reachable from the entire internet, where it will be found by automated scanners within hours of going live and subjected to continuous credential-stuffing and brute-force attempts.&lt;/p&gt;
+&lt;p&gt;So the goal is defense in depth: no single control is trusted to be the only thing standing between the internet and that terminal. The rest of this post is how that gets built.&lt;/p&gt;
+&lt;h2 id=&#34;the-architecture&#34;&gt;The architecture&lt;/h2&gt;
+&lt;p&gt;The request path from the public internet to the editor passes through several independent layers, each of which can refuse the connection:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Internet
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  |
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  v
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;FortiGate  (VIP / DNAT port-forward, IPS policies, restricted egress)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  |
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  v
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Main Caddy reverse proxy  (wildcard TLS termination)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  |
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  v
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;code-server host: local Caddy  (host-level gateway)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  |
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  v
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;oauth2-proxy  (Entra ID / OIDC authentication)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  |
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  v
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;code-server  (bound to localhost only)&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;No layer trusts the layer in front of it to have done the whole job. If any one of them is misconfigured or bypassed, the next one still has to be satisfied.&lt;/p&gt;
+&lt;h2 id=&#34;layer-1-the-network-edge-fortigate&#34;&gt;Layer 1: The network edge (FortiGate)&lt;/h2&gt;
+&lt;p&gt;The code-server VM lives in an isolated DMZ segment, not on the trusted LAN. Inbound access from the internet arrives via a VIP / DNAT port-forward on the firewall, and only HTTPS (443) is forwarded to the front-end reverse proxy. Nothing else from the outside can reach the VM directly.&lt;/p&gt;
+&lt;p&gt;IPS (intrusion prevention) policies are applied to the traffic hitting this segment, so known exploit signatures and malicious patterns are dropped at the firewall before they ever reach the application stack.&lt;/p&gt;
+&lt;p&gt;Just as importantly, egress is locked down. The VM is not allowed to talk to arbitrary destinations. Its outbound rules permit only what it actually needs to function:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;DNS resolution&lt;/li&gt;
+&lt;li&gt;Reaching the internal restic backup repository&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That&amp;rsquo;s it. No general outbound internet access.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-tip&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Tip&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Lock down egress, not just ingress. An attacker who lands on the box can&amp;rsquo;t exfiltrate data, pull a second-stage payload, or beacon out to a command-and-control host if the firewall won&amp;rsquo;t route the connection. It&amp;rsquo;s one of the cheapest high-value controls you have, and it&amp;rsquo;s the thing that actually caps the blast radius of a compromise.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;layer-2-the-reverse-proxy-chain-caddy&#34;&gt;Layer 2: The reverse proxy chain (Caddy)&lt;/h2&gt;
+&lt;p&gt;TLS is terminated at a central Caddy reverse proxy that holds a wildcard certificate, so every service behind it gets HTTPS without per-service certificate management. That front-end proxy forwards the code-server hostname to a second, local Caddy instance running on the code-server VM itself.&lt;/p&gt;
+&lt;p&gt;Running a local gateway on the box (rather than pointing the main proxy straight at the application) keeps the host self-contained: all of its routing, headers, and access rules live with the machine and travel with it. The local Caddy is the only thing on the VM listening on a public-facing port; everything behind it binds to localhost.&lt;/p&gt;
+&lt;h2 id=&#34;layer-3-authentication-oauth2-proxy--entra-id&#34;&gt;Layer 3: Authentication (oauth2-proxy + Entra ID)&lt;/h2&gt;
+&lt;p&gt;This is the layer that actually decides who gets in, and it deliberately replaces code-server&amp;rsquo;s weak built-in password auth.&lt;/p&gt;
+&lt;p&gt;oauth2-proxy sits in front of code-server and forces every request through an OIDC login against Entra ID (Azure AD) before anything reaches the editor. Instead of a single shared password, access is gated by the full identity platform: real user accounts, conditional access policies, and multi-factor authentication.&lt;/p&gt;
+&lt;p&gt;A few properties of this setup matter:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;oauth2-proxy binds only to &lt;code&gt;127.0.0.1&lt;/code&gt;, so it is reachable exclusively through the local Caddy gateway, never directly.&lt;/li&gt;
+&lt;li&gt;The OIDC app registration is scoped to specific assigned users or a security group, not open to every account in the tenant. This is the single most important knob: MFA and conditional access are only meaningful if the set of people who can even attempt to log in is deliberately small.&lt;/li&gt;
+&lt;li&gt;Because Entra handles auth, MFA comes along for free. An attacker with a stolen password still can&amp;rsquo;t get in.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The practical effect: the code-server login prompt that automated scanners expect to find and brute-force simply isn&amp;rsquo;t there. What they hit instead is a Microsoft login flow they have no credentials for.&lt;/p&gt;
+&lt;p&gt;Here&amp;rsquo;s the stack that implements the gateway and auth layers, the local Caddy and oauth2-proxy run together with docker compose:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;yaml&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nt&#34;&gt;services&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;  &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;caddy-gateway&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;image&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;caddy:2&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;container_name&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;caddy-code-gateway&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;restart&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;unless-stopped&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;network_mode&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;host&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;security_opt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;kc&#34;&gt;no&lt;/span&gt;-&lt;span class=&#34;l&#34;&gt;new-privileges:true&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;volumes&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;l&#34;&gt;./caddy-code/Caddyfile:/etc/caddy/Caddyfile:ro&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;  &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;oauth2-proxy&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;image&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;quay.io/oauth2-proxy/oauth2-proxy:v7.6.0  &lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;c&#34;&gt;# pin the version, don&amp;#39;t track latest&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;container_name&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;oauth2-proxy-code&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;restart&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;l&#34;&gt;unless-stopped&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;security_opt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;kc&#34;&gt;no&lt;/span&gt;-&lt;span class=&#34;l&#34;&gt;new-privileges:true&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;ports&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- &lt;span class=&#34;s2&#34;&gt;&amp;#34;127.0.0.1:4180:4180&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;     &lt;/span&gt;&lt;span class=&#34;c&#34;&gt;# bound to localhost only, reachable only via Caddy&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;environment&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_PROVIDER&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;entra-id&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_OIDC_ISSUER_URL&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;https://login.microsoftonline.com/&amp;lt;TENANT_ID&amp;gt;/v2.0&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_CLIENT_ID&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&amp;lt;CLIENT_ID&amp;gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_CLIENT_SECRET&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;${OAUTH2_PROXY_CLIENT_SECRET}&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_REDIRECT_URL&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;https://code.example.com/oauth2/callback&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_COOKIE_SECRET&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;${OAUTH2_PROXY_COOKIE_SECRET}&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_COOKIE_SECURE&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;true&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_COOKIE_SAMESITE&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;lax&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_REVERSE_PROXY&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;true&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;OAUTH2_PROXY_EMAIL_DOMAINS&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt; &lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;*&amp;#34;&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;    &lt;/span&gt;&lt;span class=&#34;nt&#34;&gt;command&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;      &lt;/span&gt;- --&lt;span class=&#34;l&#34;&gt;http-address=0.0.0.0:4180&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;A couple of things worth pointing out in there. oauth2-proxy publishes on &lt;code&gt;127.0.0.1:4180&lt;/code&gt; only, so nothing reaches it except through the local Caddy gateway. The image is pinned to a specific version rather than &lt;code&gt;latest&lt;/code&gt;, and both containers run with &lt;code&gt;no-new-privileges&lt;/code&gt;, which matters for the host layer below.&lt;/p&gt;
+&lt;p&gt;code-server itself is configured to listen only on localhost, with its own auth turned off:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# code-server should never listen on 0.0.0.0 when a proxy fronts it.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# In ~/.config/code-server/config.yaml:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;bind-addr: 127.0.0.1:8080
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;auth: none          &lt;span class=&#34;c1&#34;&gt;# oauth2-proxy is the auth layer; no redundant password&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote class=&#34;callout callout-caution&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.141.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Caution&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;code&gt;auth: none&lt;/code&gt; is only safe here because oauth2-proxy is the gatekeeper and code-server binds to &lt;code&gt;127.0.0.1&lt;/code&gt;. Nothing reaches the editor without passing the Entra login first. Set &lt;code&gt;auth: none&lt;/code&gt; on a code-server that&amp;rsquo;s exposed directly and you&amp;rsquo;ve published an unauthenticated shell to the internet.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;layer-4-least-privilege-on-the-host&#34;&gt;Layer 4: Least privilege on the host&lt;/h2&gt;
+&lt;p&gt;Authentication controls who gets in. The host layer limits what they can do once they&amp;rsquo;re in, and what happens if that terminal is ever reached.&lt;/p&gt;
+&lt;p&gt;Two separate users, split by role:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A dedicated system account (no login shell, no sudo, no home directory) owns and runs the Docker containers for Caddy and oauth2-proxy. It exists only to run the proxy stack.&lt;/li&gt;
+&lt;li&gt;A separate interactive user owns the actual code-server workspace and runs the editor. This user has no sudo rights on the box.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Creating them looks like this:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Service account: runs the Caddy + oauth2-proxy containers.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# No login shell, no home directory, no sudo. Member of docker group only.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo useradd -r -s /bin/false -M codesvc
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo usermod -aG docker codesvc
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Interactive user: owns and runs code-server. No sudo on this host.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo useradd -m -s /bin/bash nathan&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;This split creates a clean trust boundary:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;internet -&amp;gt; Caddy (service account) -&amp;gt; oauth2-proxy (service account) -&amp;gt; code-server (interactive user)&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The service account that runs the internet-facing proxy can&amp;rsquo;t read the developer&amp;rsquo;s workspace or SSH keys. The interactive user that runs the editor can&amp;rsquo;t touch the proxy configuration. If someone breaks out of the code-server terminal, they land as an unprivileged user with no sudo and no access to the proxy stack&amp;rsquo;s secrets.&lt;/p&gt;
+&lt;p&gt;Filesystem permissions reinforce that boundary. The ownership map I&amp;rsquo;m aiming for:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;/opt/code-server/docker/        codesvc:codesvc   750   # compose stack + configs
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;/opt/code-server/docker/.env    codesvc:codesvc   640   # oauth2-proxy secrets
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;/home/nathan/                   nathan:nathan     750   # interactive user home
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;/home/nathan/workspace/         nathan:nathan     700   # editor workspace
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;/mnt/cs-workspace-volume/       nathan:nathan     700   # project data volume&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The principle: the internet-facing proxy account (&lt;code&gt;codesvc&lt;/code&gt;) can&amp;rsquo;t read the developer&amp;rsquo;s files, and the interactive user (&lt;code&gt;nathan&lt;/code&gt;) can&amp;rsquo;t read the proxy stack&amp;rsquo;s secrets. Applying it:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Proxy stack owned by the service account&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo chown -R codesvc:codesvc /opt/code-server/docker
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo chmod &lt;span class=&#34;m&#34;&gt;750&lt;/span&gt; /opt/code-server/docker
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo chmod &lt;span class=&#34;m&#34;&gt;640&lt;/span&gt; /opt/code-server/docker/.env
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Workspace and home locked to the interactive user only&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo chown -R nathan:nathan /home/nathan /mnt/cs-workspace-volume
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;chmod &lt;span class=&#34;m&#34;&gt;700&lt;/span&gt; /home/nathan/workspace /mnt/cs-workspace-volume
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;chmod &lt;span class=&#34;m&#34;&gt;750&lt;/span&gt; /home/nathan&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The stack runs as &lt;code&gt;codesvc&lt;/code&gt;, never root, via a systemd unit:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;ini&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-ini&#34; data-lang=&#34;ini&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# /etc/systemd/system/codesvc-docker.service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;[Unit]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;Description&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;Code Server proxy stack&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;After&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;network.target&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;[Service]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;User&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;codesvc&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;Group&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;codesvc&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;WorkingDirectory&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;/opt/code-server/docker&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;ExecStart&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;/usr/bin/docker compose up&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;ExecStop&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;/usr/bin/docker compose down&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;Restart&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;always&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;[Install]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;na&#34;&gt;WantedBy&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s&#34;&gt;multi-user.target&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;For container hardening, the compose stack above runs both containers with &lt;code&gt;no-new-privileges&lt;/code&gt;, pins image versions rather than tracking &lt;code&gt;latest&lt;/code&gt; (so an upstream change can&amp;rsquo;t silently alter behavior), and binds the application to localhost so the only path in is through the proxy chain.&lt;/p&gt;
+&lt;p&gt;One limitation worth being honest about: code-server has no native way to jail the integrated terminal to a single directory. You can set a default workspace, but the terminal runs as the interactive user and can &lt;code&gt;cd&lt;/code&gt; anywhere that user can reach. The real enforcement is filesystem permissions and the fact that the user is unprivileged, not any application-level sandbox. Plan accordingly, and don&amp;rsquo;t leave credentials lying around where that user can read them.&lt;/p&gt;
+&lt;h2 id=&#34;layer-5-monitoring-and-active-defense&#34;&gt;Layer 5: Monitoring and active defense&lt;/h2&gt;
+&lt;p&gt;Everything above is preventive. This layer assumes something will eventually get through or be attempted, and makes sure it&amp;rsquo;s seen and responded to.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;fail2ban watches auth logs and bans source IPs that rack up failed attempts, throttling brute-force and credential-stuffing at the host level.&lt;/li&gt;
+&lt;li&gt;Wazuh provides host-based intrusion detection: file integrity monitoring on sensitive paths (the proxy &lt;code&gt;.env&lt;/code&gt;, SSH configuration, systemd units), log analysis, and alerting on suspicious activity. If a watched file changes unexpectedly, it&amp;rsquo;s flagged.&lt;/li&gt;
+&lt;li&gt;Zabbix handles availability and performance monitoring, so the host&amp;rsquo;s health and any anomalous resource usage are visible, and outages surface immediately.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Together these mean an attack in progress generates signal rather than passing silently, and that tampering with the security-relevant files on the box doesn&amp;rsquo;t go unnoticed.&lt;/p&gt;
+&lt;h2 id=&#34;the-baseline-underneath-all-of-it&#34;&gt;The baseline underneath all of it&lt;/h2&gt;
+&lt;p&gt;None of the layers above remove the need for the boring host hygiene that every internet-adjacent box should have. A few things I don&amp;rsquo;t skip.&lt;/p&gt;
+&lt;p&gt;SSH is keys-only. In &lt;code&gt;/etc/ssh/sshd_config&lt;/code&gt;, &lt;code&gt;PasswordAuthentication no&lt;/code&gt; and &lt;code&gt;PermitRootLogin no&lt;/code&gt; shut off password brute-force entirely, which matters a lot on a box this close to the internet. I also lock the root password outright with &lt;code&gt;sudo passwd -l root&lt;/code&gt;, so root is reachable only via sudo from an authorized user.&lt;/p&gt;
+&lt;p&gt;The host runs its own firewall behind the FortiGate, because no layer trusts the one in front of it. UFW denies inbound by default and allows SSH only from internal management subnets, never the public internet:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo ufw default deny incoming
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo ufw default allow outgoing
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# SSH from internal management subnets only, never the public internet&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo ufw allow from 10.0.0.0/8 to any port &lt;span class=&#34;m&#34;&gt;22&lt;/span&gt; proto tcp
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo ufw enable&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;unattended-upgrades&lt;/code&gt; keeps the OS patched for known CVEs without me babysitting it (&lt;code&gt;sudo apt install unattended-upgrades&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;And the secrets. The oauth2-proxy cookie and client secrets are generated with real entropy (&lt;code&gt;openssl rand -base64 32&lt;/code&gt;), never committed to git, and live only in the &lt;code&gt;640&lt;/code&gt; &lt;code&gt;.env&lt;/code&gt; owned by &lt;code&gt;codesvc&lt;/code&gt;. The OIDC client secret gets rotated in Entra periodically.&lt;/p&gt;
+&lt;h2 id=&#34;the-layered-picture&#34;&gt;The layered picture&lt;/h2&gt;
+&lt;p&gt;No single one of these controls is trusted to be sufficient on its own. Stacked together, an attacker has to defeat all of them in sequence:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Layer&lt;/th&gt;
+					&lt;th&gt;Control&lt;/th&gt;
+					&lt;th&gt;What it stops&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Network edge&lt;/td&gt;
+					&lt;td&gt;FortiGate DNAT, IPS, restricted egress&lt;/td&gt;
+					&lt;td&gt;Direct access to anything but 443; exploit signatures; data exfiltration&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Transport&lt;/td&gt;
+					&lt;td&gt;Caddy wildcard TLS + local gateway&lt;/td&gt;
+					&lt;td&gt;Plaintext traffic; direct app exposure&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Identity&lt;/td&gt;
+					&lt;td&gt;oauth2-proxy + Entra ID + MFA&lt;/td&gt;
+					&lt;td&gt;Unauthenticated and unauthorized users; brute force&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Host&lt;/td&gt;
+					&lt;td&gt;Split users, least privilege, hardened containers&lt;/td&gt;
+					&lt;td&gt;Privilege escalation; lateral movement; secret theft&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Detection&lt;/td&gt;
+					&lt;td&gt;fail2ban, Wazuh, Zabbix&lt;/td&gt;
+					&lt;td&gt;Silent brute force, tampering, and outages&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The terminal that makes code-server dangerous is still there. But reaching it now requires getting through the firewall, terminating on the right hostname, passing an Entra login with MFA, and then landing as an unprivileged user on a host that&amp;rsquo;s watching for exactly that, with no way back out to the internet.&lt;/p&gt;
+&lt;p&gt;That&amp;rsquo;s the difference between &amp;ldquo;exposed&amp;rdquo; and &amp;ldquo;exposed responsibly.&amp;rdquo;&lt;/p&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;code-server, &lt;a href=&#34;https://coder.com/docs/code-server/guide&#34;&gt;Securely expose code-server&lt;/a&gt;. The official guidance on exposing it, and confirmation that the default is a single password on an instance that only binds to localhost.&lt;/li&gt;
+&lt;li&gt;oauth2-proxy, &lt;a href=&#34;https://oauth2-proxy.github.io/oauth2-proxy/configuration/providers/ms_entra_id/&#34;&gt;Microsoft Entra ID provider&lt;/a&gt;. OIDC configuration and the group scoping this setup leans on.&lt;/li&gt;
+&lt;li&gt;Fortinet, &lt;a href=&#34;https://docs.fortinet.com/document/fortigate/8.0.0/administration-guide/155333/virtual-ips-with-port-forwarding&#34;&gt;Virtual IPs with port forwarding&lt;/a&gt;. The VIP / DNAT reference for the edge.&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
     <item>
       <title>VXLAN Between a FortiGate and Proxmox, Part 3: Automating It With Terraform</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-3/</link>
-      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-3/</guid>
-      <description>Taking the hand-built FortiGate and Proxmox EVPN fabric and reproducing it entirely in code, one Terraform workspace driving both platforms, with every wall I hit along the way written down so you do not have to hit them too.</description>
+      <description>&lt;h2 id=&#34;where-this-picks-up&#34;&gt;Where this picks up&lt;/h2&gt;
+&lt;p&gt;By the end of &lt;a href=&#34;https://natebent.com/posts/vxlan-between-a-fortigate-and-proxmox-part-2-evpn/&#34;&gt;part 2&lt;/a&gt; I had a working EVPN/VXLAN fabric: a three node Proxmox cluster and a FortiGate sharing overlay segments, with the FortiGate as the anycast gateway for each. Every bit of it was built by hand, CLI on the FortiGate and GUI clicks on the Proxmox SDN. That works, but each new segment is the same five object dance on the FortiGate and the same clicking on Proxmox, and the two platforms have to agree on a set of numbers (the VNI, the route target) that are easy to fat finger. Part 2 was one long lesson in what happens when those numbers drift.&lt;/p&gt;
+&lt;p&gt;So this post is the obvious next move: reproduce the whole thing in code, one Terraform workspace driving both platforms, so a segment is a few lines of config and one command instead of a hand built ritual across two systems. It is a long one, because the happy path is short and the interesting part is the pile of walls I hit getting there. Those are the reason to read on.&lt;/p&gt;
+&lt;p&gt;A note on scope: everything here uses real, current provider versions (&lt;code&gt;bpg/proxmox&lt;/code&gt; and &lt;code&gt;fortinetdev/fortios&lt;/code&gt;) against Proxmox VE 9.x and a FortiGate on FortiOS 7.6. Your field names and behavior may differ by version, and the single most useful habit in this whole post is learning to read the real schema off your own infrastructure rather than trusting any example, including this one.&lt;/p&gt;
+&lt;h2 id=&#34;terraform-in-one-section-if-you-come-from-ansible&#34;&gt;Terraform in one section, if you come from Ansible&lt;/h2&gt;
+&lt;p&gt;If your automation background is Ansible, there is a mental model shift worth making first. Ansible is procedural: run this sequence of steps against a host. Terraform is declarative: here is the set of things that should exist, you work out the difference from reality and close the gap. The rough division of labor is that Terraform manages the existence and shape of infrastructure (VMs, networks, DNS records, SDN objects) and Ansible configures what lives inside them. They are a pipeline, not rivals. Terraform makes the VM exist, Ansible installs and configures it.&lt;/p&gt;
+&lt;p&gt;Five concepts and you can follow the rest of this post. A provider is a plugin that talks to one system&amp;rsquo;s API (I use two, one for Proxmox and one for the FortiGate). A resource is one managed object. State is the file Terraform keeps of what it believes it created, so it can tell new from changed from deleted. The plan/apply loop is the safety model: &lt;code&gt;terraform plan&lt;/code&gt; shows the diff without touching anything, &lt;code&gt;terraform apply&lt;/code&gt; executes it after you confirm. And &lt;code&gt;for_each&lt;/code&gt; loops a resource over a map, which is how a pile of near identical segments becomes one block plus a data structure.&lt;/p&gt;
+&lt;h2 id=&#34;the-design-one-map-both-platforms&#34;&gt;The design: one map, both platforms&lt;/h2&gt;
+&lt;p&gt;The whole point is a single source of truth. Every segment is defined once, and both the FortiGate route target and the Proxmox VNet tag are computed from the same number, so they cannot drift:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;locals&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  asn&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;65001&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  segments&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    seg_a&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; { vni&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; 4241, subnet&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; &amp;#34;10.20.41.0/24&amp;#34;, gw&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;10.20.41.1&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    seg_b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; { vni&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; 4242, subnet&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; &amp;#34;10.20.42.0/24&amp;#34;, gw&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;10.20.42.1&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    seg_c&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; { vni&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; 4130, subnet&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; &amp;#34;10.20.30.0/24&amp;#34;, gw&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;10.20.30.1&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The FortiGate route target becomes &lt;code&gt;&amp;quot;${local.asn}:${each.value.vni}&amp;quot;&lt;/code&gt;. The Proxmox tag becomes &lt;code&gt;each.value.vni&lt;/code&gt;. One number, one place. The whole &amp;ldquo;mind your tags because the tag is the route target&amp;rdquo; failure class from part 2 becomes structurally impossible, because there is only one tag to mind and everything derives from it.&lt;/p&gt;
+&lt;h2 id=&#34;install-and-project-setup&#34;&gt;Install and project setup&lt;/h2&gt;
+&lt;p&gt;On a Debian/Ubuntu host (I used my Ansible control node, which is a sensible home for IaC):&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;wget -O- https://apt.releases.hashicorp.com/gpg &lt;span class=&#34;p&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;se&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;echo&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s2&#34;&gt;https://apt.releases.hashicorp.com &lt;/span&gt;&lt;span class=&#34;k&#34;&gt;$(&lt;/span&gt;lsb_release -cs&lt;span class=&#34;k&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt; main&amp;#34;&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;|&lt;/span&gt; &lt;span class=&#34;se&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  sudo tee /etc/apt/sources.list.d/hashicorp.list
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo apt update &lt;span class=&#34;o&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo apt install -y terraform
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform version&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Then a project directory with a providers file and an init:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# versions.tf
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;terraform&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  required_version&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; &amp;#34;&amp;gt;&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;m&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;err&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  &lt;span class=&#34;k&#34;&gt;required_providers&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    fortios&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; { source&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;fortinetdev/fortios&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    proxmox&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; { source&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;bpg/proxmox&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform init&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;init&lt;/code&gt; downloads both plugins and writes &lt;code&gt;.terraform.lock.hcl&lt;/code&gt; (commit that, it pins provider versions). Set up gitignore right away so secrets and state never leak, because state holds secrets in plaintext:&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-caution&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.141.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Caution&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Terraform state is not encrypted. Your FortiGate token, your Proxmox token, and anything else sensitive sit in &lt;code&gt;terraform.tfstate&lt;/code&gt; in the clear. Gitignore &lt;code&gt;*.tfstate&lt;/code&gt; and &lt;code&gt;*.tfvars&lt;/code&gt; &lt;em&gt;before&lt;/em&gt; your first &lt;code&gt;apply&lt;/code&gt;, not after you spot them in &lt;code&gt;git status&lt;/code&gt;.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cat &amp;gt; .gitignore &lt;span class=&#34;s&#34;&gt;&amp;lt;&amp;lt; &amp;#39;EOF&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s&#34;&gt;*.tfstate
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s&#34;&gt;*.tfstate.*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s&#34;&gt;*.tfvars
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s&#34;&gt;.terraform/
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s&#34;&gt;crash.log
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;s&#34;&gt;EOF&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git init&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&#34;credentials-and-where-they-go&#34;&gt;Credentials, and where they go&lt;/h2&gt;
+&lt;p&gt;Two API tokens, one per platform. Declare the variables (safe to commit, they are just names), then put the actual secrets in a &lt;code&gt;.tfvars&lt;/code&gt; file that gitignore excludes:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# variables.tf   (note: one argument per line inside a block, see gotchas)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;variable &amp;#34;fgt_host&amp;#34;     { type&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;string&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;variable &amp;#34;fgt_token&amp;#34;    { type&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;string&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;                          sensitive&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;true&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;variable &amp;#34;pve_endpoint&amp;#34; { type&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;string&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;variable &amp;#34;pve_token&amp;#34;    { type&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;string&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;                          sensitive&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;true&lt;/span&gt; }&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# providers.tf
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;provider&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;fortios&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  hostname&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;var&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;fgt_host&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;     # host:port together, see the admin-port gotcha
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  token&lt;/span&gt;    &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;var&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;fgt_token&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  insecure&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;provider&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;proxmox&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  endpoint&lt;/span&gt;  &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;var&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;pve_endpoint&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  api_token&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;var&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;pve_token&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  insecure&lt;/span&gt;  &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The secrets file (&lt;code&gt;secrets.auto.tfvars&lt;/code&gt;, loaded automatically, gitignored) holds the real values. Before doing anything else, confirm git is ignoring it:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git status   &lt;span class=&#34;c1&#34;&gt;# secrets.auto.tfvars must NOT appear&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;If it shows up, stop and fix gitignore first. That check is the whole point.&lt;/p&gt;
+&lt;h2 id=&#34;the-workflow-that-carried-the-entire-project&#34;&gt;The workflow that carried the entire project&lt;/h2&gt;
+&lt;p&gt;Here is the single most important technique, and it is the reason this project worked despite me repeatedly guessing field names wrong: import an existing object first, read its real schema, then write config to match. Do not write resources blind from documentation or memory. Import the real thing, ask Terraform to show you what it actually looks like, and reconcile against that.&lt;/p&gt;
+&lt;p&gt;The loop:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 1. write a minimal resource block matching an existing object&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 2. import the real object into that block&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform import &amp;lt;resource_type&amp;gt;.&amp;lt;name&amp;gt; &amp;lt;object_id&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 3. read the actual schema Terraform recorded&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform state show &amp;lt;resource_type&amp;gt;.&amp;lt;name&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 4. rewrite your config to match, then confirm no drift&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform plan     &lt;span class=&#34;c1&#34;&gt;# goal: &amp;#34;No changes&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;That &amp;ldquo;No changes&amp;rdquo; after import is the goal. It proves your config mirrors reality, so from then on Terraform only changes what you ask it to. I used this loop for every single resource type, on both platforms, and every time it saved me from schema guesswork. When a plan surprised me, the fix was always to import and read, not to guess harder.&lt;/p&gt;
+&lt;h2 id=&#34;the-proxmox-side&#34;&gt;The Proxmox side&lt;/h2&gt;
+&lt;p&gt;Importing an existing VNet was the first real step. The minimal block plus import:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;proxmox_sdn_vnet&amp;#34; &amp;#34;seg_c&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  id&lt;/span&gt;    &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;segC&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  zone&lt;/span&gt;  &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;evpnProd&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  tag&lt;/span&gt;   &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;4130&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  alias&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;vm general&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform import proxmox_sdn_vnet.seg_c segC
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform state show proxmox_sdn_vnet.seg_c    &lt;span class=&#34;c1&#34;&gt;# reveals: alias, id, tag, zone&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform plan                                  &lt;span class=&#34;c1&#34;&gt;# No changes&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Then the payoff, collapsing individual resources into a &lt;code&gt;for_each&lt;/code&gt; map so one block manages every segment:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;locals&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  vnets&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    segA&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; { tag&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; 4241, alias&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;dmz gateway&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    segB&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; { tag&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; 4242, alias&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;dmz services&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    segC&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; { tag&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; 4130, alias&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;vm general&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;proxmox_sdn_vnet&amp;#34; &amp;#34;evpn&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  for_each&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;local&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;vnets&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  id&lt;/span&gt;       &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;each&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;key&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  zone&lt;/span&gt;     &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;evpnProd&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  tag&lt;/span&gt;      &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;each&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;value&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;tag&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  alias&lt;/span&gt;    &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;each&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;value&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;alias&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Migrating from a single hardcoded resource to a &lt;code&gt;for_each&lt;/code&gt; map means the resource address changes, so you forget the old one from state (without deleting the real object) and re-import under the new addresses:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform state rm proxmox_sdn_vnet.seg_c      &lt;span class=&#34;c1&#34;&gt;# stops tracking, does NOT delete&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform import &lt;span class=&#34;s1&#34;&gt;&amp;#39;proxmox_sdn_vnet.evpn[&amp;#34;segC&amp;#34;]&amp;#39;&lt;/span&gt; segC
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform import &lt;span class=&#34;s1&#34;&gt;&amp;#39;proxmox_sdn_vnet.evpn[&amp;#34;segA&amp;#34;]&amp;#39;&lt;/span&gt; segA
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform import &lt;span class=&#34;s1&#34;&gt;&amp;#39;proxmox_sdn_vnet.evpn[&amp;#34;segB&amp;#34;]&amp;#39;&lt;/span&gt; segB
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform plan                                  &lt;span class=&#34;c1&#34;&gt;# No changes across all three&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&#34;creating-something-from-nothing&#34;&gt;Creating something from nothing&lt;/h2&gt;
+&lt;p&gt;Importing is reconciliation. To actually feel Terraform work, you want a create. A fresh demo VNet:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;proxmox_sdn_vnet&amp;#34; &amp;#34;demo&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  id&lt;/span&gt;    &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;tfDemo&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  zone&lt;/span&gt;  &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;evpnProd&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  tag&lt;/span&gt;   &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;4099&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  alias&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;terraform demo segment&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform plan     &lt;span class=&#34;c1&#34;&gt;# 2 to add (or 1, depending), 0 to change, 0 to destroy&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform apply    &lt;span class=&#34;c1&#34;&gt;# type yes&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;After apply, Proxmox stages SDN changes until applied, the equivalent of the &amp;ldquo;Apply&amp;rdquo; button. From a node:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pvesh &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; /cluster/sdn
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pvesh get /cluster/sdn/vnets --output-format json &lt;span class=&#34;p&#34;&gt;|&lt;/span&gt; grep tfDemo&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;That is the &amp;ldquo;it did something&amp;rdquo; moment: a network segment that exists because you ran a command.&lt;/p&gt;
+&lt;p&gt;The demo VM (cloned from a cloud-init template, attached to the VNet Terraform just made):&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;proxmox_virtual_environment_vm&amp;#34; &amp;#34;demo&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  name&lt;/span&gt;      &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;tf-demo-vm&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  node_name&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;pve-1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  &lt;span class=&#34;k&#34;&gt;clone&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    vm_id&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;9000&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;       # your cloud-init template&amp;#39;s VMID
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    full&lt;/span&gt;  &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  agent  { enabled&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;false&lt;/span&gt; }&lt;span class=&#34;c1&#34;&gt;   # see the agent-hang gotcha
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  &lt;span class=&#34;k&#34;&gt;cpu&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    cores&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    type&lt;/span&gt;  &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;host&amp;#34;&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;             # see the CPU-drift gotcha
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  memory { dedicated&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;2048&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  &lt;span class=&#34;k&#34;&gt;disk&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    datastore_id&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;local-zfs&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    interface&lt;/span&gt;    &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;scsi0&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    size&lt;/span&gt;         &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;20&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  &lt;span class=&#34;k&#34;&gt;network_device&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    bridge&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;proxmox_sdn_vnet&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;demo&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;id&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;   # attaches to the Terraform-made VNet
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  &lt;span class=&#34;k&#34;&gt;initialization&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;    datastore_id&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;local-zfs&amp;#34;&lt;/span&gt;&lt;span class=&#34;c1&#34;&gt;          # see the local-lvm gotcha
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;k&#34;&gt;ip_config&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;      &lt;span class=&#34;k&#34;&gt;ipv4&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;        address&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;172.31.99.50/24&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;        gateway&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;172.31.99.1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;      }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The line that matters is &lt;code&gt;bridge = proxmox_sdn_vnet.demo.id&lt;/code&gt;. That is a live dependency reference: Terraform knows the VM&amp;rsquo;s NIC needs the VNet, orders creation correctly, and wires the machine onto the network in the same apply.&lt;/p&gt;
+&lt;h2 id=&#34;the-fortigate-side-and-the-schema-discovery-that-made-it-painless&#34;&gt;The FortiGate side, and the schema discovery that made it painless&lt;/h2&gt;
+&lt;p&gt;This is where the single source of truth payoff lives, and where the import first habit earned its keep hardest. Rather than guess the FortiGate provider&amp;rsquo;s schema, I imported my existing hand built segment&amp;rsquo;s three objects to read their exact structure, then templated the new segment from them.&lt;/p&gt;
+&lt;p&gt;The EVPN instance schema turned out to use nested blocks for the route targets, which I would have gotten wrong by guessing:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;fortios_system_evpn&amp;#34; &amp;#34;demo&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  fosid&lt;/span&gt;           &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;99&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  rd&lt;/span&gt;              &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;10.0.50.1:4099&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  arp_suppression&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;disable&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  import_rt { route_target&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;65001:4099&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  export_rt { route_target&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;65001:4099&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The VXLAN interface, note &lt;code&gt;ip_version&lt;/code&gt; is required and &lt;code&gt;evpn_id&lt;/code&gt; references the instance above:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;fortios_system_vxlan&amp;#34; &amp;#34;demo&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  name&lt;/span&gt;       &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;tfDemo&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  interface&lt;/span&gt;  &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;v.230|pve-mgmt&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  vni&lt;/span&gt;        &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;4099&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  ip_version&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;ipv4-unicast&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  evpn_id&lt;/span&gt;    &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;fortios_system_evpn&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;demo&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;fosid&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The L3 gateway interface, where &lt;code&gt;ip&lt;/code&gt; is a space separated &amp;ldquo;address mask&amp;rdquo; string:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;resource&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;fortios_system_interface&amp;#34; &amp;#34;demo&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  name&lt;/span&gt;        &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;tfDemo&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  vdom&lt;/span&gt;        &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;root&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  type&lt;/span&gt;        &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;vxlan&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  interface&lt;/span&gt;   &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;v.230|pve-mgmt&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  ip&lt;/span&gt;          &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;172.31.99.1 255.255.255.0&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;  allowaccess&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;ping&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The discovery commands that made these correct on the first real try:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform import fortios_system_vxlan.seg_c srv-vm_gen
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform state show fortios_system_vxlan.seg_c
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform import fortios_system_evpn.seg_c &lt;span class=&#34;m&#34;&gt;30&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform state show fortios_system_evpn.seg_c
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform import fortios_system_interface.seg_c srv-vm_gen
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform state show fortios_system_interface.seg_c&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;A word on those imports: they adopt your real production objects into state. Once you have read the schema, remove them from state (&lt;code&gt;terraform state rm ...&lt;/code&gt;) so Terraform is not managing production segments you only imported to learn from. The knowledge is already baked into your new resource blocks.&lt;/p&gt;
+&lt;h2 id=&#34;the-gotchas-in-the-order-i-hit-them&#34;&gt;The gotchas, in the order I hit them&lt;/h2&gt;
+&lt;p&gt;Every one of these cost me time, and none of them is on the happy path. This is the section I wish I had read first.&lt;/p&gt;
+&lt;h3 id=&#34;schema-field-names-are-not-what-you-assume&#34;&gt;Schema field names are not what you assume&lt;/h3&gt;
+&lt;p&gt;I guessed wrong repeatedly. Proxmox VNets use &lt;code&gt;id&lt;/code&gt;, not &lt;code&gt;name&lt;/code&gt;. Proxmox subnets use &lt;code&gt;cidr&lt;/code&gt;, not &lt;code&gt;subnet&lt;/code&gt;. The fix every time was the import-then-&lt;code&gt;state show&lt;/code&gt; loop. Stop guessing, read the real schema. If a plan errors with &amp;ldquo;unsupported argument&amp;rdquo; or &amp;ldquo;missing required argument,&amp;rdquo; the object&amp;rsquo;s actual schema (via &lt;code&gt;terraform state show&lt;/code&gt; on an imported example) is authoritative for your provider version in a way no documentation is.&lt;/p&gt;
+&lt;h3 id=&#34;hcl-block-syntax-is-one-argument-per-line&#34;&gt;HCL block syntax is one argument per line&lt;/h3&gt;
+&lt;p&gt;This errored me immediately:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;hcl&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-hcl&#34; data-lang=&#34;hcl&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;variable &amp;#34;x&amp;#34; { type&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt; string, sensitive&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;kt&#34;&gt;true&lt;/span&gt; }   &lt;span class=&#34;err&#34;&gt;#&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;WRONG&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;HCL does not allow comma separated arguments on one line inside a block. Each argument gets its own line. A small thing that stops you cold at the first &lt;code&gt;plan&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;the-proxmox-token-format-is-more-than-the-secret&#34;&gt;The Proxmox token format is more than the secret&lt;/h3&gt;
+&lt;p&gt;The token string is &lt;code&gt;user@realm!tokenname=secret&lt;/code&gt;, one &lt;code&gt;!&lt;/code&gt;, one &lt;code&gt;=&lt;/code&gt;. The Proxmox UI presents the field in a way that makes it very easy to copy a &lt;code&gt;tokenid=&lt;/code&gt; label into the value, which fails auth with a 401. If you see a 401, check that your token string is exactly identity, then &lt;code&gt;!&lt;/code&gt;, then the token&amp;rsquo;s name, then &lt;code&gt;=&lt;/code&gt;, then the secret UUID, with no stray label text.&lt;/p&gt;
+&lt;h3 id=&#34;privilege-separation-silently-strips-token-permissions&#34;&gt;Privilege separation silently strips token permissions&lt;/h3&gt;
+&lt;p&gt;A Proxmox API token created with privilege separation on (the default) has no permissions of its own, even if its user does, until you grant the token itself a role. A 403 right after a working 401-fix is this. Either disable privsep at creation or grant the token an ACL directly.&lt;/p&gt;
+&lt;h3 id=&#34;permissions-accrue-one-wall-at-a-time&#34;&gt;Permissions accrue one wall at a time&lt;/h3&gt;
+&lt;p&gt;I built the token&amp;rsquo;s permission set by hitting each 403 in turn, which is honestly a fine way to arrive at a tight least-privilege ACL. The walls, in order: SDN read/write, then VM clone, then storage. The roles that cleared them:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pveum acl modify /sdn     -token &lt;span class=&#34;s1&#34;&gt;&amp;#39;tf@pve!name&amp;#39;&lt;/span&gt; -role PVESDNAdmin
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pveum acl modify /vms     -token &lt;span class=&#34;s1&#34;&gt;&amp;#39;tf@pve!name&amp;#39;&lt;/span&gt; -role PVEVMAdmin
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pveum acl modify /storage -token &lt;span class=&#34;s1&#34;&gt;&amp;#39;tf@pve!name&amp;#39;&lt;/span&gt; -role PVEDatastoreUser&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;A Terraform service account that manages VMs and SDN needs roles on &lt;code&gt;/sdn&lt;/code&gt;, &lt;code&gt;/vms&lt;/code&gt;, and &lt;code&gt;/storage&lt;/code&gt; at minimum. You discover the exact set empirically by watching which 403 comes next.&lt;/p&gt;
+&lt;h3 id=&#34;the-default-cloud-init-datastore-may-not-exist&#34;&gt;The default cloud-init datastore may not exist&lt;/h3&gt;
+&lt;p&gt;The VM resource defaulted the cloud-init drive to &lt;code&gt;local-lvm&lt;/code&gt;, which does not exist on my nodes, so the clone succeeded and then failed writing cloud-init with &lt;code&gt;storage &#39;local-lvm&#39; does not exist&lt;/code&gt;. Pin it explicitly with &lt;code&gt;datastore_id&lt;/code&gt; inside the &lt;code&gt;initialization&lt;/code&gt; block. There are actually three placements to control: the main disk, the cloud-init drive, and the node. Set all the ones that matter.&lt;/p&gt;
+&lt;h3 id=&#34;cpu-type-drifts-back-to-qemu64&#34;&gt;CPU type drifts back to qemu64&lt;/h3&gt;
+&lt;p&gt;The VM resource defaults CPU type to &lt;code&gt;qemu64&lt;/code&gt;. My template used &lt;code&gt;host&lt;/code&gt;. Since my config specified no CPU type, Terraform assumed its default and wanted to &amp;ldquo;correct&amp;rdquo; the running VM back to &lt;code&gt;qemu64&lt;/code&gt; on every plan, perpetual drift. Worse, &lt;code&gt;qemu64&lt;/code&gt; is a generic model that broke the guest agent. Fix: set the CPU type explicitly. &lt;code&gt;host&lt;/code&gt; for best performance on a pinned VM, or &lt;code&gt;x86-64-v2-AES&lt;/code&gt; for a migration safe baseline across mixed hardware.&lt;/p&gt;
+&lt;h3 id=&#34;the-guest-agent-wait-can-hang-for-its-full-timeout&#34;&gt;The guest agent wait can hang for its full timeout&lt;/h3&gt;
+&lt;p&gt;With &lt;code&gt;agent { enabled = true }&lt;/code&gt;, Terraform waits for the QEMU guest agent to report before considering the VM created. If the template lacks a running agent (or the CPU type broke it), it spins until the timeout. For a demo, &lt;code&gt;agent { enabled = false }&lt;/code&gt; lets apply complete as soon as the VM is cloned and started, and since you set the IP statically via cloud-init, you already know the address.&lt;/p&gt;
+&lt;h3 id=&#34;the-fortigate-provider-hangs-on-a-non-default-admin-port&#34;&gt;The FortiGate provider hangs on a non-default admin port&lt;/h3&gt;
+&lt;p&gt;This one cost the most, because it failed with no useful error. The provider hung indefinitely during provider configuration, then eventually died with &amp;ldquo;Plugin did not respond.&amp;rdquo; The cause: my FortiGate serves admin HTTPS on a non-standard port (10443), and everything was trying 443, where nothing listens. The debugging path is worth memorizing:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ping -c2 &amp;lt;fgt-ip&amp;gt;                                   &lt;span class=&#34;c1&#34;&gt;# reachable?&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ping -M &lt;span class=&#34;k&#34;&gt;do&lt;/span&gt; -s &lt;span class=&#34;m&#34;&gt;1472&lt;/span&gt; -c2 &amp;lt;fgt-ip&amp;gt;                      &lt;span class=&#34;c1&#34;&gt;# rule out MTU (1500 DF)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;curl -k -m5 https://&amp;lt;fgt-ip&amp;gt;/api/v2/monitor/system/status        &lt;span class=&#34;c1&#34;&gt;# 443&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;curl -k -m5 https://&amp;lt;fgt-ip&amp;gt;:10443/api/v2/monitor/system/status  &lt;span class=&#34;c1&#34;&gt;# the real admin port&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Ping works but HTTPS times out is the signature. Rule out MTU with a don&amp;rsquo;t-fragment ping at 1472 bytes (if a full 1500 frame passes, MTU is fine). Then check the FortiGate&amp;rsquo;s &lt;code&gt;admin-sport&lt;/code&gt;. The fix is to fold the port into the provider&amp;rsquo;s &lt;code&gt;hostname&lt;/code&gt;: &lt;code&gt;fgt_host = &amp;quot;&amp;lt;ip&amp;gt;:10443&amp;quot;&lt;/code&gt;. The provider has no separate &lt;code&gt;port&lt;/code&gt; argument.&lt;/p&gt;
+&lt;p&gt;Always put a timeout (&lt;code&gt;-m5&lt;/code&gt;) on connectivity tests. Terraform waited forever; curl with a timeout gives you an answer in five seconds.&lt;/p&gt;
+&lt;h3 id=&#34;creating-a-vxlan-auto-creates-its-interface-so-you-import-it-not-create-it&#34;&gt;Creating a VXLAN auto-creates its interface, so you import it, not create it&lt;/h3&gt;
+&lt;p&gt;Creating a &lt;code&gt;fortios_system_vxlan&lt;/code&gt; object causes the FortiGate to auto-create a matching &lt;code&gt;system interface&lt;/code&gt; of the same name. So when Terraform tried to create the &lt;code&gt;fortios_system_interface&lt;/code&gt; for the gateway, it collided with the auto-made one and returned a 500 Internal Server Error. The fix is to import that auto-created interface into the resource, then apply, so Terraform modifies it (adding the IP and allowaccess) instead of creating:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform import fortios_system_interface.demo tfDemo
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform apply    &lt;span class=&#34;c1&#34;&gt;# now a modify: sets ip + allowaccess on the existing interface&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&#34;the-one-that-actually-broke-traffic-a-competing-anycast-gateway&#34;&gt;The one that actually broke traffic: a competing anycast gateway&lt;/h3&gt;
+&lt;p&gt;This was the subtle one, and the best lesson of the whole exercise. After every object existed and the FortiGate had learned the VM&amp;rsquo;s MAC over EVPN, the VM still could not ping its gateway. A sniffer on the FortiGate&amp;rsquo;s segment interface showed nothing arriving at all.&lt;/p&gt;
+&lt;p&gt;The cause: I had defined a &lt;code&gt;proxmox_sdn_subnet&lt;/code&gt; with &lt;code&gt;gateway = &amp;quot;172.31.99.1&amp;quot;&lt;/code&gt;. That told Proxmox to create its own anycast gateway for &lt;code&gt;.1&lt;/code&gt; on the local bridge. Meanwhile the FortiGate also held &lt;code&gt;.1&lt;/code&gt;. So the VM resolved its gateway to the local Proxmox bridge and its traffic terminated there, never crossing VXLAN to the FortiGate.&lt;/p&gt;
+&lt;p&gt;The tell was comparing the demo segment&amp;rsquo;s subnet to a working production segment:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pvesh get /cluster/sdn/vnets/tfDemo/subnets --output-format json   &lt;span class=&#34;c1&#34;&gt;# had a gateway&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pvesh get /cluster/sdn/vnets/segC/subnets   --output-format json   &lt;span class=&#34;c1&#34;&gt;# []  (no subnet!)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;My working production segments have no Proxmox side subnet at all. The gateway lives only on the FortiGate. Terraform, by &amp;ldquo;helpfully&amp;rdquo; letting me define a complete subnet with a gateway, created a second competing gateway that my hand built segments never had. The fix was to remove the subnet resource entirely:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# delete the proxmox_sdn_subnet resource from the config, then:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform apply           &lt;span class=&#34;c1&#34;&gt;# destroys just the subnet&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pvesh &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; /cluster/sdn    &lt;span class=&#34;c1&#34;&gt;# drop the local gateway&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;After that, the VM&amp;rsquo;s gateway ARP was no longer answered locally, so it flooded across VXLAN, reached the FortiGate, and the gateway answered. Traffic crossed the overlay.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-insight&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Reproducing a working config faithfully sometimes means leaving something out. The tooling&amp;rsquo;s pull toward completeness, a subnet resource that will happily take a gateway, is exactly what diverged the automated version from the proven one. The subnet block looked like completeness. It was the bug.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;verifying-it-worked-end-to-end&#34;&gt;Verifying it worked, end to end&lt;/h2&gt;
+&lt;p&gt;Once the FortiGate side existed and the competing gateway was gone, the checks that confirm a fully working segment:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# FortiGate: did it learn the VM&amp;#39;s MAC over EVPN?&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose sys vxlan fdb list tfDemo
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# FortiGate: did it resolve the VM&amp;#39;s IP once traffic flowed?&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose ip arp list &lt;span class=&#34;p&#34;&gt;|&lt;/span&gt; grep 172.31.99
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# FortiGate: watch ARP arrive live while the VM pings&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose sniffer packet tfDemo &lt;span class=&#34;s1&#34;&gt;&amp;#39;arp&amp;#39;&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Proxmox node: is the VNI active with the FortiGate as a remote VTEP?&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;vtysh -c &lt;span class=&#34;s2&#34;&gt;&amp;#34;show evpn vni&amp;#34;&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;|&lt;/span&gt; grep &lt;span class=&#34;m&#34;&gt;4099&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;vtysh -c &lt;span class=&#34;s2&#34;&gt;&amp;#34;show bgp l2vpn evpn&amp;#34;&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;|&lt;/span&gt; grep -A3 &lt;span class=&#34;m&#34;&gt;4099&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# The VM itself&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ip route          &lt;span class=&#34;c1&#34;&gt;# default via the gateway&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ip addr show eth0 &lt;span class=&#34;c1&#34;&gt;# correct IP and MTU&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ping 172.31.99.1  &lt;span class=&#34;c1&#34;&gt;# the payoff&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;That final ping is a VM Terraform cloned, on a VNet Terraform created, reaching a gateway Terraform configured on the FortiGate, across the overlay. Both platforms, one workspace, one &lt;code&gt;apply&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;teardown-the-other-half-of-it&#34;&gt;Teardown, the other half of it&lt;/h2&gt;
+&lt;p&gt;Because it is all declared, removing it is one command that unwinds everything in dependency order:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;terraform destroy    &lt;span class=&#34;c1&#34;&gt;# review the plan, confirm it only removes the demo objects&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Always read the destroy plan as carefully as the apply plan. It should remove exactly the demo objects (VM, VNet, FortiGate EVPN/VXLAN/interface) and touch nothing else. That habit is what keeps infrastructure as code from ever nuking something you cared about.&lt;/p&gt;
+&lt;h2 id=&#34;takeaways&#34;&gt;Takeaways&lt;/h2&gt;
+&lt;p&gt;A few things I would tell myself before starting.&lt;/p&gt;
+&lt;p&gt;The import-then-&lt;code&gt;state show&lt;/code&gt; loop is the whole game. Never guess a schema. Import a real example, read it, template from it. This one habit dissolved every field-name problem on both providers.&lt;/p&gt;
+&lt;p&gt;Provider defaults are opinions, not neutral. The &lt;code&gt;qemu64&lt;/code&gt; CPU, the &lt;code&gt;local-lvm&lt;/code&gt; datastore, the competing subnet gateway, all were provider defaults or convenient looking options that diverged from what actually worked. Match your proven config exactly, including its omissions.&lt;/p&gt;
+&lt;p&gt;Read every plan, especially destroys. The plan is the safety model. A ten second read of a diff is what stands between you and an accidental change to production.&lt;/p&gt;
+&lt;p&gt;Least privilege is discoverable. Building the API token&amp;rsquo;s permissions one 403 at a time is not elegant, but it arrives at a genuinely tight ACL that grants exactly what is used.&lt;/p&gt;
+&lt;p&gt;And the real prize, the reason this was worth it: the segment is now a few lines of data in one map, and both the FortiGate and Proxmox halves are generated from the same numbers. The route-target-versus-tag drift that cost me an evening in part 2 cannot happen anymore, because there is one number in one place. The next step from here is obvious: make that map itself come from a source of truth like NetBox, so declaring a segment is a single act that renders both platforms and documents itself. That is where this goes next.&lt;/p&gt;
+&lt;p&gt;From &amp;ldquo;what can I do with Proxmox SDN&amp;rdquo; to a hand built EVPN fabric to the whole thing reproducible from code across two platforms. The automation did not replace understanding it, it required understanding it first, which is the right order to do this in.&lt;/p&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://registry.terraform.io/providers/bpg/proxmox/latest/docs&#34;&gt;bpg/proxmox provider documentation&lt;/a&gt; - the Proxmox provider, its SDN resources, and the token/SSH setup&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://bpg.sh/docs/resources/virtual_environment_sdn_zone_evpn/&#34;&gt;bpg/proxmox: SDN EVPN zone resource&lt;/a&gt; - the EVPN zone schema (and a note on the short vs long resource naming)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://registry.terraform.io/providers/fortinetdev/fortios/latest/docs&#34;&gt;fortinetdev/fortios provider documentation&lt;/a&gt; - the FortiGate provider and its &lt;code&gt;system_evpn&lt;/code&gt; / &lt;code&gt;system_vxlan&lt;/code&gt; / &lt;code&gt;system_interface&lt;/code&gt; resources&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.fortinet.com/document/fortigate/8.0.0/administration-guide/52499/vxlan-with-mp-bgp-evpn&#34;&gt;VXLAN with MP-BGP EVPN (FortiOS Administration Guide)&lt;/a&gt; - the FortiGate objects this post automates&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://pve.proxmox.com/pve-docs/chapter-pvesdn.html&#34;&gt;Proxmox VE: Software-Defined Network&lt;/a&gt; - the SDN concepts behind the resources&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
     <item>
       <title>VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/</link>
-      <pubDate>Sat, 27 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Sat, 27 Jun 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-2.5/</guid>
-      <description>What this overlay actually buys you on the security side, beyond writing firewall policies, plus an honest list of what it does not buy you, and an FAQ on VXLAN and EVPN versus plain VLANs.</description>
+      <description>&lt;h2 id=&#34;the-thing-that-actually-makes-this-interesting&#34;&gt;The thing that actually makes this interesting&lt;/h2&gt;
+&lt;p&gt;The fun of this setup was never VXLAN for its own sake. It is that the FortiGate is the &lt;strong&gt;only&lt;/strong&gt; router for every overlay segment, which means traffic I normally cannot see gets inspected like everything else. That sentence is the whole security story, so it is worth unpacking before anything else.&lt;/p&gt;
+&lt;p&gt;A quick disclaimer up front, because it is the most common misconception: VXLAN is not a security feature. It does not encrypt anything, it does not authenticate anything, and an overlay is not inherently safer than a VLAN. What the overlay gives you is an &lt;strong&gt;architecture&lt;/strong&gt; in which certain strong patterns become cheap and natural. The security comes from the patterns, not the encapsulation. The rest of this post is those patterns, then an honest list of what the overlay does not do for you.&lt;/p&gt;
+&lt;h2 id=&#34;the-core-win-the-firewall-is-the-only-road&#34;&gt;The core win: the firewall is the only road&lt;/h2&gt;
+&lt;p&gt;In a traditional setup, the moment a Layer 3 switch does inter VLAN routing, that east-west traffic never touches your firewall. Two VLANs that share a routing switch can talk all day and your NGFW sees none of it.&lt;/p&gt;
+&lt;p&gt;In this overlay, the anycast gateway for every segment lives on the FortiGate. There is no other router. So any traffic between two overlay segments is, by construction, forced across the firewall to be routed. That is not a policy you remember to write, it is a property of the topology. East-west becomes north-south, and everything the FortiGate does to north-south traffic now applies to traffic that used to be invisible.&lt;/p&gt;
+&lt;p&gt;Concretely, that means the full NGFW stack runs on inter segment flows: IPS, application control, antivirus, web filtering, and SSL inspection where you choose to enable it. The overlay&amp;rsquo;s software switch interface is just an interface to the FortiGate, so security profiles attach to it exactly like a physical port. Deep packet inspection on east-west traffic, with no span ports and no extra hardware, is the headline benefit.&lt;/p&gt;
+&lt;h2 id=&#34;cheap-segments-means-real-microsegmentation&#34;&gt;Cheap segments means real microsegmentation&lt;/h2&gt;
+&lt;p&gt;The second win is economic. Adding a segment here is a new VNI, a new EVPN instance, a new software switch, and a VNet on the Proxmox side. No physical recabling, no switch VLAN plumbing, no touching the BGP peering. The marginal cost of one more segment is near zero.&lt;/p&gt;
+&lt;p&gt;When segments are that cheap, you stop rationing them. Instead of a handful of broad VLANs because each one was annoying to stand up, you can carve fine grained zones: one per application tier, one per trust level, a dedicated quarantine segment, a segment that only ever talks to the gateway. The overlay does not make you microsegment, but it removes the friction that usually stops people from bothering. Granular segmentation that is forced through an inspecting gateway is a genuinely strong posture, and it is the thing this setup makes practical rather than theoretical.&lt;/p&gt;
+&lt;h2 id=&#34;controls-inside-a-single-segment&#34;&gt;Controls inside a single segment&lt;/h2&gt;
+&lt;p&gt;Forcing inter segment traffic through the firewall handles east-west between zones. But hosts inside one segment still share a broadcast domain and can talk directly. A few options tighten that:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Port isolation.&lt;/strong&gt; Proxmox VNets have an isolate ports flag that prevents guests on the same segment from talking to each other directly, allowing them only to reach the bridge, which is the gateway. That is private VLAN style behavior, and combined with the next item it forces even same segment traffic up to the firewall.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;A default deny segment firewall.&lt;/strong&gt; The VNet level firewall can drop by default and permit only traffic to and from the gateway. With that in place, two VMs on the same segment cannot reach each other without their traffic hairpinning through the FortiGate, where policy and inspection apply. You have effectively pushed the inspection boundary down to the individual host.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ARP suppression.&lt;/strong&gt; This was already enabled for control plane reasons, and it has a pleasant side effect. Because the gateway answers ARP from what the control plane learned rather than from flood and learn, there is less broadcast noise and a smaller surface for ARP based shenanigans within the segment.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;visibility-not-just-enforcement&#34;&gt;Visibility, not just enforcement&lt;/h2&gt;
+&lt;p&gt;Enforcement gets the attention, but the logging is half the value. Because every inter segment session is a FortiGate session, it shows up in FortiView and exports to your log analyzer like any other flow. Inter VLAN routing on a switch gives you no session record at all. Here you get per session east-west logging for free, which is the difference between &amp;ldquo;I think those zones are isolated&amp;rdquo; and &amp;ldquo;I can show you every flow that crossed between them.&amp;rdquo; For incident response and for simply understanding what your lab actually talks to, that record is worth as much as the blocking.&lt;/p&gt;
+&lt;p&gt;A nice operational extra: because segment membership is defined in software, by which VNet a guest&amp;rsquo;s interface attaches to, you can build a dedicated isolation segment and move a suspect VM&amp;rsquo;s interface into it, or drive that with dynamic policy. Quarantine becomes a software action rather than a trip to a switch.&lt;/p&gt;
+&lt;h2 id=&#34;the-honest-part-what-the-overlay-does-not-give-you&#34;&gt;The honest part: what the overlay does not give you&lt;/h2&gt;
+&lt;p&gt;Every pattern above is real, but so are these, and skipping them would be malpractice.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;No data plane encryption.&lt;/strong&gt; VXLAN wraps frames in UDP, it does not protect them. Within a site, encapsulated traffic on the underlay is effectively cleartext to anyone who can see it. The cross-site stretch in this design is private only because it rides an IPsec tunnel underneath, not because of anything VXLAN does. If you need confidentiality on a path, that has to come from the underlay.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;The underlay is now a high value target.&lt;/strong&gt; All your segments collapse onto one transport network carrying the VXLAN traffic. Anyone with a foothold on that underlay can potentially observe a lot, and because VXLAN has no authentication, a host that knows a VNI and the destination port can attempt to inject frames into a segment. Treat the transport VLAN as sensitive. Do not put untrusted hosts on it, and lock down what can reach it.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;The hypervisor became a segmentation boundary.&lt;/strong&gt; With VLANs, the switch enforces which port is in which VLAN. Here, the Proxmox host decides which guest sits on which segment, and the FortiGate trusts the VNI it receives. That means a compromised hypervisor can bridge segments that are supposed to be separate. The host, its SDN config, and its API access are now security relevant in a way a dumb access switch never was. Scope the API token you automate with, and patch the hosts like the trust anchors they have become.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;A route target typo can merge segments that should be isolated.&lt;/strong&gt; This is the one that should make you sit up. In part 2, a mismatched route target silently broke connectivity. Flip that: if two segments accidentally share a route target, EVPN will happily import each other&amp;rsquo;s routes and &lt;strong&gt;merge two broadcast domains that were supposed to be isolated&lt;/strong&gt;. The same mechanic that failed closed when it mismatched fails open when it overlaps. So &amp;ldquo;mind your tags&amp;rdquo; is not only a connectivity rule, it is an isolation control. Your route target scheme is part of your security boundary, and it deserves the same review you would give a firewall rule. This is the strongest argument for generating the route targets from a single source of truth rather than typing them, which is exactly where the automation post is headed.&lt;/p&gt;
+&lt;h2 id=&#34;a-hardening-checklist&#34;&gt;A hardening checklist&lt;/h2&gt;
+&lt;p&gt;Pulling the defensive measures into one place:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Authenticate every BGP session, including the peer group.&lt;/strong&gt; It is easy to set passwords on your obvious tunnel neighbors and forget the peer group that your hypervisors join. An unauthenticated EVPN session is a path for a rogue peer to inject routes. Put a password on the group too.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Cap routes per peer.&lt;/strong&gt; A maximum EVPN prefix limit on each neighbor protects you from a misbehaving or compromised VTEP flooding the control plane with MAC routes. It is a cheap denial of service guardrail.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Scope BGP to the underlay only.&lt;/strong&gt; Match peers from the transport subnet and nowhere else, so the control plane is not reachable from segments it serves.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Keep learn from traffic disabled.&lt;/strong&gt; With both ends speaking EVPN, leave the data plane learning off so the control plane is the only source of truth. That removes a data plane injection path.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Lean on EVPN&amp;rsquo;s own anti spoofing.&lt;/strong&gt; EVPN tracks MAC mobility with sequence numbers and can detect a duplicate MAC appearing behind two VTEPs, which is exactly the signature of spoofing or a misconfiguration. Know it is there and watch for the alerts.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Protect the underlay and the hypervisors&lt;/strong&gt; as the trust anchors they now are, and treat the route target scheme as a reviewed isolation control.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;faq-vxlan-and-evpn-versus-plain-vlans&#34;&gt;FAQ: VXLAN and EVPN versus plain VLANs&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Is this more secure than VLANs?&lt;/strong&gt;
+Not by itself. The security comes from forcing traffic through an inspecting gateway and from cheap, granular segmentation, both of which a firewall on a stick with VLANs can also do. The overlay makes the many segments, all inspected, physical switch independent pattern cheap and stretchable. That is the difference, not the encapsulation.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Does VXLAN encrypt my traffic?&lt;/strong&gt;
+No. Zero data plane encryption. Cross-site privacy in this design comes from the IPsec tunnel underneath. Same site, it is cleartext encapsulated.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Can someone sniff or join my VXLAN?&lt;/strong&gt;
+On the underlay, potentially yes, because VXLAN has no authentication. The fix is to protect the transport network and authenticate the EVPN control plane. EVPN means a rogue static endpoint will not receive routes, but the data plane itself is not something you can authenticate.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Do I still need VLANs?&lt;/strong&gt;
+Almost certainly. The underlay is still physical ports and VLANs. The overlay rides on top of it. They are complementary, not a choice between the two.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;When should I just use a VLAN instead?&lt;/strong&gt;
+When a segment lives on one switch or one site and does not need to stretch, and you are not chasing the firewall as only router pattern, a VLAN is simpler and has less to break. Do not put everything in an overlay. Reach for VXLAN where it buys something specific: stretching Layer 2 across sites, forcing all routing through the firewall, frequent segment churn, or workload mobility.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Is EVPN more secure than static VXLAN?&lt;/strong&gt;
+It is more controllable. EVPN adds a control plane you can authenticate, filter, and rate limit, and it floods far less, which shrinks the broadcast surface. But that same control plane is new attack surface: a compromised host can advertise routes, so you accept it with authentication and prefix limits. Net, EVPN gives you more security knobs and more to secure. For a static two endpoint test, plain VXLAN is fine. For anything that grows, EVPN&amp;rsquo;s controllability is worth the added surface.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What about the 4094 VLAN limit versus 16 million VNIs?&lt;/strong&gt;
+True, and almost never the reason a homelab reaches for VXLAN. The 24 bit VNI space matters at cloud scale. For most of us the real reasons are decoupling from the physical switch and stretching Layer 2 over a routed underlay, not running out of VLAN IDs.&lt;/p&gt;
+&lt;h2 id=&#34;the-takeaway&#34;&gt;The takeaway&lt;/h2&gt;
+&lt;p&gt;The overlay did not hand me security. It handed me an architecture where the strong patterns are the easy ones: the firewall is the only router so east-west gets inspected, segments are cheap so microsegmentation is realistic, and every cross zone flow is logged because it is a firewall session. In exchange I picked up new responsibilities, an unauthenticated data plane to wrap, an underlay to guard, hypervisors that are now trust boundaries, and a route target scheme that is quietly part of my isolation model. Worth it, as long as you go in knowing which half of the deal is the work.&lt;/p&gt;
+</description>
     </item>
     <item>
       <title>VXLAN Performance on a FortiGate 70F: The Software Switching Tax</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/</link>
-      <pubDate>Thu, 25 Jun 2026 03:00:00 +0000</pubDate>
+      <pubDate>Thu, 25 Jun 2026 03:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-2.25/</guid>
-      <description>Measuring the throughput cost of VXLAN on a small FortiGate with no VXLAN offload, by A/B testing the same VM over an overlay segment versus a plain VLAN, and tracing the ceiling back to the silicon.</description>
+      <description>&lt;h2 id=&#34;the-setup-and-the-question&#34;&gt;The setup, and the question&lt;/h2&gt;
+&lt;p&gt;A while back I built an EVPN/VXLAN overlay between a FortiGate and a three node Proxmox cluster. The overlay segments come out of Proxmox SDN (an EVPN zone with a handful of VNets), and the FortiGate plays anycast gateway for them. I wrote up the build itself in a separate post; this one is only about the thing I wanted to know once it was actually working: what does all that encapsulation cost me in throughput?&lt;/p&gt;
+&lt;p&gt;Short version, on a small FortiGate it costs more than I expected. And the reason turned out to be more interesting than &amp;ldquo;overlays have overhead.&amp;rdquo; On this class of hardware VXLAN is switched in software, on the CPU, not on the network processor. Here is the test and the numbers that show it.&lt;/p&gt;
+&lt;h2 id=&#34;the-test&#34;&gt;The test&lt;/h2&gt;
+&lt;p&gt;I wanted the cleanest A/B I could manage, so I changed exactly one thing. Same VM, same iperf3 server, same FortiGate, same everything. The only variable is the path the VM&amp;rsquo;s traffic takes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Run 1: the VM sits on a VXLAN overlay segment (a Proxmox SDN VNet, gateway on the FortiGate).&lt;/li&gt;
+&lt;li&gt;Run 2: the same VM, moved to a plain VLAN that also has its SVI on the FortiGate.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Both paths route through the same box to the same destination, so if the overlay costs anything, this isolates it. The test itself was nothing fancy:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;iperf3 -c &amp;lt;server&amp;gt; -t 10&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&#34;the-numbers&#34;&gt;The numbers&lt;/h2&gt;
+&lt;p&gt;VXLAN overlay segment:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;[ ID] Interval           Transfer     Bitrate         Retr
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;[  5]   0.00-10.00  sec   654 MBytes   548 Mbits/sec  179   sender
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;[  5]   0.00-10.00  sec   651 MBytes   546 Mbits/sec        receiver&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Across several runs this sat in a tight band, roughly 525 to 548 Mbit/sec, always with a steady trickle of retransmits, somewhere between 150 and 300 per run.&lt;/p&gt;
+&lt;p&gt;Same VM, plain VLAN:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;[ ID] Interval           Transfer     Bitrate         Retr
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;[  5]   0.00-10.00  sec  1.09 GBytes   935 Mbits/sec  109   sender
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;[  5]   0.00-10.00  sec  1.09 GBytes   934 Mbits/sec        receiver&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;935 Mbit/sec, which is line rate for the single gigabit path to that server. Clean, stable, and far fewer retransmits.&lt;/p&gt;
+&lt;p&gt;So the plain VLAN saturates the link, and the VXLAN path cannot even get close to the link ceiling because something pins it around 540 first. That something is the FortiGate&amp;rsquo;s CPU, and you can watch it happen.&lt;/p&gt;
+&lt;h2 id=&#34;watching-the-cpu-give-it-away&#34;&gt;Watching the CPU give it away&lt;/h2&gt;
+&lt;p&gt;The numbers point at a CPU ceiling, and a couple of minutes on the box confirms it. The trick is just to watch what the firewall is doing during each transfer.&lt;/p&gt;
+&lt;p&gt;On the VLAN run, the CPU stays flat. Plain L2/L3 forwarding gets offloaded to the network processor and is effectively free, so the flow runs straight into the gigabit link limit and stops there.&lt;/p&gt;
+&lt;p&gt;On the VXLAN run, a CPU core jumps for the entire length of the transfer and drops back the instant iperf stops. That is the encapsulation and decapsulation work happening in software, one packet at a time.&lt;/p&gt;
+&lt;p&gt;A few commands make this concrete rather than a vibe:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;get system performance status
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose sys top 2 20&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;get system performance status&lt;/code&gt; gives you the per core CPU load while the test runs; you will see one core climb on the overlay test and stay quiet on the VLAN test. &lt;code&gt;diagnose sys top&lt;/code&gt; shows you which processes are eating it.&lt;/p&gt;
+&lt;p&gt;If you want to confirm it at the session level instead of by CPU, pull the flow out of the session table and look at whether it is offloaded:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose sys session filter dport 5201
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose sys session list&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;On the VLAN flow the session carries the NP offload state (an &lt;code&gt;npu_state&lt;/code&gt; value and an &lt;code&gt;npu info&lt;/code&gt; block with the offloaded flags set). On the VXLAN flow it does not; the kernel is handling it, which is exactly why a core is pegged.&lt;/p&gt;
+&lt;p&gt;That same software datapath filling up under load is what produces the steady retransmits on the overlay path. It is not a wiring problem and it is not MTU (more on that below), it is the soft path saturating and dropping.&lt;/p&gt;
+&lt;h2 id=&#34;the-hardware-and-why-this-is-expected&#34;&gt;The hardware, and why this is expected&lt;/h2&gt;
+&lt;p&gt;This is a FortiGate 70F:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Model name: FortiGate-70F
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ASIC version: SOC4
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;CPU: ARMv8
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Number of CPUs: 8
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;RAM: 3773 MB
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Network Card chipset: FortiASIC NP6XLITE Adapter (rev.)&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The line that matters is the NP6XLite, and here is the part that took me a second to actually internalize. The &amp;ldquo;XLite&amp;rdquo; naming makes it sound like a newer, trimmed down processor, but NP6XLite is NP6 generation silicon. It is a component of Fortinet&amp;rsquo;s SOC4. The NP6 family (NP6, NP6XLite, NP6Lite) offloads the usual IPv4/IPv6 forwarding, IPsec, CAPWAP and multicast, but VXLAN is not on that list. There is no hardware VXLAN datapath on this box at all, so every encapsulated packet is a CPU operation. That is the ceiling the iperf numbers and the pegged core are both showing.&lt;/p&gt;
+&lt;p&gt;VXLAN offload arrived with the NP7 generation. NP7 explicitly offloads VXLAN (and VXLAN over IPsec). And, worth stating clearly because I had this slightly wrong at first: the NP7Lite parts offload VXLAN too. The 50G/70G/90G/120G/200G class boxes run NP7Lite and will fast path VXLAN. There is even a Fortinet KB about a VXLAN over NP7Lite session bug, which you can only have if the thing is being offloaded in the first place.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-quote&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M1.75 2.5A1.75 1.75 0 0 0 0 4.25v3.5C0 8.716.784 9.5 1.75 9.5H3c0 1.5-.5 2.5-2 3.5 2.5-.5 4.5-2 4.5-5.25v-3.5A1.75 1.75 0 0 0 3.75 2.5Zm8.5 0A1.75 1.75 0 0 0 8.5 4.25v3.5c0 .966.784 1.75 1.75 1.75h1.25c0 1.5-.5 2.5-2 3.5 2.5-.5 4.5-2 4.5-5.25v-3.5a1.75 1.75 0 0 0-1.75-1.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Quote&lt;/span&gt;&lt;span class=&#34;callout-cite&#34;&gt;Fortinet, FortiOS Hardware Acceleration Guide&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;VXLAN and VXLAN over IPsec.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;That line is straight out of the NP7&amp;rsquo;s list of offloadable tunneling protocols, which is exactly the list the NP6 generation does not have.&lt;/p&gt;
+&lt;p&gt;So the real tell when you are shopping is generational, not &amp;ldquo;Lite versus not.&amp;rdquo; It breaks down like this:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;NP6 family (NP6, NP6XLite, NP6Lite): no VXLAN offload. Software switched, CPU bound. The 70F lives here.&lt;/li&gt;
+&lt;li&gt;NP7 family (NP7 and NP7Lite): VXLAN offload available.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The trap is specifically the NP6XLite, because the name pattern matches to the NP7Lite era when it does not belong to it. Do not read &amp;ldquo;XLite&amp;rdquo; as &amp;ldquo;small NP7.&amp;rdquo; Check the FortiOS hardware acceleration guide&amp;rsquo;s offload tables for the actual processor in your model, and confirm it on your own box, rather than trusting a marketing datasheet blurb, which varies in what it bothers to spell out.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-insight&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;&amp;ldquo;XLite&amp;rdquo; and &amp;ldquo;Lite&amp;rdquo; both read like a modern, trimmed down part, but they belong to different generations: NP6XLite is NP6 era silicon, NP7Lite is NP7 era. The generation is the tell, the &amp;ldquo;Lite&amp;rdquo; is the trap. A newer or bigger model number tells you nothing about VXLAN offload on its own.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;blockquote class=&#34;callout callout-warning&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Warning&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;One caveat so this does not get over-applied: offload is both platform and configuration dependent. Even on hardware that can offload VXLAN, the moment you put UTM inspection on the flow (IPS, AV, SSL inspection) it goes back to the CPU, because inspection cannot run on the NP. There is also a &lt;code&gt;vxlan-offload&lt;/code&gt; toggle, and on NP7 the &lt;code&gt;learn-from-traffic&lt;/code&gt; setting on the VXLAN interface quietly controls whether the overlay gets hardware accelerated at all. So &amp;ldquo;does my box offload VXLAN&amp;rdquo; is really two questions: can the silicon do it, and does my config let it stay offloaded. Watch the CPU and check the session flags either way.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;an-mtu-aside-because-it-hid-all-of-this-at-first&#34;&gt;An MTU aside, because it hid all of this at first&lt;/h2&gt;
+&lt;p&gt;Before any of the above made sense, the overlay was doing about 9 Mbit/sec, not 540, and iperf would push a short burst and then collapse to zero. That was not the CPU. That was a textbook MTU black hole: the guest NIC was still at 1500 while the overlay path is 1450, so the moment TCP grew its segments past the small stuff, the full size frames got silently dropped. Dropping the guest NIC to 1450 fixed it and uncovered the real 540 ceiling sitting underneath.&lt;/p&gt;
+&lt;p&gt;The part worth keeping, because it is the actual diagnostic, is what came next. Once it was working, I bumped the overlay MTU up to 8950 (the underlay is jumbo) and the throughput changed by basically nothing. If per packet overhead had been the limiter, bigger frames would have bought me a lot. They bought me nothing, which is what tells you the ceiling is a fixed per flow cost (the CPU) and not a per packet one.&lt;/p&gt;
+&lt;h2 id=&#34;so-what-do-you-actually-do-with-this&#34;&gt;So what do you actually do with this&lt;/h2&gt;
+&lt;p&gt;None of this is a bug to fix. It is the platform being honest about its limits, and the right move is to design around them instead of fighting them:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Put traffic on the overlay that actually benefits from being there: segmentation, inspected east-west, stretched or mobile segments, the anycast gateway. None of that is throughput bound, and a few hundred Mbit is plenty for it.&lt;/li&gt;
+&lt;li&gt;Keep the bulk, throughput sensitive stuff (storage, backups, replication) on plain VLANs, where the NP offloads ordinary forwarding and hands you line rate. My iSCSI was already on a VLAN, which it turns out is exactly right, for exactly this reason.&lt;/li&gt;
+&lt;li&gt;If you genuinely need line rate inspected VXLAN, buy into the NP7 generation and confirm VXLAN offload for that specific model in the hardware acceleration guide. Do not assume a newer or bigger model number gets you there, and definitely do not let an &amp;ldquo;XLite&amp;rdquo; lull you.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The overlay&amp;rsquo;s flexibility is real and worth having. On small hardware it just comes with a throughput price, and now that price has a number: about 540 Mbit/sec of software switched VXLAN on a 70F, against 935 on a plain offloaded VLAN. Same box, same VM.&lt;/p&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.fortinet.com/document/fortigate/7.6.6/hardware-acceleration/575471/network-processors-np7-np7lite-np6-np6xlite-and-np6lite&#34;&gt;Network processors (NP7, NP7Lite, NP6, NP6XLite, and NP6Lite)&lt;/a&gt; - the offload feature matrix per processor&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.fortinet.com/document/fortigate/7.6.6/hardware-acceleration/793766/fortigate-200g-and-201g-fast-path-architecture&#34;&gt;FortiGate 200G and 201G fast path architecture&lt;/a&gt; - example of an NP7Lite platform&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://community.fortinet.com/fortigate-3/technical-tip-how-to-enable-np7-hardware-offloading-for-vxlan-over-evpn-traffic-225075&#34;&gt;How to enable NP7 hardware offloading for VXLAN over EVPN traffic&lt;/a&gt; - the &lt;code&gt;learn-from-traffic&lt;/code&gt; behavior&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.fortinet.com/document/fortigate/7.6.2/hardware-acceleration/961613/vxlan-offload-disable-enable&#34;&gt;&lt;code&gt;vxlan-offload {disable | enable}&lt;/code&gt;&lt;/a&gt; - the per interface offload toggle&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://community.fortinet.com/fortigate-3/technical-tip-tcp-session-over-vxlan-stalls-after-being-accepted-and-offloaded-to-np7-np7lite-225046&#34;&gt;TCP session over VXLAN stalls after being offloaded to NP7/NP7Lite&lt;/a&gt; - confirmation that NP7Lite does offload VXLAN&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
     <item>
       <title>VXLAN Between a FortiGate and Proxmox, Part 2: EVPN</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-2/</link>
-      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Thu, 25 Jun 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-2/</guid>
-      <description>Swapping the static VXLAN peer list for a BGP EVPN control plane across a FortiGate and a three node Proxmox cluster, and every place the two platforms tripped me up by disagreeing on what to state versus what to derive.</description>
+      <description>&lt;h2 id=&#34;recap-and-the-problem-with-where-we-left-off&#34;&gt;Recap, and the problem with where we left off&lt;/h2&gt;
+&lt;p&gt;In &lt;a href=&#34;https://natebent.com/posts/vxlan-between-a-fortigate-and-proxmox/&#34;&gt;part 1&lt;/a&gt; I proved a FortiGate and a Proxmox host will form a working VXLAN segment with nothing more than a matching VNI, port, and a static list of peer addresses. That works, but it comes with a built in tax: every VTEP has to list every other VTEP. Adding a host means editing the peer list on every existing box, and the only way a VTEP learns which MAC lives behind which remote VTEP is to flood unknown traffic everywhere and watch the replies come back.&lt;/p&gt;
+&lt;p&gt;At a handful of nodes, that is fine. The point where it stops being fine is exactly the problem EVPN was built to solve: a BGP control plane that distributes reachability so you stop hand listing peers and stop flooding to learn. This post is the swap from static VXLAN to EVPN. I did it first on a single node to isolate the new moving part, then pushed it out to the three node cluster. The data plane (the actual VXLAN encapsulation on the wire) does not change at all. Only the way VTEPs find each other and learn MACs changes.&lt;/p&gt;
+&lt;p&gt;The reason I&amp;rsquo;m bothering to write this one up is that almost every wall I hit traced back to a single root cause, and naming it up front will save you the evening it cost me.&lt;/p&gt;
+&lt;h2 id=&#34;the-one-idea-behind-every-mistake-i-made&#34;&gt;The one idea behind every mistake I made&lt;/h2&gt;
+&lt;p&gt;The FortiGate and Proxmox both speak EVPN and they interoperate cleanly. The catch is that they express the same concepts in opposite styles: the FortiGate makes you state things by hand that Proxmox just derives for you.&lt;/p&gt;
+&lt;p&gt;That is basically the whole story. Proxmox computes a route target from a VNet tag, works out its EVPN address family activation from the controller config, and figures out which VTEP is itself. The FortiGate makes you type each of those out. Every dead end below is a spot where a value I typed on the FortiGate did not match a value Proxmox derived, and because the underlying BGP session comes up perfectly every time, nothing warns you. The session goes Established, EVPN negotiates, routes even get advertised, and then quietly nothing imports.&lt;/p&gt;
+&lt;p&gt;Keep that test in your back pocket for the rest of this: when a session is Established but importing zero routes, ask what Proxmox auto derived and whether the value you hand typed on the FortiGate matches it exactly.&lt;/p&gt;
+&lt;h2 id=&#34;what-evpn-actually-buys-you&#34;&gt;What EVPN actually buys you&lt;/h2&gt;
+&lt;p&gt;Three things, and it is worth listing them, because on a single node EVPN looks like pure extra work for the same ping you already had:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Adding a VTEP becomes a one box operation. A new node announces itself over BGP and everyone learns it, instead of you editing N peer lists by hand.&lt;/li&gt;
+&lt;li&gt;Flooding mostly stops. MACs get pre distributed as routes, so the gateway can answer ARP locally instead of flooding it across the link to the other site.&lt;/li&gt;
+&lt;li&gt;The gateway can live everywhere at once. An anycast gateway puts the same gateway IP and MAC on every VTEP, so a VM is routed by whatever box it happens to sit on, and can migrate between nodes without re ARPing. Static VXLAN structurally cannot do that.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The routes that carry all of this come in types, and three of them matter here. Type 3 (inclusive multicast) is VTEP auto discovery, the direct replacement for the static peer list. Type 2 (MAC/IP) is MAC distribution, which is what kills flood and learn. Type 5 (IP prefix) is L3 routing between subnets, which is the anycast and mobility story for later.&lt;/p&gt;
+&lt;h2 id=&#34;the-single-node-config&#34;&gt;The single node config&lt;/h2&gt;
+&lt;p&gt;Sanitized parameters:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Item&lt;/th&gt;
+					&lt;th&gt;Value&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;BGP ASN (both ends, so iBGP)&lt;/td&gt;
+					&lt;td&gt;65001&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Segment VNI&lt;/td&gt;
+					&lt;td&gt;4099&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Overlay subnet&lt;/td&gt;
+					&lt;td&gt;172.31.99.0/24&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Overlay gateway (anycast)&lt;/td&gt;
+					&lt;td&gt;172.31.99.1&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;FortiGate VTEP / underlay IP&lt;/td&gt;
+					&lt;td&gt;10.0.50.1&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Proxmox VTEP / underlay IP&lt;/td&gt;
+					&lt;td&gt;10.0.50.11&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;fortigate&#34;&gt;FortiGate&lt;/h3&gt;
+&lt;p&gt;Structurally this is the part 1 VXLAN block with the static &lt;code&gt;remote-ip&lt;/code&gt; removed, plus an EVPN instance and a BGP stanza. The EVPN instance carries the route distinguisher and route targets; the VXLAN links to it with &lt;code&gt;evpn-id&lt;/code&gt;; BGP carries the routes.&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config system evpn
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    edit 1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set rd &amp;#34;10.0.50.1:4099&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set import-rt &amp;#34;65001:4099&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set export-rt &amp;#34;65001:4099&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set ip-local-learning enable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set arp-suppression enable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    next
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;end
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config system vxlan
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    edit &amp;#34;vxlan-evpn&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set interface &amp;#34;lan&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set vni 4099
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set evpn-id 1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    next
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;end
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config system switch-interface
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    edit &amp;#34;vxsw&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set type switch
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set member &amp;#34;vxlan-evpn&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set intra-switch-policy explicit
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    next
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;end
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config system interface
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    edit &amp;#34;vxsw&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set ip 172.31.99.1 255.255.255.0
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set allowaccess ping
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    next
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;end
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config router bgp
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    set as 65001
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    set router-id 10.0.50.1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    set ibgp-multipath enable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    config neighbor
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        edit &amp;#34;10.0.50.11&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            set next-hop-self enable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            set next-hop-self-vpnv4 enable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            set soft-reconfiguration enable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            set soft-reconfiguration-evpn enable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            set remote-as 65001
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        next
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    end
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;end&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Note the &lt;code&gt;intra-switch-policy explicit&lt;/code&gt; on the software switch. That one creates real sessions for traffic crossing the switch, which is both what makes the flow visible in the session table and what lets it be hardware offloaded on platforms that can offload VXLAN. (Mine cannot, which is its own rabbit hole, but the knob belongs here regardless.)&lt;/p&gt;
+&lt;h3 id=&#34;proxmox&#34;&gt;Proxmox&lt;/h3&gt;
+&lt;p&gt;FRR does the heavy lifting behind the GUI:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;apt update &amp;amp;&amp;amp; apt install frr frr-pythontools
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;systemctl enable --now frr&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Then under Datacenter, SDN: add an EVPN Controller (ASN 65001, peers listing both VTEPs), an EVPN Zone (with a VRF VXLAN ID, see below), a VNet with tag 4099 in that zone, and a Subnet on the VNet with gateway 172.31.99.1. Apply.&lt;/p&gt;
+&lt;h2 id=&#34;the-gotchas-in-the-order-i-hit-them&#34;&gt;The gotchas, in the order I hit them&lt;/h2&gt;
+&lt;p&gt;Each of these is the same &amp;ldquo;stated versus derived&amp;rdquo; mismatch showing up in a different place.&lt;/p&gt;
+&lt;h3 id=&#34;looking-for-a-per-neighbor-evpn-enable-command&#34;&gt;Looking for a per neighbor EVPN enable command&lt;/h3&gt;
+&lt;p&gt;My first instinct on the FortiGate BGP neighbor was to hunt for something like &lt;code&gt;set l2vpn-evpn enable&lt;/code&gt;. It does not exist. That is the FRR and Cisco way of activating the EVPN address family per neighbor, and it is exactly what Proxmox uses under the hood. The FortiGate has no explicit per neighbor EVPN toggle. EVPN advertisement turns on implicitly the moment you have a &lt;code&gt;config system evpn&lt;/code&gt; instance bound to a VXLAN by &lt;code&gt;evpn-id&lt;/code&gt;. The neighbor just needs ordinary iBGP settings plus the EVPN friendly knobs above. Proxmox states activation explicitly, the FortiGate derives it from the instance binding. Same result, opposite style, and I burned time looking for a keyword that was never there.&lt;/p&gt;
+&lt;h3 id=&#34;the-route-target-has-to-match-your-real-asn&#34;&gt;The route target has to match your real ASN&lt;/h3&gt;
+&lt;p&gt;This is the big one. I had copied an EVPN instance out of an earlier example that used ASN 65000 as a placeholder, but the real box runs 65001. So the FortiGate was importing and exporting &lt;code&gt;65000:4099&lt;/code&gt;, while Proxmox, deriving its route target as ASN:VNI, was using &lt;code&gt;65001:4099&lt;/code&gt;. The BGP session was Established, EVPN negotiated, the FortiGate even announced its routes, and absolutely nothing imported. The route target is the matching key, and Proxmox derives it from a value you never type, so any drift between your hand typed FortiGate RT and your actual ASN silently breaks import. Setting both RTs to &lt;code&gt;65001:4099&lt;/code&gt; made accepted prefixes start climbing immediately.&lt;/p&gt;
+&lt;h3 id=&#34;the-route-distinguisher-is-per-vtep-not-shared&#34;&gt;The route distinguisher is per VTEP, not shared&lt;/h3&gt;
+&lt;p&gt;In the same block, I had set my RD to the Proxmox node&amp;rsquo;s address. The RD only needs to be unique per advertising VTEP, so the FortiGate&amp;rsquo;s RD should be based on its own IP, &lt;code&gt;10.0.50.1:4099&lt;/code&gt;. If two VTEPs advertise the same RD you get route distinction collisions stacked on top of whatever else is already wrong. RD is for uniqueness, RT is for matching. They are easy to mix up because they look alike, but they do different jobs.&lt;/p&gt;
+&lt;h3 id=&#34;put-the-ip-on-the-software-switch-not-the-bare-vxlan-interface&#34;&gt;Put the IP on the software switch, not the bare VXLAN interface&lt;/h3&gt;
+&lt;p&gt;When I added a second segment later, I tried to shortcut it by putting an IP directly on the VXLAN interface instead of dropping the VXLAN into a software switch and putting the IP on the switch interface. It did not learn MACs and the gateway misbehaved. The pattern that works is: the VXLAN interface has no IP and goes into a &lt;code&gt;config system switch-interface&lt;/code&gt;, and the IP lives on that switch interface. A bare VXLAN interface with an IP does not participate in bridge domain learning the same way, so type 2 routes never populate. The segment looks like it exists, but nothing talks.&lt;/p&gt;
+&lt;p&gt;And while we are here, &lt;code&gt;ip-local-learning enable&lt;/code&gt; is not optional. It is what lets the FortiGate watch the switch interface&amp;rsquo;s ARP table and advertise host MAC/IP as type 2 routes, and &lt;code&gt;arp-suppression&lt;/code&gt; depends on it. One placement gotcha I got wrong at first: both &lt;code&gt;ip-local-learning&lt;/code&gt; and &lt;code&gt;arp-suppression&lt;/code&gt; live under &lt;code&gt;config system evpn&lt;/code&gt;, the instance, not on the &lt;code&gt;config system interface&lt;/code&gt; stanza. Put them on the wrong object and you get EVPN up with no MAC distribution, which looks exactly like every other &amp;ldquo;stated versus derived&amp;rdquo; failure in this list.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-caution&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.141.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Caution&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;code&gt;ip-local-learning&lt;/code&gt; and &lt;code&gt;arp-suppression&lt;/code&gt; belong under &lt;code&gt;config system evpn&lt;/code&gt;, not on the interface. Put them on the wrong object and everything still comes up Established, the FortiGate just silently never advertises a single type 2 route. Nothing errors. You just get no MACs.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h3 id=&#34;the-tag-is-the-route-target&#34;&gt;The tag IS the route target&lt;/h3&gt;
+&lt;p&gt;This was the capstone, and the cleanest illustration of the whole theme. On a later segment, traffic just would not pass. Everything was Established. The cause was a one digit slip in the Proxmox VNet tag. Because Proxmox derives the route target straight from the tag, a tag typo is silently a route target mismatch. There is no separate field to get wrong and no warning, because the tag and the RT are the same number expressed once. The lesson reduces to four words: mind your tags. On the FortiGate you type the RT; on Proxmox you set a tag and the RT falls out of it; and the two only ever meet if they are the same value.&lt;/p&gt;
+&lt;h3 id=&#34;the-vrf-vxlan-id-is-its-own-thing&#34;&gt;The VRF VXLAN ID is its own thing&lt;/h3&gt;
+&lt;p&gt;The EVPN zone wants a VRF VXLAN ID, which is a separate VNI used for the L3 routing interconnect between your segments, not for any one segment itself. In &lt;code&gt;show evpn vni&lt;/code&gt; you can see it: each segment shows up as type L2, and this one extra VNI shows up as type L3, one per VRF. It just has to be a valid VNI that does not collide with any segment VNI. Pick something memorable and outside your segment range (I used 4000) so the L3 line is instantly recognizable later. The number is arbitrary; the separation is the point.&lt;/p&gt;
+&lt;h2 id=&#34;proving-it-worked&#34;&gt;Proving it worked&lt;/h2&gt;
+&lt;p&gt;Once the route targets matched, the Proxmox side told the whole story. &lt;code&gt;show bgp l2vpn evpn&lt;/code&gt; showed the FortiGate&amp;rsquo;s type 3 route imported with the matching RT, which means the FortiGate auto discovered as a VTEP with no static peer list anywhere. That single imported route is the entire point of the exercise. &lt;code&gt;show evpn vni&lt;/code&gt; showed the segment as an active L2 VNI with one remote VTEP, learned purely from BGP. And Proxmox was already advertising a type 2 route for a real VM MAC, so MAC distribution was flowing both ways.&lt;/p&gt;
+&lt;p&gt;The commands worth banking, FortiGate then Proxmox:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;get router info bgp evpn                            # EVPN context: RD, import/export RT per instance
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;get router info bgp neighbors &amp;lt;peer&amp;gt; routes evpn    # accepted/announced EVPN routes for the peer
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose sys vxlan fdb list &amp;lt;vxlan-name&amp;gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;vtysh -c &amp;#34;show bgp l2vpn evpn summary&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;vtysh -c &amp;#34;show bgp l2vpn evpn&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;vtysh -c &amp;#34;show evpn vni&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote class=&#34;callout callout-tip&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Tip&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Established but zero accepted prefixes is this whole post&amp;rsquo;s failure mode in one line. When BGP is up but nothing imports, do not touch BGP. Read the &lt;code&gt;RT:&lt;/code&gt; on the routes and compare it, character for character, to the route target you typed on the FortiGate. It is almost always a stated versus derived mismatch, not a peering problem.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;scaling-to-three-nodes&#34;&gt;Scaling to three nodes&lt;/h2&gt;
+&lt;p&gt;Two deltas, both small, because the model already scales.&lt;/p&gt;
+&lt;p&gt;First, BGP discovery. Instead of hand defining each Proxmox node as a neighbor, the FortiGate can match a subnet range and drop matching peers into a peer group with shared settings. New hosts in that subnet form sessions automatically, which is the EVPN philosophy applied to the BGP layer itself: stop enumerating peers. All three nodes came up Established this way with no per node neighbor config.&lt;/p&gt;
+&lt;p&gt;Second, multiple segments over one session. Each additional segment is its own EVPN instance plus its own VXLAN plus its own software switch on the FortiGate, and its own VNet on Proxmox, all riding the same BGP session. You never touch BGP to add a segment. That is the payoff restated: segments scale by adding objects, the peering never grows. The mental model that holds it together is that the VNI is the segment, the EVPN instance is that segment&amp;rsquo;s identity in BGP, the route target is the matching key, and one BGP session carries all of them.&lt;/p&gt;
+&lt;p&gt;The capability that only shows up once you have multiple nodes is the anycast gateway. With the same gateway IP live on every VTEP, a VM can move between nodes and keep using the same gateway because it is local wherever it lands. That is the concrete reason the whole EVPN detour pays for itself, and it is completely invisible on one node.&lt;/p&gt;
+&lt;h2 id=&#34;proxmox-datacenter-manager&#34;&gt;Proxmox Datacenter Manager&lt;/h2&gt;
+&lt;p&gt;Proxmox Datacenter Manager (PDM) has been adding in more support for SDN features, including EVPN.  Here is what it looks like currently:&lt;/p&gt;
+&lt;figure&gt;
+    &lt;img src=&#34;https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1.png&#34; alt=&#34;Proxmox Datacenter Manager - EVPN Page&#34;
+         width=&#34;2220&#34; height=&#34;643&#34; loading=&#34;lazy&#34;&gt;&lt;figcaption&gt;Proxmox Datacenter Manager - EVPN Page&lt;/figcaption&gt;&lt;/figure&gt;
+&lt;h2 id=&#34;where-this-goes-next&#34;&gt;Where this goes next&lt;/h2&gt;
+&lt;p&gt;Everything above is hand typed, and every segment is the identical five object pattern keyed on one VNI, which is exactly the shape that begs to be looped. The next post is automating it: defining the segment list once as data and letting Terraform render both the FortiGate objects and the Proxmox SDN objects, with the route target and the tag both computed from the same number so the &amp;ldquo;mind your tags&amp;rdquo; failure mode becomes structurally impossible.&lt;/p&gt;
+&lt;p&gt;The order matters, though. Build it by hand first, hit these walls, understand every object and how it fails. Then codify the pattern you now actually understand. Automating before you understand it just gives you a black box that deploys broken configs faster. Earning the mental model the hard way is the right moment to hand the typing off to a tool.&lt;/p&gt;
+&lt;p&gt;For now, the result stands on its own: a FortiGate and a three node Proxmox cluster running a shared EVPN fabric, multiple stretched segments over a single BGP session, with an anycast gateway across all of it. Not a toy, and not much config once you stop fighting the seam between two platforms that say the same thing in different words.&lt;/p&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.fortinet.com/document/fortigate/8.0.0/administration-guide/52499/vxlan-with-mp-bgp-evpn&#34;&gt;VXLAN with MP-BGP EVPN (FortiOS Administration Guide)&lt;/a&gt; - the FortiGate EVPN instance, VXLAN binding, and BGP example&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.fortinet.com/document/fortigate/7.6.6/cli-reference/126425277/config-system-evpn&#34;&gt;config system evpn (FortiOS CLI Reference)&lt;/a&gt; - where &lt;code&gt;rd&lt;/code&gt;, &lt;code&gt;import-rt&lt;/code&gt;, &lt;code&gt;export-rt&lt;/code&gt;, &lt;code&gt;ip-local-learning&lt;/code&gt;, and &lt;code&gt;arp-suppression&lt;/code&gt; actually live&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://pve.proxmox.com/pve-docs/chapter-pvesdn.html&#34;&gt;Proxmox VE: Software-Defined Network&lt;/a&gt; - EVPN controller, zone, and the VRF VXLAN ID&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://pdm.proxmox.com/docs/sdn-integration.html&#34;&gt;Proxmox SDN Integration: EVPN concepts&lt;/a&gt; - the zone-as-IP-VRF and VNet-as-MAC-VRF mapping, both keyed on ASN:VNI&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
     <item>
       <title>VXLAN Between a FortiGate and Proxmox</title>
       <link>https://natebent.com/posts/vxlan-fortigate-proxmox-1/</link>
-      <pubDate>Tue, 23 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 23 Jun 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/vxlan-fortigate-proxmox-1/</guid>
-      <description>Standing up a single stretched Layer 2 segment between a FortiGate and a Proxmox host using unicast VXLAN, and proving the data plane before adding any complexity.</description>
+      <description>&lt;h2 id=&#34;why-vxlan&#34;&gt;Why VXLAN&lt;/h2&gt;
+&lt;p&gt;I already run VLANs through my core switch to carve up the lab, and that works fine. What I wanted to play with was decoupling a segment from the physical switch entirely. VXLAN does that by wrapping the guest&amp;rsquo;s Layer 2 frame inside a UDP packet (destination port 4789 by default) and shipping it to whatever VXLAN Tunnel Endpoint (VTEP) holds the other end. To a VM the bridge looks like any other bridge, but the &amp;ldquo;wire&amp;rdquo; underneath it is now an IP path I control instead of a switchport.&lt;/p&gt;
+&lt;p&gt;The longer term goal is to stretch a single segment across two sites joined by an IPsec tunnel, with the FortiGate acting as the gateway and inspection point for that overlay, all without re-cabling anything or touching switch VLAN config. Before any of that, though, I wanted to answer one small question: will a FortiGate and a Proxmox host actually form a working VXLAN segment between them? This post is just that feasibility test.&lt;/p&gt;
+&lt;p&gt;The FortiGate is on FortiOS 8.0.0 and the Proxmox host is on the 9.x branch.&lt;/p&gt;
+&lt;h2 id=&#34;scoping-the-test&#34;&gt;Scoping the test&lt;/h2&gt;
+&lt;p&gt;The one decision I made up front was to keep the IPsec tunnel out of version 1. If I stand both VTEPs up on the same underlay subnet and it fails, I know the problem is the VXLAN interop itself and not the tunnel or some MTU issue out across the internet. Once frames pass locally, moving a peer address to the far side of the tunnel later is a one line change.&lt;/p&gt;
+&lt;p&gt;So the test is the smallest thing that proves the data plane: one stretched segment, the FortiGate as the gateway, and a Proxmox VM pinging that gateway across VXLAN.&lt;/p&gt;
+&lt;p&gt;Parameters, all sanitized:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Item&lt;/th&gt;
+					&lt;th&gt;Value&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;VNI&lt;/td&gt;
+					&lt;td&gt;4099&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;UDP port&lt;/td&gt;
+					&lt;td&gt;4789&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;FortiGate underlay IP (VTEP source)&lt;/td&gt;
+					&lt;td&gt;10.0.50.1&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Proxmox underlay IP (VTEP source)&lt;/td&gt;
+					&lt;td&gt;10.0.50.11&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Overlay subnet (the stretched segment)&lt;/td&gt;
+					&lt;td&gt;172.31.99.0/24&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Overlay gateway (on the FortiGate)&lt;/td&gt;
+					&lt;td&gt;172.31.99.1&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Test VM&lt;/td&gt;
+					&lt;td&gt;172.31.99.10&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Overlay MTU&lt;/td&gt;
+					&lt;td&gt;1450&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;fortigate-side&#34;&gt;FortiGate side&lt;/h2&gt;
+&lt;p&gt;Create the VXLAN interface, drop it into a software switch, and give the switch the gateway IP. The VXLAN object&amp;rsquo;s &lt;code&gt;interface&lt;/code&gt; is the underlay egress, and that interface&amp;rsquo;s IP becomes the VTEP source.&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config system vxlan
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    edit &amp;#34;vxlan-poc&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set interface &amp;#34;lan&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set vni 4099
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set dstport 4789
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set remote-ip &amp;#34;10.0.50.11&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    next
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;end
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config system switch-interface
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    edit &amp;#34;vxsw&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set type switch
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set member &amp;#34;vxlan-poc&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    next
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;end
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config system interface
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    edit &amp;#34;vxsw&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set ip 172.31.99.1 255.255.255.0
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set allowaccess ping
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set mtu-override enable
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set mtu 1450
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    next
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;end&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;You do not need a firewall policy just to ping the gateway, since that is local-in traffic governed by &lt;code&gt;allowaccess&lt;/code&gt;. A policy only comes into play once overlay traffic needs to leave the software switch headed for something else.&lt;/p&gt;
+&lt;h2 id=&#34;proxmox-side&#34;&gt;Proxmox side&lt;/h2&gt;
+&lt;p&gt;Under Datacenter, then SDN:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Zones, Add, VXLAN. Peers Address List: &lt;code&gt;10.0.50.11,10.0.50.1&lt;/code&gt; (both VTEPs). MTU &lt;code&gt;1450&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;VNets, Add. Tag &lt;code&gt;4099&lt;/code&gt;, assigned to that zone.&lt;/li&gt;
+&lt;li&gt;Apply the pending changes from the SDN overview.&lt;/li&gt;
+&lt;li&gt;Attach a test VM&amp;rsquo;s NIC to the new VNet bridge, and inside the guest set &lt;code&gt;172.31.99.10/24&lt;/code&gt; with gateway &lt;code&gt;172.31.99.1&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;verifying&#34;&gt;Verifying&lt;/h2&gt;
+&lt;p&gt;From the VM, &lt;code&gt;ping 172.31.99.1&lt;/code&gt;. If that comes back, the interop is proven.&lt;/p&gt;
+&lt;p&gt;On the FortiGate I watched the forwarding table and the encapsulated packets go by:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose sys vxlan fdb list vxlan-poc
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;diagnose sniffer packet lan &amp;#39;udp port 4789&amp;#39; 4&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;On Proxmox the same flows show up mirrored:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;bridge fdb show | grep vxlan
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;tcpdump -ni &amp;lt;underlay-iface&amp;gt; udp port 4789&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Once the ping worked, I confirmed large frames survive with &lt;code&gt;ping -M do -s 1400&lt;/code&gt; from the VM. A same subnet test will happily pass small pings even with the MTU set wrong, so this step matters before you trust the segment. (If you skip it, the MTU mismatch waits to bite you later, much more confusingly, the first time real traffic tries to push full size frames.)&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-tip&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Tip&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;A same subnet ping is a liar. It succeeds even when the path MTU is wrong, because small packets fit either way. &lt;code&gt;ping -M do -s 1400&lt;/code&gt; forces a large frame with the don&amp;rsquo;t fragment bit set, so a broken MTU fails right here, loudly, instead of three layers deep in something else a week later.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;adding-more-hosts&#34;&gt;Adding more hosts&lt;/h2&gt;
+&lt;p&gt;This was the part I had wrong in my head at first. For more VTEPs on the same segment, you do not create additional VXLAN interfaces. One VNI is one segment. You just add every remote VTEP to the single interface&amp;rsquo;s &lt;code&gt;remote-ip&lt;/code&gt;, which is a list:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;config system vxlan
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    edit &amp;#34;vxlan-poc&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set interface &amp;#34;lan&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set vni 4099
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set dstport 4789
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        set remote-ip &amp;#34;10.0.50.11&amp;#34; &amp;#34;10.0.50.21&amp;#34; &amp;#34;10.0.50.31&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    next
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;end&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;This is head-end replication: for any broadcast, unknown unicast, or multicast frame, the FortiGate makes a copy and unicasts one to each listed peer. You only add more VXLAN interfaces when you want more segments (VNI 4100, 4101, and so on). Hosts scale the peer list. Segments scale the interface count.&lt;/p&gt;
+&lt;p&gt;The bookkeeping detail to watch is that every VTEP lists every other VTEP, and each one leaves itself out. If the FortiGate&amp;rsquo;s VTEP is 10.0.50.1, then it lists .11, .21, .31, while host .11 lists .1, .21, .31, and so on.&lt;/p&gt;
+&lt;p&gt;Proxmox flips that convention. The SDN VXLAN zone&amp;rsquo;s Peers Address List wants all VTEPs including the local node, and Proxmox works out which one is itself. So every Proxmox node gets the same identical list. That asymmetry, FortiGate excludes self and Proxmox includes self, is the one thing that looks like a mismatch when you are eyeballing both configs side by side.&lt;/p&gt;
+&lt;h2 id=&#34;why-not-multicast&#34;&gt;Why not multicast&lt;/h2&gt;
+&lt;p&gt;The FortiGate can do multicast mode VXLAN, where each VNI maps to a multicast group and the underlay handles replication, so new VTEPs just join the group instead of being listed. That sounds ideal for a growing cluster, but it is a dead end for this topology, for two reasons.&lt;/p&gt;
+&lt;p&gt;First, the Proxmox SDN VXLAN plugin is unicast only. The zone takes a peer list and nothing else, so there is no multicast group for a FortiGate in multicast mode to interop with. The moment Proxmox is involved, you are locked to unicast.&lt;/p&gt;
+&lt;p&gt;Second, even setting Proxmox aside, multicast would not cross the IPsec tunnel to the second site without building multicast over IPsec with PIM, which is far more work than maintaining a peer list. Within a single local subnet multicast can flood without PIM, but that convenience disappears the instant the segment has to reach a remote node.&lt;/p&gt;
+&lt;p&gt;So for a mixed FortiGate and Proxmox setup spanning two sites, unicast head-end replication is the realistic and fully interoperable path.&lt;/p&gt;
+&lt;h2 id=&#34;where-this-goes-next&#34;&gt;Where this goes next&lt;/h2&gt;
+&lt;p&gt;Unicast head-end replication is the flood and learn model, with every VTEP listing every other VTEP. At single digit scale that is easy to maintain by hand. The point where it starts to hurt is exactly the problem EVPN solves: a BGP control plane distributes MAC and IP reachability, so you stop hand listing peers and stop flooding to learn. The FortiGate speaks MP-BGP EVPN and Proxmox has EVPN zones via FRR, so both ends interop there too.&lt;/p&gt;
+&lt;p&gt;Proving the data plane first with static unicast is not wasted effort, though. When I do move to EVPN, any breakage is isolated to the control plane (BGP sessions, route targets, the EVPN route types) rather than the VXLAN encapsulation itself. Debugging one layer at a time beats debugging both at once.&lt;/p&gt;
+&lt;p&gt;That is the next post. For now, the feasibility question is answered: a FortiGate and a Proxmox host will form a working VXLAN segment with nothing more than matching VNI, port, and peer addresses.&lt;/p&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.fortinet.com/document/fortigate/8.0.0/administration-guide/52499/vxlan-with-mp-bgp-evpn&#34;&gt;VXLAN with MP-BGP EVPN (FortiOS Administration Guide)&lt;/a&gt; - the FortiGate VXLAN object and software switch pattern&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://pve.proxmox.com/pve-docs/chapter-pvesdn.html&#34;&gt;Proxmox VE: Software-Defined Network&lt;/a&gt; - SDN zones, VNets, and the VXLAN peer list&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://datatracker.ietf.org/doc/html/rfc7348&#34;&gt;RFC 7348 - Virtual eXtensible Local Area Network (VXLAN)&lt;/a&gt; - the encapsulation itself, if you want the wire format&lt;/li&gt;
+&lt;/ul&gt;
+</description>
     </item>
   </channel>
 </rss>

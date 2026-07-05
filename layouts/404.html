@@ -1,0 +1,37 @@
+{{- define "main" }}
+<div class="not-found-page" style="text-align:center; padding:60px 20px;">
+  <h1 style="font-size:88px; margin:0; color:var(--accent);">404</h1>
+  <p style="font-size:20px; margin:8px 0 40px;">This page took a wrong turn at the overlay network.</p>
+
+  <figure id="q404" style="max-width:60ch; margin:0 auto 40px; opacity:0; transition:opacity .4s ease;">
+    <blockquote style="font-style:italic; font-size:19px; margin:0 0 8px;"></blockquote>
+    <figcaption style="color:var(--secondary); font-size:15px;"></figcaption>
+  </figure>
+
+  <a href="{{ "/" | relURL }}" class="button" style="display:inline-block;">Back home</a>
+
+  <script id="q404-data" type="application/json">
+    {{- $q := slice -}}
+    {{- range site.Data.quotes -}}
+      {{- $q = $q | append (dict "text" .text "source" (.source | default "")) -}}
+    {{- end -}}
+    {{ $q | jsonify | safeJS }}
+  </script>
+</div>
+
+<script>
+(function () {
+  var el = document.getElementById('q404-data');
+  if (!el) return;
+  var data;
+  try { data = JSON.parse(el.textContent); } catch (e) { return; }
+  if (!data || !data.length) return;
+
+  var pick = data[Math.floor(Math.random() * data.length)];
+  var fig = document.getElementById('q404');
+  fig.querySelector('blockquote').textContent = '\u201C' + pick.text + '\u201D';
+  fig.querySelector('figcaption').textContent = pick.source ? '\u2014 ' + pick.source : '';
+  requestAnimationFrame(function () { fig.style.opacity = '1'; });
+})();
+</script>
+{{- end }}

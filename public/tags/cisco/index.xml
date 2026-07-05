@@ -1,24 +1,49 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Cisco on NateBent.com</title>
     <link>https://natebent.com/tags/cisco/</link>
     <description>Recent content in Cisco on NateBent.com</description>
-    <image>
-      <title>NateBent.com</title>
-      <url>https://natebent.com/images/papermod-cover.png</url>
-      <link>https://natebent.com/images/papermod-cover.png</link>
-    </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 13 Jan 2024 15:18:50 -0600</lastBuildDate>
+    <managingEditor> (Nathan Bent)</managingEditor>
     <atom:link href="https://natebent.com/tags/cisco/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ansible &amp; Network Engineers, Pt. I</title>
       <link>https://natebent.com/posts/ansible-net-eng-1/</link>
-      <pubDate>Sat, 13 Jan 2024 15:18:50 -0600</pubDate>
+      <pubDate>Sat, 13 Jan 2024 15:18:50 -0600</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/ansible-net-eng-1/</guid>
-      <description>Playing with Ansible in a network setting</description>
+      <description>&lt;p&gt;I have been trying to gather my thoughts about using Ansible as a network engineer for a while now; but I&amp;rsquo;ve never found a good perspective to tell the story through.  Even to begin to summarize how useful Ansible can be in a network setting can be a daunting task; my ongoing Obsidian web of notes seems to grow exponentially the more I explore.&lt;/p&gt;
+&lt;h2 id=&#34;intro-and-context&#34;&gt;Intro and context&lt;/h2&gt;
+&lt;p&gt;Since I have to start somewhere, I think that covering the basic framework of how I use Ansible, and some of the most common tasks that I have been able to automate and speed up over time.&lt;/p&gt;
+&lt;p&gt;For example, I recently worked on a project where we were establishing standards conformance in an environment of roughly 100 switches.  Traditionally, in order to check things like SNMP communities, Syslogging servers and the like, you&amp;rsquo;d have to log in to each switch individually.&lt;/p&gt;
+&lt;p&gt;Using Ansible, we were able to programmatically make sure that each switch matched those standards.  As Ansible works though it&amp;rsquo;s playbook of activities, it will report back as a success or a failure, making tracking extremely simple.&lt;/p&gt;
+&lt;h2 id=&#34;setting-up-the-environment&#34;&gt;Setting up the environment&lt;/h2&gt;
+&lt;p&gt;The environment for Ansible is mostly contained in the inventory files that you keep, containing the devices that will be configuring.&lt;/p&gt;
+&lt;p&gt;A simple &lt;code&gt;inventory.yaml&lt;/code&gt; file that I used recently looked like this;&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;yaml&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;l&#34;&gt;SwitchGroup1]&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;l&#34;&gt;ios]&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;ios01 ansible_host=ios-01.example.net&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;ios02 ansible_host=ios-02.example.net&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;ios03 ansible_host=ios-03.example.net&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;l&#34;&gt;ios:vars]&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;ansible_become=yes&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;ansible_become_method=enable&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;ansible_network_os=cisco.ios.ios&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;ansible_user=my_ios_user&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;ansible_password=my_ios_password&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&#34;basic-example-tasks&#34;&gt;Basic example tasks&lt;/h2&gt;
+&lt;p&gt;For my example task of ensuring SNMP settings are correct&amp;quot;&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;yaml&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;blah blah blah&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;blah blah blah&lt;/span&gt;&lt;span class=&#34;w&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;l&#34;&gt;blah blah blah&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&#34;some-thoughts-on-ansibles-place-in-my-toolbox&#34;&gt;Some thoughts on Ansible&amp;rsquo;s place in my toolbox&lt;/h2&gt;
+&lt;p&gt;Ansible has become one of my more used deployment methods; it&amp;rsquo;s incredibly versatile in terms of what it can do, and what platforms it can interact with.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;ve found that Ansible is excellent, and worry-free, for more simple programmatic tasks, where each switch is going to have a matching configuration.  Tasks that require compliance with a standard make the most sense; for example most organizations will want to have the same SNMP communties, syslog servers, logging parameters across their devices.&lt;/p&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://docs.ansible.com/ansible/latest/collections/cisco/ios/index.html&#34;&gt;Ansible documentation for Cisco IOS&lt;/a&gt;&lt;/p&gt;
+</description>
     </item>
   </channel>
 </rss>

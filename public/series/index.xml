@@ -1,22 +1,17 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Series on NateBent.com</title>
     <link>https://natebent.com/series/</link>
     <description>Recent content in Series on NateBent.com</description>
-    <image>
-      <title>NateBent.com</title>
-      <url>https://natebent.com/images/papermod-cover.png</url>
-      <link>https://natebent.com/images/papermod-cover.png</link>
-    </image>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 30 Jun 2026 01:00:00 +0000</lastBuildDate>
+    <managingEditor> (Nathan Bent)</managingEditor>
     <atom:link href="https://natebent.com/series/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Proxmox SDN</title>
       <link>https://natebent.com/series/proxmox-sdn/</link>
-      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate>
+      <pubDate>Tue, 30 Jun 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/series/proxmox-sdn/</guid>
       <description></description>
     </item>
