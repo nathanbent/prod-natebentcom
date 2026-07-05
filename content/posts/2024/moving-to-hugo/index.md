@@ -9,7 +9,7 @@ categories: ["Uncategorized"]
 #series: ["No-Series"]
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: false
 description: "Desc. Text"
