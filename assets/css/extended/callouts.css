@@ -6,43 +6,61 @@
    blockquote rule reads them. Add a type = one color block per
    mode + one mapping line (plus the icon in the render hook).
 
-   Palette (mirrors --accent / --accent-2 in custom.css sec 1;
-   if the accents ever change, re-sync NOTE and INSIGHT here):
+   Palette:
 
-     default + [!NOTE]   ocean blue   (site accent)
-     [!TIP]              teal         (bridges blue and green)
+     default + [!NOTE]   var(--accent)    ocean blue, tracks custom.css
+     [!TIP]              teal             bridges blue and green
      [!IMPORTANT]        purple
      [!WARNING]          amber
      [!CAUTION]          red
-     [!INSIGHT]          racing green (site accent-2)
+     [!INSIGHT]          var(--accent-2)  racing green, tracks custom.css
      [!QUOTE]            cool gray
+
+   NOTE and INSIGHT follow the accents automatically (borders/text
+   via var(), background tints via color-mix). The var() lines are
+   intentionally repeated in .dark: custom properties resolve their
+   var() refs where DECLARED (:root = html), but PaperMod's .dark
+   class sits on body, so the dark re-declaration is required to
+   pick up the dark accent values. Do not "deduplicate" them.
    ============================================================ */
 
 :root {
-    --callout-border: #1B5A7A;
-    --callout-bg: rgba(27, 90, 122, .07);
-    --callout-fg: #1B5A7A;
+    --callout-border: var(--accent);
+    --callout-bg: color-mix(in srgb, var(--accent) 7%, transparent);
+    --callout-fg: var(--accent);
 
-    --cl-note-b: #1B5A7A;     --cl-note-bg: rgba(27, 90, 122, .07);     --cl-note-f: #1B5A7A;
+    --cl-note-b: var(--accent);
+    --cl-note-bg: color-mix(in srgb, var(--accent) 7%, transparent);
+    --cl-note-f: var(--accent);
+
+    --cl-insight-b: var(--accent-2);
+    --cl-insight-bg: color-mix(in srgb, var(--accent-2) 7%, transparent);
+    --cl-insight-f: var(--accent-2);
+
     --cl-tip-b: #1A7A6E;      --cl-tip-bg: rgba(26, 122, 110, .07);     --cl-tip-f: #14685E;
     --cl-imp-b: #8a63d2;      --cl-imp-bg: rgba(138, 99, 210, .08);     --cl-imp-f: #7b54c8;
     --cl-warn-b: #d1a017;     --cl-warn-bg: rgba(209, 160, 23, .10);    --cl-warn-f: #9c7400;
     --cl-caut-b: #d1453b;     --cl-caut-bg: rgba(209, 69, 59, .08);     --cl-caut-f: #c23730;
-    --cl-insight-b: #235B41;  --cl-insight-bg: rgba(35, 91, 65, .07);   --cl-insight-f: #235B41;
     --cl-quote-b: #A7B3BD;    --cl-quote-bg: rgba(122, 140, 153, .06);  --cl-quote-f: var(--secondary);
 }
 
 .dark {
-    --callout-border: #7FB3D6;
-    --callout-bg: rgba(127, 179, 214, .10);
-    --callout-fg: #7FB3D6;
+    --callout-border: var(--accent);
+    --callout-bg: color-mix(in srgb, var(--accent) 10%, transparent);
+    --callout-fg: var(--accent);
 
-    --cl-note-b: #7FB3D6;     --cl-note-bg: rgba(127, 179, 214, .10);   --cl-note-f: #7FB3D6;
+    --cl-note-b: var(--accent);
+    --cl-note-bg: color-mix(in srgb, var(--accent) 10%, transparent);
+    --cl-note-f: var(--accent);
+
+    --cl-insight-b: var(--accent-2);
+    --cl-insight-bg: color-mix(in srgb, var(--accent-2) 10%, transparent);
+    --cl-insight-f: var(--accent-2);
+
     --cl-tip-b: #5FC5B8;      --cl-tip-bg: rgba(95, 197, 184, .10);     --cl-tip-f: #5FC5B8;
     --cl-imp-b: #b294e8;      --cl-imp-bg: rgba(178, 148, 232, .12);    --cl-imp-f: #b294e8;
     --cl-warn-b: #e3b341;     --cl-warn-bg: rgba(227, 179, 65, .12);    --cl-warn-f: #e3b341;
     --cl-caut-b: #f0857d;     --cl-caut-bg: rgba(240, 133, 125, .12);   --cl-caut-f: #f0857d;
-    --cl-insight-b: #7FBFA0;  --cl-insight-bg: rgba(127, 191, 160, .10); --cl-insight-f: #7FBFA0;
     --cl-quote-b: #46525E;    --cl-quote-bg: rgba(150, 165, 178, .07);  --cl-quote-f: var(--secondary);
 }
 
