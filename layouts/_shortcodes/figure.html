@@ -13,6 +13,7 @@
         src="{{ $medium }}"
         srcset="{{ $small }} 640w, {{ $medium }} 1024w, {{ $large }} 1600w"
         sizes="(min-width: 768px) 720px, 100vw"
+        data-full="{{ $img.RelPermalink }}"
         alt="{{ $.Get "alt" }}"
         width="{{ $img.Width }}" height="{{ $img.Height }}"
         loading="lazy" decoding="async">

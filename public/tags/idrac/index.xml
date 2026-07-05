@@ -13,53 +13,96 @@
       <link>https://natebent.com/posts/idrac-fan-control/</link>
       <pubDate>Wed, 25 Sep 2024 11:54:26 -0500</pubDate><author>Nathan Bent</author>
       <guid>https://natebent.com/posts/idrac-fan-control/</guid>
-      <description>&lt;h2 id=&#34;concept&#34;&gt;Concept&lt;/h2&gt;
-&lt;p&gt;Managing server fan speed is crucial for maintaining an optimal balance between cooling efficiency and noise levels, especially in environments where temperature control and acoustics are important. Dell servers, like many other enterprise-grade hardware, come equipped with Intelligent Platform Management Interface (IPMI) capabilities. With the help of ipmi-tools, we can access and control various hardware components of the server, including fan speed, remotely or locally, without needing direct access to the operating system.&lt;/p&gt;
-&lt;p&gt;Here, I will walk through some of the basics of how you can control the fan speed of your iDRAC-enabled Dell servers.&lt;/p&gt;
-&lt;h2 id=&#34;steps-involved&#34;&gt;Steps involved&lt;/h2&gt;
-&lt;h3 id=&#34;step-1-install-impitools--enable-ipmi-access-on-device&#34;&gt;Step 1: Install impitools &amp;amp; enable IPMI access on device&lt;/h3&gt;
-&lt;p&gt;You will need to install &lt;code&gt;ipmitool&lt;/code&gt;&lt;/p&gt;
+      <description>&lt;h2 id=&#34;context&#34;&gt;Context&lt;/h2&gt;
+&lt;p&gt;I run a couple of Dell PowerEdge boxes in the homelab, and out of the box they are loud. Dell&amp;rsquo;s thermal algorithm is tuned for a datacenter, so it errs hard toward cooling, which is exactly the wrong tradeoff for a room I actually sit in. The good news is that iDRAC exposes IPMI (the Intelligent Platform Management Interface), and with &lt;code&gt;ipmitool&lt;/code&gt; you can talk to the BMC directly and set the fan speed yourself, either over the network or locally on the box.&lt;/p&gt;
+&lt;p&gt;This is the basic version: install the tool, confirm you can reach the BMC, read the fans, and set them. One thing up front, because it will save you some frustration: Dell has since walked this back on newer firmware, and I get into that at the end.&lt;/p&gt;
+&lt;h2 id=&#34;installing-ipmitool&#34;&gt;Installing ipmitool&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;ipmitool&lt;/code&gt; is in most distro repos:&lt;/p&gt;
 &lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo apt install ipmitool   &lt;span class=&#34;c1&#34;&gt;# For Debian/Ubuntu&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo yum install ipmitool   &lt;span class=&#34;c1&#34;&gt;# For RHEL/CentOS&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&#34;step-2-verify-ipmi-access&#34;&gt;Step 2: Verify IPMI Access&lt;/h3&gt;
-&lt;p&gt;First, verify that you can communicate with the IPMI interface using the &lt;code&gt;ipmitool&lt;/code&gt; command. If you&amp;rsquo;re accessing a remote server, you’ll use the -H flag for the server’s IP address, the -U flag for the username, and the -P flag for the password.&lt;/p&gt;
-&lt;p&gt;Run the following command to check IPMI connection and get a system status overview:&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; sdr&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;This should return sensor data, including fan speeds, temperatures, and voltages.&lt;/p&gt;
-&lt;h3 id=&#34;step-3-check-current-fan-speed&#34;&gt;Step 3: Check Current Fan Speed&lt;/h3&gt;
-&lt;p&gt;To view the current fan speed, use the following command:&lt;/p&gt;
-&lt;p&gt;bash
-Copy code
-ipmitool -I lanplus -H &lt;!-- raw HTML omitted --&gt; -U &lt;!-- raw HTML omitted --&gt; -P &lt;!-- raw HTML omitted --&gt; sensor list | grep -i fan
-This will display all the fans in your system along with their current RPM (revolutions per minute). Understanding the current fan speeds will help when making adjustments later.&lt;/p&gt;
-&lt;h2 id=&#34;commands-to-copy&#34;&gt;Commands to copy&lt;/h2&gt;
-&lt;blockquote&gt;&lt;p&gt;Replace &lt;code&gt;&amp;lt;BMC-IP&amp;gt;&lt;/code&gt;, &lt;code&gt;&amp;lt;username&amp;gt;&lt;/code&gt;, &lt;code&gt;&amp;lt;password&amp;gt;&lt;/code&gt;&lt;/p&gt;
-&lt;/blockquote&gt;&lt;p&gt;Enable manual fan control: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x01 0x00&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Disable manual fan control: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x01 0x01&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Set a specific fan speed: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff &amp;lt;fan-speed&amp;gt;&lt;/code&gt;&lt;/p&gt;
-&lt;blockquote&gt;&lt;p&gt;To break this command out;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;The &lt;code&gt;0xff&lt;/code&gt; indicates that this command applies to all fans&lt;/li&gt;
-&lt;li&gt;The &lt;code&gt;&amp;lt;fan-speed&amp;gt;&lt;/code&gt; indicates the fan speed (in hexadecimal)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/blockquote&gt;&lt;p&gt;Some examples of specific fan speed commands:&lt;/p&gt;
-&lt;p&gt;Set fan speed to 10%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x0A&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Set fan speed to 20%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x14&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Set fan speed to 30%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x1E&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Set fan speed to 50%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x32&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Set fan speed to 100%: &lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x64&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;To enable fan control and set the speed to 30%:&lt;/p&gt;
+&lt;p&gt;If you are talking to the BMC over the network, you also need IPMI over LAN turned on. That lives in the iDRAC UI under iDRAC Settings &amp;gt; Connectivity &amp;gt; Network &amp;gt; IPMI Settings.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-tip&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Tip&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;If you are running &lt;code&gt;ipmitool&lt;/code&gt; from the server itself, use the local interface (&lt;code&gt;-I open&lt;/code&gt;) instead of &lt;code&gt;-I lanplus&lt;/code&gt;. It skips the credentials, and more to the point it means you are not exposing iDRAC&amp;rsquo;s IPMI stack to your LAN. An old BMC IPMI implementation is not something I want reachable from the network if I can help it.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;confirming-you-can-reach-the-bmc&#34;&gt;Confirming you can reach the BMC&lt;/h2&gt;
+&lt;p&gt;Over the network you pass &lt;code&gt;-H&lt;/code&gt; for the BMC address, &lt;code&gt;-U&lt;/code&gt; for the user, and &lt;code&gt;-P&lt;/code&gt; for the password. The quickest way to confirm you are actually talking to the thing is a full sensor dump:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; sdr&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;That returns the sensor data records: fans, temperatures, and voltages. If real numbers come back, you are connected.&lt;/p&gt;
+&lt;h2 id=&#34;reading-the-current-fan-speeds&#34;&gt;Reading the current fan speeds&lt;/h2&gt;
+&lt;p&gt;Before you change anything, look at what the fans are doing so you have a baseline to compare against:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; sensor list &lt;span class=&#34;p&#34;&gt;|&lt;/span&gt; grep -i fan&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;That lists every fan and its current RPM.&lt;/p&gt;
+&lt;h2 id=&#34;setting-the-fans&#34;&gt;Setting the fans&lt;/h2&gt;
+&lt;p&gt;Manual control is two switches and a speed command. The switch is the part I had wrong in my head at first:&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-insight&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;code&gt;raw 0x30 0x30 0x01 0x00&lt;/code&gt; turns manual control on, and &lt;code&gt;0x30 0x30 0x01 0x01&lt;/code&gt; turns it back off. The &lt;code&gt;0x00&lt;/code&gt;/&lt;code&gt;0x01&lt;/code&gt; reads backwards from what you would guess: &lt;code&gt;0x00&lt;/code&gt; hands control to you, and &lt;code&gt;0x01&lt;/code&gt; hands it back to Dell&amp;rsquo;s automatic algorithm.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;Replace &lt;code&gt;&amp;lt;BMC-IP&amp;gt;&lt;/code&gt;, &lt;code&gt;&amp;lt;username&amp;gt;&lt;/code&gt;, and &lt;code&gt;&amp;lt;password&amp;gt;&lt;/code&gt; in all of these.&lt;/p&gt;
+&lt;p&gt;Enable manual fan control:
+&lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x01 0x00&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Hand the fans back to Dell&amp;rsquo;s automatic control:
+&lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x01 0x01&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Set a specific fan speed:
+&lt;code&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff &amp;lt;fan-speed&amp;gt;&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Breaking out that last one: &lt;code&gt;0xff&lt;/code&gt; applies the command to all fans, and &lt;code&gt;&amp;lt;fan-speed&amp;gt;&lt;/code&gt; is the speed as a hex percentage. The values you will actually reach for:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Fan speed&lt;/th&gt;
+					&lt;th&gt;Hex value&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;10%&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;0x0A&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;20%&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;0x14&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;30%&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;0x1E&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;50%&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;0x32&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;100%&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;0x64&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Putting it together, to enable manual control and drop the fans to 30%:&lt;/p&gt;
 &lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x01 0x00
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;ipmitool -I lanplus -H &amp;lt;BMC-IP&amp;gt; -U &amp;lt;username&amp;gt; -P &amp;lt;password&amp;gt; raw 0x30 0x30 0x02 0xff 0x1E&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h2 id=&#34;some-notes-about-recent-ish-idrac-updates&#34;&gt;Some notes about recent-ish iDRAC updates&lt;/h2&gt;
-&lt;p&gt;After iDRAC 9 version3.30.30.30, fan control has been disabled by Dell.  Some forum posts &lt;a href=&#34;https://www.dell.com/community/en/conversations/poweredge-hardware-general/dell-eng-is-taking-away-fan-speed-control-away-from-users-idrac-3343434/647f8593f4ccf8a8de47aa9b&#34;&gt;here&lt;/a&gt; on Dell&amp;rsquo;s support page indicate that this was done to prevent inadvertant damage to servers from people like me doing stuff like this.  This is both a fair point, but also somewhat frustrating for those of us running these in more acoustically-sensitive environments.&lt;/p&gt;
-&lt;p&gt;There is a downgrade path that worked for me (&lt;a href=&#34;https://www.reddit.com/r/homelab/comments/t9pa13/dell_poweredge_fan_control_with_ipmitool/&#34;&gt;from this Reddit thread&lt;/a&gt;):
-&lt;code&gt;7.00.00.00 -&amp;gt; 6.10.80.00 -&amp;gt; 6.00.02.00 -&amp;gt; 5.10.50.00 -&amp;gt; 5.00.00.00 -&amp;gt; 4.40.40.00 -&amp;gt; 4.40.10.00 -&amp;gt; 4.00.00.00 -&amp;gt; 3.30.30.30&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;Though obviously YMMV, and I don&amp;rsquo;t take any responsibility for anything good/bad that happens.&lt;/p&gt;
+&lt;h2 id=&#34;what-changed-on-newer-idrac&#34;&gt;What changed on newer iDRAC&lt;/h2&gt;
+&lt;p&gt;If you run the commands above and get &lt;code&gt;Insufficient privilege level&lt;/code&gt; back, this is why. On 14th-gen PowerEdge (iDRAC 9), Dell removed access to these raw commands in firmware 3.34.34.34. It was deliberate: the raw command bypasses their multi-vector cooling algorithm, and a Dell engineer confirmed on the community forums that after enough support escalations they cut it off. Firmware 3.30.30.30 is the last version that still honors the commands, which is why the downgrade path below lands there.&lt;/p&gt;
+&lt;p&gt;The rejection looks like this:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Unable to send RAW command (channel=0x0 netfn=0x30 lun=0x0 cmd=0x30 rsp=0xd4): Insufficient privilege level&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;On current firmware the sanctioned knobs are the fan speed offset and minimum fan speed, under Configuration &amp;gt; System Settings &amp;gt; Hardware Settings &amp;gt; Fans in the iDRAC UI, or the matching &lt;code&gt;system.thermalsettings&lt;/code&gt; objects through racadm. The catch is that they only let you push fan speeds up from the baseline, not force them quiet, so for a noise problem they do not really help. That is the whole reason people bother downgrading.&lt;/p&gt;
+&lt;p&gt;Dell&amp;rsquo;s reasoning is fair enough, honestly: plenty of people (me included) will happily set a fan too low and cook something, then act surprised. It is still frustrating if you are running these in a room where noise matters.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-caution&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.141.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Caution&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;This downgrade path only works if your iDRAC can still roll back that far. Per Dell KB RAC0181, once a 14G server installs the June 2024 firmware (7.00.00.172), or a 15G server installs 7.10.50.00, it can no longer be downgraded to 4.40.10.00 or older. If your box has already taken that update, the route down to 3.30.30.30 is closed and no ipmitool trick reopens it. Check where you are before you count on this.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;There is a downgrade path that worked for me (&lt;a href=&#34;https://www.reddit.com/r/homelab/comments/t9pa13/dell_poweredge_fan_control_with_ipmitool/&#34;&gt;from this Reddit thread&lt;/a&gt;):&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;7.00.00.00 -&amp;gt; 6.10.80.00 -&amp;gt; 6.00.02.00 -&amp;gt; 5.10.50.00 -&amp;gt; 5.00.00.00 -&amp;gt; 4.40.40.00 -&amp;gt; 4.40.10.00 -&amp;gt; 4.00.00.00 -&amp;gt; 3.30.30.30&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Obviously YMMV, and I don&amp;rsquo;t take any responsibility for anything good or bad that happens.&lt;/p&gt;
 &lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.reddit.com/r/homelab/comments/t9pa13/dell_poweredge_fan_control_with_ipmitool/&#34;&gt;Reddit thread about iDRAC downgrading&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.reddit.com/r/homelab/comments/u1bwl2/poweredge_g13_fan_control_issues_a_quick_guide/&#34;&gt;PowerEdge G13 Fan Control - Reddit&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.dell.com/support/kbdoc/en-us/000225924/rac0181-idrac9-firmware-downgrade-failures-on-14-15g-poweredge-servers&#34;&gt;Dell KB RAC0181: iDRAC9 firmware downgrade failures on 14G/15G servers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.dell.com/community/en/conversations/poweredge-hardware-general/dell-eng-is-taking-away-fan-speed-control-away-from-users-idrac-3343434/647f8593f4ccf8a8de47aa9b&#34;&gt;Dell Community: &amp;ldquo;Dell ENG is taking away fan speed control&amp;rdquo; (where Dell confirmed the 3.34.34.34 change)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.dell.com/support/manuals/en-us/idrac9-lifecycle-controller-v3.3-series/idrac9_3.36.36.36_ug/modifying-thermal-settings-using-racadm&#34;&gt;Dell: Modifying thermal settings using RACADM&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.reddit.com/r/homelab/comments/t9pa13/dell_poweredge_fan_control_with_ipmitool/&#34;&gt;Reddit: Dell PowerEdge fan control with ipmitool (the downgrade thread)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.reddit.com/r/homelab/comments/u1bwl2/poweredge_g13_fan_control_issues_a_quick_guide/&#34;&gt;Reddit: PowerEdge G13 fan control issues, a quick guide&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>

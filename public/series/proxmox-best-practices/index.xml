@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Proxmox Best Practices on NateBent.com</title>
+    <link>https://natebent.com/series/proxmox-best-practices/</link>
+    <description>Recent content in Proxmox Best Practices on NateBent.com</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <managingEditor> (Nathan Bent)</managingEditor>
+    <atom:link href="https://natebent.com/series/proxmox-best-practices/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Proxmox Best Practices - Guest Storage</title>
+      <link>https://natebent.com/posts/proxmox-best-practices-guest-storage/</link>
+      <pubDate>Mon, 11 May 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
+      <guid>https://natebent.com/posts/proxmox-best-practices-guest-storage/</guid>
+      <description>&lt;h2 id=&#34;why-this-post-exists&#34;&gt;Why this post exists&lt;/h2&gt;
+&lt;p&gt;Every time I built a new VM I found myself re-litigating the same disk settings: cache mode, aio, whether iothread was worth it, discard on or off. The answers are scattered across forum threads, half of them stale, and a fair number of them wrong for the storage I actually run. So I sat down and worked out a set of defaults I could stop thinking about, then validated them against my own cluster.&lt;/p&gt;
+&lt;p&gt;This is that reference. The one idea it all hangs on:&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-insight&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;The right disk settings are decided by how a VM is &lt;em&gt;used&lt;/em&gt;, not by the OS inside it. Two questions settle almost everything: can this VM move to another host, and what kind of storage is under it? Answer those and the rest falls out.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;I validated everything below against my own three-node cluster. The version baseline matters more than usual here, because io_uring fallback behavior, ZFS Direct I/O, and ARC defaults are all version-dependent. If you are far from this baseline, re-check the assumptions flagged at the end.&lt;/p&gt;
+&lt;h3 id=&#34;validated-against&#34;&gt;Validated against&lt;/h3&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Component&lt;/th&gt;
+					&lt;th&gt;Version&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Proxmox VE&lt;/td&gt;
+					&lt;td&gt;9.2.4&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Kernel&lt;/td&gt;
+					&lt;td&gt;7.0.14-2-pve&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;pve-qemu-kvm&lt;/td&gt;
+					&lt;td&gt;11.0.2&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;qemu-server&lt;/td&gt;
+					&lt;td&gt;9.1.18&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;OpenZFS&lt;/td&gt;
+					&lt;td&gt;2.4.3&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Two consequences worth stating up front. First, this kernel and QEMU are well past the era where io_uring had rough edges on iSCSI and LVM, so io_uring is safe as a universal default. Second, OpenZFS gained Direct I/O in the 2.3 line, so on a plain file &lt;code&gt;cache=none&lt;/code&gt; now actually honors &lt;code&gt;O_DIRECT&lt;/code&gt; instead of the older behavior of quietly failing the open. That last point has a catch that bit an assumption I had, and I get into it below.&lt;/p&gt;
+&lt;h2 id=&#34;the-short-version&#34;&gt;The short version&lt;/h2&gt;
+&lt;p&gt;Everything here collapses to two storage lanes and a small set of universal guest settings.&lt;/p&gt;
+&lt;p&gt;The shared, HA lane is network iSCSI. Any VM that must be able to move between nodes, whether HA-managed or just live-migratable, lives here. Mobility forces &lt;code&gt;cache=none&lt;/code&gt; for coherency and &lt;code&gt;aio=io_uring&lt;/code&gt; for safety. No writeback, ever, because host page cache is per-node and is not coherent across a migration.&lt;/p&gt;
+&lt;p&gt;The pinned, local lane is local ZFS (or a local dir). Any VM tied to specific hardware through GPU or other PCIe passthrough is pinned here and cannot live-migrate anyway. On ZFS this is still &lt;code&gt;cache=none&lt;/code&gt; plus &lt;code&gt;io_uring&lt;/code&gt;, because ARC is already the cache. The only place writeback is ever correct is a pinned, disposable VM on a non-ZFS local disk.&lt;/p&gt;
+&lt;p&gt;Universal settings, every VM, both lanes, both OSes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;SCSI controller: &lt;code&gt;virtio-scsi-single&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;iothread=1&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;cache=none&lt;/code&gt; (the default; do not override except the one documented writeback case)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;aio=io_uring&lt;/code&gt; (the default; only consider &lt;code&gt;native&lt;/code&gt; on pinned raw-block disks, never on ZFS or qcow2)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;discard=on&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ssd=1&lt;/code&gt; (SSD emulation) on any SSD-backed tier&lt;/li&gt;
+&lt;li&gt;Guest agent installed; balloon off for anything memory-sensitive (domain controllers, AI boxes)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;cache-why-none-and-the-one-exception&#34;&gt;Cache: why none, and the one exception&lt;/h2&gt;
+&lt;p&gt;Proxmox cache modes are combinations of &lt;code&gt;O_DIRECT&lt;/code&gt; and &lt;code&gt;O_DSYNC&lt;/code&gt; semantics. The practical summary:&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Mode&lt;/th&gt;
+					&lt;th&gt;Host page cache&lt;/th&gt;
+					&lt;th&gt;Data-loss risk on host crash&lt;/th&gt;
+					&lt;th&gt;Use&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;none&lt;/code&gt; (default)&lt;/td&gt;
+					&lt;td&gt;Bypassed (&lt;code&gt;O_DIRECT&lt;/code&gt;); guest write cache reported present&lt;/td&gt;
+					&lt;td&gt;Low; guest flushes go to storage&lt;/td&gt;
+					&lt;td&gt;Everything here&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;writeback&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Used for read and write&lt;/td&gt;
+					&lt;td&gt;In-flight async writes lost on power loss&lt;/td&gt;
+					&lt;td&gt;Narrow: pinned, disposable, non-ZFS&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;writethrough&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Used for read; writes sync&lt;/td&gt;
+					&lt;td&gt;Low, but slow writes&lt;/td&gt;
+					&lt;td&gt;Rare&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;directsync&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Bypassed; writes sync&lt;/td&gt;
+					&lt;td&gt;Lowest; slowest&lt;/td&gt;
+					&lt;td&gt;Guests that never flush; rarely needed&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;writeback (unsafe)&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Used; ignores guest flushes&lt;/td&gt;
+					&lt;td&gt;Total&lt;/td&gt;
+					&lt;td&gt;Throwaway and templating only&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;why-none-wins-on-zfs&#34;&gt;Why none wins on ZFS&lt;/h3&gt;
+&lt;p&gt;With &lt;code&gt;cache=none&lt;/code&gt;, QEMU opens the disk with &lt;code&gt;O_DIRECT&lt;/code&gt; and the Linux host page cache is not used. On ZFS, reads are served from ARC and async writes buffer in the ZFS dirty cache, which flushes on its own timer (about 5 seconds by default). Sync and flush writes are honored and go to the ZIL or SLOG. ZFS is, in effect, already doing writeback-style buffering internally, and doing it safely.&lt;/p&gt;
+&lt;p&gt;Turning on &lt;code&gt;writeback&lt;/code&gt; stacks the host page cache on top of ARC and the ZFS dirty cache. The same data then lives in the guest, the host page cache, and ARC at once. That inflates RAM usage, and the kernel will happily fill free memory with page cache and start swapping. On ZFS, writeback is a straight loss with added crash risk for no gain.&lt;/p&gt;
+&lt;p&gt;Here is the catch I mentioned, and the part I had wrong in my head at first. Direct I/O in OpenZFS is a dataset feature, and it does not apply to zvols:&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-quote&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M1.75 2.5A1.75 1.75 0 0 0 0 4.25v3.5C0 8.716.784 9.5 1.75 9.5H3c0 1.5-.5 2.5-2 3.5 2.5-.5 4.5-2 4.5-5.25v-3.5A1.75 1.75 0 0 0 3.75 2.5Zm8.5 0A1.75 1.75 0 0 0 8.5 4.25v3.5c0 .966.784 1.75 1.75 1.75h1.25c0 1.5-.5 2.5-2 3.5 2.5-.5 4.5-2 4.5-5.25v-3.5a1.75 1.75 0 0 0-1.75-1.75Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Quote&lt;/span&gt;&lt;span class=&#34;callout-cite&#34;&gt;OpenZFS, zfsprops(7)&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Direct I/O is &amp;ldquo;not supported with zvols.&amp;rdquo; So on a zvol, &lt;code&gt;cache=none&lt;/code&gt; never bypasses ARC. It bypasses the host page cache, and ARC does the caching, which is exactly what you want anyway.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;So for the great majority of VMs here, which sit on zvols under &lt;code&gt;zfspool&lt;/code&gt; storage, &lt;code&gt;cache=none&lt;/code&gt; was always the right call and its behavior has not changed. Where Direct I/O actually matters is a raw or qcow2 file sitting on a ZFS &lt;em&gt;dataset&lt;/em&gt;, and that is the one place the 2.3 change fixes an old headache. More on that in the Windows template example.&lt;/p&gt;
+&lt;h3 id=&#34;why-none-wins-on-shared-iscsi&#34;&gt;Why none wins on shared iSCSI&lt;/h3&gt;
+&lt;p&gt;Two reasons. The backing store here is a TrueNAS box, which is itself ZFS with its own ARC and ZIL, so writeback at the QEMU layer would double-cache across the network for zero gain. More importantly, writeback holds data in per-node host page cache, which is not coherent across a live migration.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-caution&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.141.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Caution&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Any cache mode other than &lt;code&gt;none&lt;/code&gt; on storage a VM can migrate across is a known corruption vector. The host page cache is per-node, nothing keeps it coherent across a live migration, and nothing warns you. It works fine right up until a migration eats a VM. Mobile VMs stay on &lt;code&gt;none&lt;/code&gt;, full stop.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h3 id=&#34;the-one-legitimate-writeback-case&#34;&gt;The one legitimate writeback case&lt;/h3&gt;
+&lt;p&gt;The official Windows guest best-practices guidance does suggest writeback for performance, and a hardware RAID controller with a battery or PLP-backed cache handles writeback fine. Both assume storage with no other caching layer underneath. In a ZFS-heavy environment that describes exactly one situation: a pinned (passthrough) VM whose disk sits on a plain non-ZFS local device (an ext4 or LVM dir store, or a dedicated passed-through SSD), holding disposable data where losing a few seconds of in-flight writes on a crash is an annoyance, not a loss. A Parsec or VDI gaming VM is the textbook fit. On a disk like that, &lt;code&gt;writeback&lt;/code&gt; (or even &lt;code&gt;writeback (unsafe)&lt;/code&gt; for a pure scratch disk) is correct. The moment that disk is on ZFS, revert to &lt;code&gt;none&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;aio-why-io_uring-and-when-native-or-threads&#34;&gt;aio: why io_uring, and when native or threads&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;aio&lt;/code&gt; selects the async I/O submission path. The headline benchmark finding: &lt;code&gt;native&lt;/code&gt; and &lt;code&gt;io_uring&lt;/code&gt; land within a few percent of each other, &lt;code&gt;native&lt;/code&gt; has a slight edge at QD1 latency, and &lt;code&gt;io_uring&lt;/code&gt; degrades a little less gracefully only under extreme load. So &lt;code&gt;native&lt;/code&gt; looks marginally better on paper, but it comes with a hard constraint.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;aio=native&lt;/code&gt; may only be used on unbuffered, &lt;code&gt;O_DIRECT&lt;/code&gt;, raw block storage with &lt;code&gt;cache=none&lt;/code&gt;. If anything in the I/O path can block on submission, &lt;code&gt;native&lt;/code&gt; blocks the whole submission syscall. That rules it out for:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ZFS (copy-on-write, can block) : use &lt;code&gt;io_uring&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;qcow2 (metadata lookups block) : use &lt;code&gt;io_uring&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;thin LVM (virtual-to-physical metadata) : use &lt;code&gt;io_uring&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;aio=native&lt;/code&gt; is only safe on directly-mapped raw block: a raw iSCSI LUN, thick LVM with no overlay, NVMe, or Ceph and RBD, always with &lt;code&gt;cache=none&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Here is why this environment uses &lt;code&gt;io_uring&lt;/code&gt; everywhere anyway. The shared iSCSI storage is thick LVM, which on its own would tolerate &lt;code&gt;native&lt;/code&gt;. But it has snapshot-as-volume-chain enabled, and that layers a qcow2 overlay on top of the LV whenever a snapshot exists, including during every PBS backup run. Once the active image is qcow2, &lt;code&gt;native&lt;/code&gt; blocks. So &lt;code&gt;io_uring&lt;/code&gt; is the correct, durable choice for the iSCSI lane, and this qcow2-in-the-chain behavior during backups is a very plausible cause of the intermittent iSCSI I/O oddities I chased a while back. For local ZFS, &lt;code&gt;io_uring&lt;/code&gt; is mandatory regardless.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;aio=threads&lt;/code&gt; is the traditional pairing with &lt;code&gt;cache=writeback&lt;/code&gt; (buffered, non-&lt;code&gt;O_DIRECT&lt;/code&gt;). It is valid but generally slower than &lt;code&gt;io_uring&lt;/code&gt;, which also supports buffered I/O. For the one writeback VM, &lt;code&gt;io_uring&lt;/code&gt; is fine and slightly faster; &lt;code&gt;threads&lt;/code&gt; is acceptable and harmless. Go with &lt;code&gt;io_uring&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;the-four-quadrant-matrix&#34;&gt;The four-quadrant matrix&lt;/h2&gt;
+&lt;p&gt;The OS quadrants still govern guest-side tuning: drivers, balloon, cluster size. Storage placement collapses to the two lanes, generalized on shared iSCSI and passthrough on local.&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Setting&lt;/th&gt;
+					&lt;th&gt;Generalized Linux (DNS, Zabbix, Caddy, Ansible, code-server)&lt;/th&gt;
+					&lt;th&gt;Specialty Linux (AI, other passthrough)&lt;/th&gt;
+					&lt;th&gt;Generalized Windows (DC, PKI)&lt;/th&gt;
+					&lt;th&gt;Specialty Windows (VDI, Parsec)&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Lane / storage&lt;/td&gt;
+					&lt;td&gt;Shared iSCSI (HA)&lt;/td&gt;
+					&lt;td&gt;Local ZFS SSD (pinned)&lt;/td&gt;
+					&lt;td&gt;Shared iSCSI (HA)&lt;/td&gt;
+					&lt;td&gt;Local, non-ZFS pinned&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Controller&lt;/td&gt;
+					&lt;td&gt;virtio-scsi-single&lt;/td&gt;
+					&lt;td&gt;virtio-scsi-single&lt;/td&gt;
+					&lt;td&gt;virtio-scsi-single&lt;/td&gt;
+					&lt;td&gt;virtio-scsi-single&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;iothread&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;cache&lt;/td&gt;
+					&lt;td&gt;none&lt;/td&gt;
+					&lt;td&gt;none&lt;/td&gt;
+					&lt;td&gt;none&lt;/td&gt;
+					&lt;td&gt;writeback (only if non-ZFS local and disposable)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;aio&lt;/td&gt;
+					&lt;td&gt;io_uring&lt;/td&gt;
+					&lt;td&gt;io_uring&lt;/td&gt;
+					&lt;td&gt;io_uring&lt;/td&gt;
+					&lt;td&gt;io_uring (or threads)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;discard&lt;/td&gt;
+					&lt;td&gt;on&lt;/td&gt;
+					&lt;td&gt;on&lt;/td&gt;
+					&lt;td&gt;on&lt;/td&gt;
+					&lt;td&gt;on&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;ssd&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+					&lt;td&gt;1&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;balloon&lt;/td&gt;
+					&lt;td&gt;ok&lt;/td&gt;
+					&lt;td&gt;off&lt;/td&gt;
+					&lt;td&gt;off&lt;/td&gt;
+					&lt;td&gt;off&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Notes&lt;/td&gt;
+					&lt;td&gt;Already the fleet default&lt;/td&gt;
+					&lt;td&gt;Align data disks&lt;/td&gt;
+					&lt;td&gt;Fixed RAM, virtio drivers&lt;/td&gt;
+					&lt;td&gt;Writeback only if backing is non-ZFS; this box is on ZFS, so none&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;real-examples-from-the-cluster&#34;&gt;Real examples from the cluster&lt;/h3&gt;
+&lt;p&gt;I have genericized the hostnames and VM IDs below, but the configs and the deltas I found are the real ones.&lt;/p&gt;
+&lt;p&gt;Generalized Linux, &lt;code&gt;app-01&lt;/code&gt; (201) and &lt;code&gt;app-02&lt;/code&gt; (202). Already correct: &lt;code&gt;virtio-scsi-single&lt;/code&gt;, &lt;code&gt;iothread=1&lt;/code&gt;, &lt;code&gt;discard=on&lt;/code&gt;, &lt;code&gt;ssd=1&lt;/code&gt;, inheriting &lt;code&gt;cache=none&lt;/code&gt; and &lt;code&gt;aio=io_uring&lt;/code&gt;. No changes. These are the reference implementation for the lane. One of them runs the same &lt;a href=&#34;https://natebent.com/posts/self-hosting-codeserver/&#34;&gt;code-server setup I wrote up separately&lt;/a&gt;, which is a good example of the generalized Linux profile in practice.&lt;/p&gt;
+&lt;p&gt;Specialty Linux, &lt;code&gt;ai-01&lt;/code&gt; (701). Core is correct: on the &lt;code&gt;SSD-r10&lt;/code&gt; ZFS pool, &lt;code&gt;cache=none&lt;/code&gt; and &lt;code&gt;io_uring&lt;/code&gt; inherited, &lt;code&gt;balloon=0&lt;/code&gt;, NUMA-pinned, GPU passthrough. One delta: &lt;code&gt;scsi0&lt;/code&gt; has &lt;code&gt;discard=on,ssd=1&lt;/code&gt; but the &lt;code&gt;scsi2&lt;/code&gt; 256G data disk had neither. Align it:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;701&lt;/span&gt; --scsi2 SSD-r10:vm-701-disk-1,discard&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;on,ssd&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;1,iothread&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;m&#34;&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;For large sequential model storage, a bigger &lt;code&gt;volblocksize&lt;/code&gt; (64K to 128K) on that disk&amp;rsquo;s zvol would compress better and read faster than the 16K default. That requires recreating the zvol, which I cover under ZFS Foundations.&lt;/p&gt;
+&lt;p&gt;Generalized Windows, domain controllers and PKI (prescriptive; I do not have a live example captured). Same as generalized Linux plus Windows guest tuning: &lt;code&gt;bios=ovmf&lt;/code&gt;, &lt;code&gt;machine=q35&lt;/code&gt;, the VirtIO SCSI driver loaded at install, qemu-guest-agent, and fixed RAM with balloon off (AD and a CA behave poorly under memory pressure). Do not apply the generic Windows writeback advice here: this data is integrity-critical and lives on shared iSCSI, so &lt;code&gt;cache=none&lt;/code&gt; is mandatory.&lt;/p&gt;
+&lt;p&gt;Specialty Windows, &lt;code&gt;win11-gpu-template&lt;/code&gt; (1903), my Windows 11 template. On &lt;code&gt;local&lt;/code&gt; dir storage (a &lt;code&gt;.raw&lt;/code&gt; file), GPU passthrough, &lt;code&gt;ostype=win11&lt;/code&gt;, and it was running &lt;code&gt;aio=threads,cache=writeback,discard=on,ssd=1&lt;/code&gt;. This is the case that caught me. &lt;code&gt;local&lt;/code&gt; on this node turned out to be a ZFS dataset (&lt;code&gt;rpool/var-lib-vz&lt;/code&gt;), so despite the VM being pinned and disposable, the writeback branch does not apply: the &lt;code&gt;.raw&lt;/code&gt; sits on ZFS, and writeback just double-caches on top of ARC. The correct config is &lt;code&gt;cache=none&lt;/code&gt; plus &lt;code&gt;aio=io_uring&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;1903&lt;/span&gt; --scsi0 local:1903/vm-1903-disk-1.raw,aio&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;io_uring,cache&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;none,discard&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;on,ssd&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;1,iothread&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;m&#34;&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Because this is the template for the whole quadrant, test-boot after the change; every future clone inherits it.&lt;/p&gt;
+&lt;p&gt;Why it was &lt;code&gt;threads&lt;/code&gt; plus &lt;code&gt;writeback&lt;/code&gt; originally: on older OpenZFS, &lt;code&gt;cache=none&lt;/code&gt; on a &lt;em&gt;file&lt;/em&gt; on a ZFS dataset failed to open with &lt;code&gt;O_DIRECT&lt;/code&gt; (the classic &lt;code&gt;could not open disk image&lt;/code&gt;), and buffered I/O via &lt;code&gt;writeback&lt;/code&gt; and &lt;code&gt;threads&lt;/code&gt; was the working fallback. OpenZFS 2.3 added Direct I/O on files, and 2.4.3 here has it, so &lt;code&gt;O_DIRECT&lt;/code&gt; on a file opens cleanly and the workaround is no longer needed. If &lt;code&gt;O_DIRECT&lt;/code&gt; is still somehow rejected, do the architecturally correct thing instead: VM disks on ZFS belong on zvols (&lt;code&gt;zfspool&lt;/code&gt; storage), not raw files on dir storage. Migrating this disk to a zvol-backed store (or the node&amp;rsquo;s &lt;code&gt;local-ssd-2tb-qvo&lt;/code&gt; thin-LVM pool) gives native &lt;code&gt;cache=none&lt;/code&gt; plus &lt;code&gt;io_uring&lt;/code&gt; with no caveats, and puts the box cleanly in the local ZFS pinned lane. Worth noting, since Direct I/O does not touch zvols, moving to a zvol is not about &lt;code&gt;O_DIRECT&lt;/code&gt; at all; it just sidesteps the whole file-on-dataset problem.&lt;/p&gt;
+&lt;h2 id=&#34;zfs-foundations&#34;&gt;ZFS foundations&lt;/h2&gt;
+&lt;p&gt;Guest disk settings sit on top of these. Getting them wrong causes slow, invisible degradation over months, which is exactly why they belong in any storage doc you intend to trust.&lt;/p&gt;
+&lt;h3 id=&#34;current-state&#34;&gt;Current state&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;ashift=12 (4K sectors) on all pools. Correct for these drives, and since ashift is immutable it is locked in well.&lt;/li&gt;
+&lt;li&gt;volblocksize=16K on all zvols (the PVE 8.1+ default). All pools are mirrors or striped mirrors, so there is no RAIDZ parity-padding penalty; 16K is an efficient general default here.&lt;/li&gt;
+&lt;li&gt;compression=lz4 everywhere. Keep it; it is effectively free and often a net throughput gain.&lt;/li&gt;
+&lt;li&gt;sync=standard everywhere. Correct. It honors guest flushes and batches async writes via the transaction group. Do not set &lt;code&gt;sync=disabled&lt;/code&gt; (unsafe) or &lt;code&gt;sync=always&lt;/code&gt; (slow) as a blanket policy.&lt;/li&gt;
+&lt;li&gt;logbias=latency, ARC c_max=64G on 251G RAM (currently around 28G). Healthy and deliberate, and well clear of the PVE default 10% cap.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;volblocksize-alignment&#34;&gt;volblocksize alignment&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;volblocksize&lt;/code&gt; sets the ZFS record size for a zvol and cannot be changed in place; it is fixed at creation, so changing it means creating a new disk. Alignment guidance:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;General Linux guests (ext4, xfs): the 16K default is fine. Leave it.&lt;/li&gt;
+&lt;li&gt;Windows guests: NTFS defaults to 4K clusters. A 4K guest write against a 16K zvol block forces a 16K read-modify-write, up to 4x write amplification on small random writes. Mitigations, in order of preference: format Windows &lt;em&gt;data&lt;/em&gt; volumes with 16K or 64K NTFS clusters to match or exceed volblocksize; or leave the OS volume default and accept the modest overhead (SSD plus lz4 make it tolerable). Do not lose sleep over this on the SSD tiers, but do care about it for write-heavy Windows workloads.&lt;/li&gt;
+&lt;li&gt;Large sequential data (AI models, media): a 64K to 128K volblocksize compresses better and streams faster than 16K. Worth doing on dedicated data zvols, not OS disks.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;storage-level-thin-provisioning&#34;&gt;Storage-level thin provisioning&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;local-zfs-hdd-8tb-r10&lt;/code&gt; has &lt;code&gt;sparse 1&lt;/code&gt; (thin). &lt;code&gt;local-zfs-ssd-8tb-r10&lt;/code&gt; does not, so new disks there are created thick with a &lt;code&gt;refreservation&lt;/code&gt;, which blunts thin provisioning and discard reclaim on the best pool. Add it (affects new disks only):&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# via GUI: Datacenter &amp;gt; Storage &amp;gt; local-zfs-ssd-8tb-r10 &amp;gt; Thin provision = yes&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# existing thick disks stay thick until recreated&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&#34;trim&#34;&gt;TRIM&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;autotrim=off&lt;/code&gt; on all pools. The guest discard chain (&lt;code&gt;fstrim&lt;/code&gt; to &lt;code&gt;discard=on&lt;/code&gt; to the zvol) frees blocks inside ZFS, but nothing TRIMs the physical SSDs unless autotrim is on or a scheduled trim runs. I prefer a scheduled monthly trim over &lt;code&gt;autotrim=on&lt;/code&gt;, since scheduled trim avoids the latency spikes continuous autotrim can cause:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# monthly zpool trim via systemd timer (create on each node with SSD pools)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;systemctl &lt;span class=&#34;nb&#34;&gt;enable&lt;/span&gt; --now zfs-trim-monthly@local-zfs-sas-ssd-r10.timer   &lt;span class=&#34;c1&#34;&gt;# if using a template unit&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# or a simple cron: 0 3 1 * *  /sbin/zpool trim local-zfs-sas-ssd-r10&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&#34;slog-note&#34;&gt;SLOG note&lt;/h3&gt;
+&lt;p&gt;The 8TB HDD pool&amp;rsquo;s SLOG is a consumer SSD with no power-loss protection. A SLOG without PLP can lose the in-flight sync writes it exists to protect on a power event. That is acceptable for a homelab, but it is a known weak point: an enterprise PLP SSD (or the enterprise SAS SSDs already in the box) would be the upgrade path. On UPS, the practical risk narrows to kernel panics and hardware faults.&lt;/p&gt;
+&lt;h2 id=&#34;guest-side-checklists&#34;&gt;Guest-side checklists&lt;/h2&gt;
+&lt;h3 id=&#34;linux&#34;&gt;Linux&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;VirtIO SCSI single controller, &lt;code&gt;iothread=1&lt;/code&gt;, &lt;code&gt;discard=on&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Enable periodic TRIM inside the guest: &lt;code&gt;systemctl enable --now fstrim.timer&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Modern ext4 and xfs honor barriers and flushes by default; nothing to do.&lt;/li&gt;
+&lt;li&gt;qemu-guest-agent installed and running (&lt;code&gt;agent: 1&lt;/code&gt;) for clean quiesce, backup, and shutdown.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;windows&#34;&gt;Windows&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;bios=ovmf&lt;/code&gt;, &lt;code&gt;machine=q35&lt;/code&gt;, TPM as needed.&lt;/li&gt;
+&lt;li&gt;Load the VirtIO SCSI driver from the virtio-win ISO during install; install the full virtio guest tools plus qemu-guest-agent afterward.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ssd=1&lt;/code&gt; so Windows treats the disk as SSD (disables scheduled defrag, enables Retrim). &lt;code&gt;discard=on&lt;/code&gt; so UNMAP reaches the backend.&lt;/li&gt;
+&lt;li&gt;Balloon off with fixed RAM on infrastructure (DCs, CA). The balloon driver can cause slowdowns and memory pressure that AD and PKI dislike.&lt;/li&gt;
+&lt;li&gt;Where volblocksize matters (write-heavy data volumes), format NTFS with a 16K or larger cluster size.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;health-and-hygiene-findings&#34;&gt;Health and hygiene findings&lt;/h2&gt;
+&lt;p&gt;These sit outside the per-VM settings. Ordered by urgency:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;local-zfs-hdd-3tb-mirror&lt;/code&gt; is around 94% full and doubles as the PBS datastore. ZFS write performance and fragmentation degrade sharply past roughly 80 to 85% full. This undermines everything on that pool regardless of VM settings. Reclaim space or relocate the PBS datastore first.&lt;/li&gt;
+&lt;li&gt;No physical TRIM scheduled (autotrim off, no &lt;code&gt;zpool trim&lt;/code&gt; timer). Add a monthly scheduled trim on the SSD pools.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;local-zfs-ssd-8tb-r10&lt;/code&gt; missing &lt;code&gt;sparse 1&lt;/code&gt;. New disks on the best pool are thick. Enable thin provisioning; convert existing thick disks opportunistically.&lt;/li&gt;
+&lt;li&gt;Consumer non-PLP SLOG on the 8TB pool. Document the risk; plan a PLP replacement.&lt;/li&gt;
+&lt;li&gt;Cosmetic: &lt;code&gt;recordsize=16K&lt;/code&gt; set at the SSD pool root is inert for zvols (it governs file datasets, not volumes). Harmless, noted so it is not mistaken for VM tuning.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;what-to-re-verify-when-things-change&#34;&gt;What to re-verify when things change&lt;/h2&gt;
+&lt;p&gt;This doc is durable, not eternal. Re-check these when the environment shifts:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;On a PVE major upgrade: confirm the default &lt;code&gt;aio&lt;/code&gt; is still &lt;code&gt;io_uring&lt;/code&gt; and that no new io_uring or storage fallback was introduced. Re-read the qemu-server changelog for disk-default changes, and confirm the ARC default cap has not moved under you.&lt;/li&gt;
+&lt;li&gt;On an OpenZFS major upgrade: re-check Direct I/O behavior and any change to the default &lt;code&gt;volblocksize&lt;/code&gt; for newly created disks.&lt;/li&gt;
+&lt;li&gt;If the TrueNAS or iSCSI fabric is rebuilt (say, proper 10GbE): re-confirm whether the presentation is still thick LVM with snapshot-as-volume-chain. If it ever becomes thin, &lt;code&gt;native&lt;/code&gt; was already ruled out, but re-verify &lt;code&gt;io_uring&lt;/code&gt; is still the default. If you move to a non-ZFS SAN with BBU cache, the writeback calculus changes for pinned VMs on it.&lt;/li&gt;
+&lt;li&gt;If any pinned Windows VM moves onto ZFS: drop writeback back to &lt;code&gt;cache=none&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;If you add a dedicated SLOG or L2ARC, or change ashift on a rebuild: revisit the sync and volblocksize notes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;quick-reference&#34;&gt;Quick reference&lt;/h2&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Universal:      scsihw=virtio-scsi-single  iothread=1  discard=on  ssd=1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Shared iSCSI:   cache=none  aio=io_uring                 (HA / mobile)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Local ZFS:      cache=none  aio=io_uring                 (pinned)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Local non-ZFS,  cache=writeback  aio=io_uring            (pinned + disposable ONLY)
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt; disposable:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Never:          aio=native on ZFS/qcow2/thin-LVM; writeback on ZFS or shared/mobile
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Windows infra:  balloon off, fixed RAM, virtio drivers&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Proxmox, &lt;a href=&#34;https://pve.proxmox.com/wiki/Storage:_LVM&#34;&gt;Storage: LVM (snapshots as volume chains)&lt;/a&gt;. Confirms that snapshot-as-volume-chain layers qcow2 on top of the LV, which is what rules out &lt;code&gt;aio=native&lt;/code&gt; on the iSCSI lane during snapshots and backups.&lt;/li&gt;
+&lt;li&gt;OpenZFS, &lt;a href=&#34;https://openzfs.github.io/openzfs-docs/man/master/7/zfsprops.7.html&#34;&gt;zfsprops(7)&lt;/a&gt;. The &lt;code&gt;direct&lt;/code&gt;, &lt;code&gt;sync&lt;/code&gt;, and volume properties, including that Direct I/O bypasses ARC on datasets and is not supported on zvols.&lt;/li&gt;
+&lt;li&gt;OpenZFS, &lt;a href=&#34;https://github.com/openzfs/zfs/releases&#34;&gt;2.4.0 release notes&lt;/a&gt;. The Direct I/O line and the uncached-I/O fallback behavior referenced above.&lt;/li&gt;
+&lt;li&gt;Proxmox, &lt;a href=&#34;https://pve.proxmox.com/wiki/Roadmap&#34;&gt;Proxmox VE 9.2 release notes&lt;/a&gt;. The version baseline this doc was validated against (kernel 7.0, QEMU 11.0, ZFS 2.4).&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    <item>
+      <title>Proxmox Best Practices - Guest CPU Types</title>
+      <link>https://natebent.com/posts/proxmox-best-practices-guest-cpu/</link>
+      <pubDate>Mon, 04 May 2026 01:00:00 +0000</pubDate><author>Nathan Bent</author>
+      <guid>https://natebent.com/posts/proxmox-best-practices-guest-cpu/</guid>
+      <description>&lt;h2 id=&#34;context&#34;&gt;Context&lt;/h2&gt;
+&lt;p&gt;Every time I build a VM on the Proxmox cluster I hit the same menu, and for a while I overthought it. The Processor dropdown offers &lt;code&gt;host&lt;/code&gt;, a stack of &lt;code&gt;x86-64-vN&lt;/code&gt; types, a long list of named models like &lt;code&gt;Broadwell-noTSX-IBRS&lt;/code&gt; or &lt;code&gt;EPYC-Milan&lt;/code&gt;, and whatever custom models I have defined. Most guides frame the choice as stability versus performance, and that framing is exactly the part I had wrong in my head at first.&lt;/p&gt;
+&lt;p&gt;The lever is not stability versus performance. It is portability versus CPU feature exposure.&lt;/p&gt;
+&lt;p&gt;Feature exposure is how many host CPU flags (AVX2, AES-NI, AVX-512, and so on) the guest can see and use. More flags means feature-heavy code runs faster, and &lt;code&gt;host&lt;/code&gt; hands the guest everything the physical CPU has. Portability is whether a running VM can live-migrate to another node. A VM that advertises a flag to its guest and then lands on a host without that flag does not degrade gracefully: the QEMU process stops. The fixed virtual types exist to advertise a stable, lowest-common feature set so the VM boots and migrates identically everywhere.&lt;/p&gt;
+&lt;p&gt;So a VM set to &lt;code&gt;host&lt;/code&gt; is not less stable on its home node. It is just non-portable. That is the real cost, and once I framed it that way the rest fell out of one question per VM.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-insight&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;The Proxmox CPU type menu is not a stability versus performance slider. It is a portability versus feature-exposure trade. &lt;code&gt;host&lt;/code&gt; gives the guest every flag the physical CPU has and gives up live migration. The &lt;code&gt;x86-64-vN&lt;/code&gt; types give up flags to stay migratable.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;h2 id=&#34;the-one-question&#34;&gt;The one question&lt;/h2&gt;
+&lt;p&gt;Does this VM need to move between nodes, or does it need to squeeze the host CPU? Everything below is downstream of that. The short version of how I answer it:&lt;/p&gt;
+&lt;p&gt;Single node, or a VM already pinned to one node by PCI passthrough or hard affinity, gets &lt;code&gt;host&lt;/code&gt;. Migration is already off the table, so I take the free flags. That holds for Linux; Windows is a different story, which is the whole reason this post exists.&lt;/p&gt;
+&lt;p&gt;A VM that needs cluster-wide live migration gets the lowest CPU generation common to every node, either as an &lt;code&gt;x86-64-vN&lt;/code&gt; level or a named model of that generation.&lt;/p&gt;
+&lt;p&gt;A migration domain with mixed Intel and AMD forces the vendor-neutral &lt;code&gt;x86-64-vN&lt;/code&gt; types. Named vendor models will not cross vendors, and Proxmox is explicit that live migration between Intel and AMD hosts has no guarantee of working at all.&lt;/p&gt;
+&lt;h2 id=&#34;the-options&#34;&gt;The options&lt;/h2&gt;
+&lt;h3 id=&#34;host&#34;&gt;host&lt;/h3&gt;
+&lt;p&gt;Exposes the exact flags of the physical CPU. Maximum feature exposure, best Linux performance for anything that uses modern instruction sets. The cost is that it breaks live migration to any node with a different CPU or microcode: if a required flag is missing on the target, QEMU aborts. I use it for single-node hosts, a genuinely homogeneous cluster (identical CPU and microcode on every node), or a VM that is already unmovable because of passthrough.&lt;/p&gt;
+&lt;h3 id=&#34;the-x86-64-vn-virtual-types&#34;&gt;The x86-64-vN virtual types&lt;/h3&gt;
+&lt;p&gt;Vendor-neutral, defined jointly by AMD, Intel, Red Hat, and SUSE in 2020, and they work on both Intel and AMD hosts. This is the migration-safe family.&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;Type&lt;/th&gt;
+					&lt;th&gt;Compatible with (min CPU)&lt;/th&gt;
+					&lt;th&gt;Flags added over the previous level&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;kvm64&lt;/code&gt; (x86-64-v1)&lt;/td&gt;
+					&lt;td&gt;Intel Pentium 4+, AMD Phenom+&lt;/td&gt;
+					&lt;td&gt;baseline (Pentium 4 level, poor perf)&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;x86-64-v2&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Intel Nehalem+, AMD Opteron G3+&lt;/td&gt;
+					&lt;td&gt;cx16, lahf-lm, popcnt, pni, sse4.1, sse4.2, ssse3&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;x86-64-v2-AES&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Intel Westmere+, AMD Opteron G4+&lt;/td&gt;
+					&lt;td&gt;aes&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;x86-64-v3&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Intel Haswell+, AMD EPYC (Naples)+&lt;/td&gt;
+					&lt;td&gt;avx, avx2, bmi1, bmi2, f16c, fma, movbe, xsave&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;&lt;code&gt;x86-64-v4&lt;/code&gt;&lt;/td&gt;
+					&lt;td&gt;Intel Skylake+, AMD EPYC Genoa (v4)+&lt;/td&gt;
+					&lt;td&gt;avx512f, avx512bw, avx512cd, avx512dq, avx512vl&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Two things about that table are worth holding onto. The backend and CLI default is &lt;code&gt;kvm64&lt;/code&gt;, but the GUI default for a new VM is &lt;code&gt;x86-64-v2-AES&lt;/code&gt;. That matters because a VM created from a script or the CLI can quietly land on &lt;code&gt;kvm64&lt;/code&gt; while one clicked together in the web UI gets &lt;code&gt;v2-AES&lt;/code&gt;. And do not treat &lt;code&gt;kvm64&lt;/code&gt; as the safe default: some modern distros, CentOS and RHEL 9 for example, are built for &lt;code&gt;x86-64-v2&lt;/code&gt; as a minimum and will not boot on &lt;code&gt;kvm64&lt;/code&gt;. The sane floor is &lt;code&gt;v2-AES&lt;/code&gt;. For migration, pick the highest level your weakest node supports.&lt;/p&gt;
+&lt;h3 id=&#34;named-vendor-models&#34;&gt;Named vendor models&lt;/h3&gt;
+&lt;p&gt;Specific microarchitectures, more granular than the &lt;code&gt;vN&lt;/code&gt; levels, and a named model may expose a flag a &lt;code&gt;vN&lt;/code&gt; level does not. They are vendor-locked: an Intel model will not migrate to an AMD host, or the reverse. Models with an &lt;code&gt;-IBRS&lt;/code&gt; or &lt;code&gt;-IBPB&lt;/code&gt; suffix already carry the relevant Spectre v2 control flag. I reach for these on a same-vendor cluster where I want a specific generation&amp;rsquo;s flags and still want migration, choosing the lowest generation present in the cluster.&lt;/p&gt;
+&lt;h3 id=&#34;custom-models&#34;&gt;Custom models&lt;/h3&gt;
+&lt;p&gt;You can define a reusable base plus flag toggles under Datacenter, Custom CPU Models (backed by &lt;code&gt;/etc/pve/virtual-guest/cpu-models.conf&lt;/code&gt;), then reference it from a VM as &lt;code&gt;custom-&amp;lt;name&amp;gt;&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cpu-model: avx
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    flags +avx;+avx2
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    phys-bits host
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    hidden 0
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    hv-vendor-id proxmox
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    reported-model kvm64&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;reported-model&lt;/code&gt; controls what the guest thinks it is running on. &lt;code&gt;phys-bits host&lt;/code&gt; matches the host&amp;rsquo;s address bits but breaks migration to hosts with a different value. Access is ACL-gated per model at &lt;code&gt;/mapping/cpu/&amp;lt;name&amp;gt;&lt;/code&gt;: &lt;code&gt;Mapping.Use&lt;/code&gt; is required to assign a model to a VM, and that check is enforced on create, update, and clone, so someone who can clone a VM that uses a custom model still needs &lt;code&gt;Mapping.Use&lt;/code&gt; on it. These earn their place when you want one documented, cluster-wide profile reused across many VMs.&lt;/p&gt;
+&lt;h2 id=&#34;the-security-dimension-nobody-puts-on-the-menu&#34;&gt;The security dimension nobody puts on the menu&lt;/h2&gt;
+&lt;p&gt;Here is the part that is easy to miss. The &lt;code&gt;x86-64-vN&lt;/code&gt; virtual types do not enable the Spectre and Meltdown mitigation flags by default. &lt;code&gt;host&lt;/code&gt; inherits whatever the physical CPU exposes, so the migration-safe path silently gives those up unless you add them back. Two things have to be true for any of these flags to help: the host CPU has to support and propagate the feature (current microcode), and the guest OS has to be patched to use it.&lt;/p&gt;
+&lt;p&gt;For Intel guests: &lt;code&gt;pcid&lt;/code&gt; reduces the Meltdown and KPTI performance hit, it is cheap, so add it. &lt;code&gt;spec-ctrl&lt;/code&gt; covers Spectre v1 and v2 where retpolines are not enough; it is included in &lt;code&gt;-IBRS&lt;/code&gt; models and needs adding explicitly otherwise. &lt;code&gt;ssbd&lt;/code&gt; is the Spectre v4 fix, never included by default, always explicit.&lt;/p&gt;
+&lt;p&gt;For AMD guests: &lt;code&gt;ibpb&lt;/code&gt; covers Spectre v1 and v2, included in &lt;code&gt;-IBPB&lt;/code&gt; models, add otherwise. &lt;code&gt;amd-ssbd&lt;/code&gt; is the Spectre v4 fix with higher performance than &lt;code&gt;virt-ssbd&lt;/code&gt;. Expose &lt;code&gt;virt-ssbd&lt;/code&gt; as well, because some kernels only understand that one, and it has to be set explicitly even with &lt;code&gt;host&lt;/code&gt; since it is a virtual flag that does not exist on physical AMD CPUs. &lt;code&gt;amd-no-ssb&lt;/code&gt; tells newer silicon it is not vulnerable to v4, and it is mutually exclusive with the two &lt;code&gt;ssbd&lt;/code&gt; flags.&lt;/p&gt;
+&lt;p&gt;To see what the host actually exposes:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;for f in /sys/devices/system/cpu/vulnerabilities/*; do echo &amp;#34;${f##*/} -&amp;#34; $(cat &amp;#34;$f&amp;#34;); done
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;grep &amp;#39; pcid &amp;#39; /proc/cpuinfo&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;A migration-safe Intel base with the mitigations added back looks like this:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cpu: x86-64-v3,flags=+pcid;+spec-ctrl;+ssbd&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&#34;why-windows-is-different&#34;&gt;Why Windows is different&lt;/h2&gt;
+&lt;p&gt;On Linux, &lt;code&gt;host&lt;/code&gt; does what you expect: more flags, more performance, no penalty. On Windows it frequently makes things slower, and for a while that made no sense to me. Native has to beat emulated, right? Not here.&lt;/p&gt;
+&lt;p&gt;When the CPU type is &lt;code&gt;host&lt;/code&gt;, QEMU passes the physical CPU&amp;rsquo;s security flags into the guest, including &lt;code&gt;md_clear&lt;/code&gt; (the MDS mitigation) and &lt;code&gt;flush_l1d&lt;/code&gt; (the L1TF mitigation). Windows sees those flags and switches on its own in-guest mitigations, the VERW and L1D flushes on transitions. The result is a large jump in memory read latency and, in bad cases, a guest that visibly stutters with the vCPUs pegged. The &lt;code&gt;x86-64-vN&lt;/code&gt; types and most named models do not pass &lt;code&gt;md_clear&lt;/code&gt; or &lt;code&gt;flush_l1d&lt;/code&gt;, so Windows never turns those mitigations on and the penalty never appears. This is a community finding rather than official CPU-type documentation, but it is well corroborated on the forums and it matches what I have seen.&lt;/p&gt;
+&lt;p&gt;There is a second effect stacked on top. With &lt;code&gt;host&lt;/code&gt;, Windows can decide it is running on real hardware and enable virtualization-based security, which pulls in nested virtualization inside the VM, which hurts again. &lt;code&gt;msinfo32&lt;/code&gt; will tell you whether Windows thinks it is virtualized and whether VBS is on.&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-caution&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.141.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Caution&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;On Windows guests, &lt;code&gt;host&lt;/code&gt; is often slower than &lt;code&gt;x86-64-v3&lt;/code&gt;, not faster, and it fails silently: no error, just high CPU and sluggish memory latency. Passing &lt;code&gt;md_clear&lt;/code&gt; and &lt;code&gt;flush_l1d&lt;/code&gt; makes Windows enable its own in-guest MDS and L1TF mitigations. The &lt;code&gt;x86-64-vN&lt;/code&gt; types leave those flags off, so the penalty never triggers.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;Net effect: on Windows, &lt;code&gt;x86-64-v3&lt;/code&gt; is frequently both faster and migratable than &lt;code&gt;host&lt;/code&gt;. Older Windows Server barely touches the newer instruction extensions anyway, so the flags &lt;code&gt;host&lt;/code&gt; adds rarely pay for the mitigation cost they trigger. That is why I default Windows guests to &lt;code&gt;x86-64-v3&lt;/code&gt;, with &lt;code&gt;x86-64-v2-AES&lt;/code&gt; as the conservative fallback for older or mixed-low clusters.&lt;/p&gt;
+&lt;p&gt;One caveat I want to be careful about, because it gets oversold:&lt;/p&gt;
+&lt;blockquote class=&#34;callout callout-warning&#34;&gt;
+    &lt;p class=&#34;callout-title&#34;&gt;
+      &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Warning&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;&amp;ldquo;Switching off host loses no security, the mitigations still run at the hypervisor level&amp;rdquo; is only half true. Cross-VM and host-to-guest isolation are handled by the Proxmox kernel regardless of guest CPU type. What you actually give up is the guest&amp;rsquo;s own intra-VM MDS and L1TF protection: process-to-process and kernel-to-user side-channel hardening inside that Windows VM. Fine for a single-tenant VM running trusted code. Weigh it deliberately for a multi-user RDS host or anything running untrusted workloads.&lt;/p&gt;
+  &lt;/blockquote&gt;&lt;p&gt;It is also worth being honest that the &lt;code&gt;vN&lt;/code&gt; types get their safety purely by not exposing the flags, so &lt;code&gt;v3&lt;/code&gt; is not inherently more secure than &lt;code&gt;host&lt;/code&gt; with &lt;code&gt;md_clear&lt;/code&gt; stripped. It does the same thing by omission.&lt;/p&gt;
+&lt;p&gt;Applying a CPU type change needs a full shutdown and start. A reboot from inside Windows is not enough to renegotiate the vCPU. I confirm the change with &lt;code&gt;Get-SpeculationControlSettings&lt;/code&gt;: on &lt;code&gt;host&lt;/code&gt; the mitigations report active, on &lt;code&gt;v3&lt;/code&gt; they report inactive because the flags are absent.&lt;/p&gt;
+&lt;h3 id=&#34;when-host-is-genuinely-required&#34;&gt;When host is genuinely required&lt;/h3&gt;
+&lt;p&gt;Reach for &lt;code&gt;host&lt;/code&gt;, or explicit flag exposure, when a feature demands it, not for raw speed:&lt;/p&gt;
+&lt;p&gt;Nested virtualization inside the guest (WSL2, Hyper-V, Docker Desktop, Android emulators, or Windows VBS and HVCI that you actually want on). GPU or PCI passthrough, and anti-cheat that inspects CPU identity. Software that needs an instruction set your &lt;code&gt;vN&lt;/code&gt; floor does not carry.&lt;/p&gt;
+&lt;p&gt;In those cases the VM is usually pinned already, since passthrough kills migration, so &lt;code&gt;host&lt;/code&gt; costs nothing extra on the portability axis. On Windows, accept that the mitigation penalty rides along; if VBS is the goal, that penalty is the feature. A couple of Windows-on-recent-Intel specifics live here: if Hyper-V or VBS hangs at boot under &lt;code&gt;host&lt;/code&gt; or &lt;code&gt;max&lt;/code&gt;, &lt;code&gt;level=30&lt;/code&gt; is the known workaround (x86_64 only, silently ignored elsewhere). And &lt;code&gt;cet-ss&lt;/code&gt; and &lt;code&gt;cet-ibt&lt;/code&gt; are disabled by default for Windows 11 machine types because they currently break boot for guests with VBS, so only re-enable them per VM if a workload needs them.&lt;/p&gt;
+&lt;h2 id=&#34;the-supporting-knobs&#34;&gt;The supporting knobs&lt;/h2&gt;
+&lt;p&gt;Sockets times cores is total vCPUs, and the split is mostly irrelevant for performance. Set sockets for software licensing if that matters, otherwise one socket, or match NUMA nodes. Overcommit is safe: total vCPUs across all VMs can exceed physical cores, and the host schedules them like any multithreaded load. Proxmox will not let a single VM exceed the physical core count.&lt;/p&gt;
+&lt;p&gt;On multi-socket hosts, enable NUMA so guest memory and vCPUs land local to a socket instead of spread across the memory bus. It is also required to hot-plug cores or RAM. When enabled, set the VM&amp;rsquo;s socket count to the number of host NUMA nodes. Check with &lt;code&gt;numactl --hardware | grep available&lt;/code&gt;, where more than one node means the host is NUMA.&lt;/p&gt;
+&lt;p&gt;For resource control there are three knobs. &lt;code&gt;cpulimit&lt;/code&gt; is a hard cap on host CPU time in whole-core units (1.0 is one core, 4.0 is four); set it equal to the total core count to guarantee a VM never exceeds its vCPUs, since peripheral and IO threads can otherwise push it slightly over. &lt;code&gt;cpuunits&lt;/code&gt; is relative scheduler weight, default 100 (or 1024 on legacy cgroup v1); a VM at 200 gets twice the CPU bandwidth of one at 100 under contention, so it is priority, not a cap. &lt;code&gt;affinity&lt;/code&gt; pins vCPUs to specific host cores in &lt;code&gt;taskset&lt;/code&gt; list format, for example &lt;code&gt;0-1,8-11&lt;/code&gt;; it is useful for latency-sensitive or NUMA-pinned workloads, at the cost of maintenance and the risk of lopsided utilization, and it is explicitly not a security boundary.&lt;/p&gt;
+&lt;p&gt;vCPU hot-plug is newer and more fragile than the alternatives, so I prefer resource limits unless I truly need it. Max pluggable is always sockets times cores, and &lt;code&gt;vcpus&lt;/code&gt; sets how many are plugged at start. It is Linux only, a kernel newer than 4.7 is recommended, and you need a udev rule to online new CPUs automatically.&lt;/p&gt;
+&lt;p&gt;A few Windows extras I keep in mind regardless of CPU type: install the VirtIO drivers from the virtio-win ISO at build time (and consider pinning a known-good virtio-win release rather than always taking the newest), leave the machine version pinned (it is automatic for Windows, because Windows reacts badly to virtual-hardware changes even across cold boots), and set &lt;code&gt;balloon: 0&lt;/code&gt; on anything critical, since the Windows balloon driver is not built in and can slow the guest.&lt;/p&gt;
+&lt;h2 id=&#34;profiles-i-actually-use&#34;&gt;Profiles I actually use&lt;/h2&gt;
+&lt;p&gt;These assume the migratable profiles are ones I want to keep freely live-migratable across the cluster. If a given VM is pinned, I treat it as the specialized profile instead.&lt;/p&gt;
+&lt;p&gt;General Linux, portability first:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cpu: x86-64-v2-AES,flags=+pcid;+spec-ctrl;+ssbd
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;numa: 1&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Raise the base to &lt;code&gt;x86-64-v3&lt;/code&gt; if every node is Haswell or newer, which picks up AVX2. The AMD variant is &lt;code&gt;flags=+ibpb;+amd-ssbd;+virt-ssbd&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Specialized Linux, features first and pinned:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cpu: host
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;numa: 1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;affinity: &amp;lt;cores for the target socket&amp;gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;This is the local-AI and GPU-passthrough pattern. Passthrough already blocks migration, so &lt;code&gt;host&lt;/code&gt; costs nothing. Pin &lt;code&gt;affinity&lt;/code&gt; and memory to the socket that owns the GPU or NIC. On AMD with &lt;code&gt;host&lt;/code&gt;, still add &lt;code&gt;+virt-ssbd&lt;/code&gt; explicitly. One nuance: on some Intel server parts, heavy AVX-512 lowers all-core clocks, so more flags is not unconditionally faster for mixed workloads. Benchmark the real workload rather than assuming &lt;code&gt;v4&lt;/code&gt; or &lt;code&gt;host&lt;/code&gt; wins.&lt;/p&gt;
+&lt;p&gt;General Windows, my default for almost every Windows VM:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cpu: x86-64-v3
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;numa: 1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;balloon: 0&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Do not add &lt;code&gt;md_clear&lt;/code&gt; or &lt;code&gt;flush_l1d&lt;/code&gt;; leaving them off is the whole point on Windows. Leave the machine version pinned. Applying the change needs a full shutdown and start, after which I confirm with &lt;code&gt;Get-SpeculationControlSettings&lt;/code&gt; that the mitigations went inactive.&lt;/p&gt;
+&lt;p&gt;Specialized Windows, only when a feature forces &lt;code&gt;host&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;cpu: host,flags=+pcid;+spec-ctrl;+ssbd
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;numa: 1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;affinity: &amp;lt;cores for the target socket&amp;gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Only when the feature list above applies. If you just want speed, &lt;code&gt;x86-64-v3&lt;/code&gt; is almost always faster on Windows. Add &lt;code&gt;level=30&lt;/code&gt; if Hyper-V or VBS hangs at boot on recent Intel, and re-enable &lt;code&gt;cet-ss;cet-ibt&lt;/code&gt; per VM only if a VBS workload needs them. If performance is unacceptable and you do not need the guest&amp;rsquo;s own MDS and L1TF protection, a custom model can strip &lt;code&gt;md_clear&lt;/code&gt; while keeping other host flags, but weigh that intra-guest trade first.&lt;/p&gt;
+&lt;h2 id=&#34;my-cluster&#34;&gt;My cluster&lt;/h2&gt;
+&lt;p&gt;A cluster that spans Dell generations mixes CPU capability levels. As a worked example from my setup: an R730xd (13th gen, Broadwell-era Xeon E5 v3 and v4) supports up to &lt;code&gt;x86-64-v3&lt;/code&gt;, while an XC740xd (14th gen R740 base, Skylake-SP and Cascade Lake) additionally supports &lt;code&gt;x86-64-v4&lt;/code&gt; with AVX-512. The migration-safe ceiling for the whole cluster is therefore the lower of the two, &lt;code&gt;x86-64-v3&lt;/code&gt;. Only VMs pinned to the Skylake-class node can safely use &lt;code&gt;host&lt;/code&gt; or &lt;code&gt;v4&lt;/code&gt; and see AVX-512.&lt;/p&gt;
+&lt;p&gt;So the action is simple: run &lt;code&gt;lscpu&lt;/code&gt; on every node, set the house default to the highest &lt;code&gt;vN&lt;/code&gt; level the weakest node supports, and reserve &lt;code&gt;host&lt;/code&gt; for pinned, passthrough, or single-node VMs.&lt;/p&gt;
+&lt;h2 id=&#34;decision-checklist&#34;&gt;Decision checklist&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Windows guest? Default to &lt;code&gt;x86-64-v3&lt;/code&gt; (fallback &lt;code&gt;x86-64-v2-AES&lt;/code&gt;), even on a single node, because &lt;code&gt;host&lt;/code&gt; triggers the mitigation penalty. Only use &lt;code&gt;host&lt;/code&gt; if a feature forces it.&lt;/li&gt;
+&lt;li&gt;Linux guest, pinned by passthrough or hard affinity, or on a single-node host? Use &lt;code&gt;host&lt;/code&gt;. Linux has no mitigation penalty, so take the free flags.&lt;/li&gt;
+&lt;li&gt;Needs cluster-wide live migration? Mixed Intel and AMD goes to &lt;code&gt;x86-64-vN&lt;/code&gt; at the lowest common level. Single vendor goes to &lt;code&gt;x86-64-vN&lt;/code&gt; at the lowest common level, or a named model of the lowest generation for extra flags.&lt;/li&gt;
+&lt;li&gt;Linux only: add mitigation flags unless you used &lt;code&gt;host&lt;/code&gt; and confirmed the host already exposes them. Intel &lt;code&gt;+pcid;+spec-ctrl;+ssbd&lt;/code&gt;, AMD &lt;code&gt;+ibpb;+amd-ssbd;+virt-ssbd&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Multi-socket host: set &lt;code&gt;numa: 1&lt;/code&gt;, sockets equal to NUMA node count.&lt;/li&gt;
+&lt;li&gt;Windows extras: VirtIO ISO at build time, leave the machine version pinned, &lt;code&gt;balloon: 0&lt;/code&gt; if critical, &lt;code&gt;level=30&lt;/code&gt; if Hyper-V boot fails on recent Intel with &lt;code&gt;host&lt;/code&gt;, BIOS power profile to max performance.&lt;/li&gt;
+&lt;li&gt;Noisy-neighbor risk: &lt;code&gt;cpulimit&lt;/code&gt; for a hard cap and &lt;code&gt;cpuunits&lt;/code&gt; for priority.&lt;/li&gt;
+&lt;li&gt;After any CPU type change: full shutdown and start, not a guest reboot.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;quick-reference&#34;&gt;Quick reference&lt;/h2&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;bash&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Set CPU type&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &amp;lt;vmid&amp;gt; --cpu host
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &amp;lt;vmid&amp;gt; --cpu x86-64-v3
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &amp;lt;vmid&amp;gt; --cpu x86-64-v3,flags&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;+pcid&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt;+spec-ctrl&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt;+ssbd
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &amp;lt;vmid&amp;gt; --cpu custom-&amp;lt;name&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# NUMA and affinity&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &amp;lt;vmid&amp;gt; --numa &lt;span class=&#34;m&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &amp;lt;vmid&amp;gt; --affinity 0-1,8-11
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Resource control&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &amp;lt;vmid&amp;gt; --cpulimit &lt;span class=&#34;m&#34;&gt;4&lt;/span&gt;        &lt;span class=&#34;c1&#34;&gt;# cap at 4 cores of host time&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;qm &lt;span class=&#34;nb&#34;&gt;set&lt;/span&gt; &amp;lt;vmid&amp;gt; --cpuunits &lt;span class=&#34;m&#34;&gt;200&lt;/span&gt;      &lt;span class=&#34;c1&#34;&gt;# 2x scheduler weight vs default 100&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Host capability checks&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;lscpu
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;numactl --hardware &lt;span class=&#34;p&#34;&gt;|&lt;/span&gt; grep available
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;grep &lt;span class=&#34;s1&#34;&gt;&amp;#39; pcid &amp;#39;&lt;/span&gt; /proc/cpuinfo
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; f in /sys/devices/system/cpu/vulnerabilities/*&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;do&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;echo&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;${&lt;/span&gt;&lt;span class=&#34;nv&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;##*/&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;}&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt; -&amp;#34;&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;$(&lt;/span&gt;cat &lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;nv&#34;&gt;$f&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span class=&#34;k&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;done&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Inside a Windows guest, to compare the mitigation state before and after a change:&lt;/p&gt;
+&lt;div class=&#34;code-wrap&#34; data-lang=&#34;powershell&#34;&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;Install-Module&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Name&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;SpeculationControl&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;-Force&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;Get-SpeculationControlSettings&lt;/span&gt;   &lt;span class=&#34;c&#34;&gt;# compare host vs x86-64-v3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;msinfo32&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;py&#34;&gt;exe&lt;/span&gt;                     &lt;span class=&#34;c&#34;&gt;# VBS state, and whether Windows sees it is a VM&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;VM config lives at &lt;code&gt;/etc/pve/qemu-server/&amp;lt;vmid&amp;gt;.conf&lt;/code&gt;, and custom models at &lt;code&gt;/etc/pve/virtual-guest/cpu-models.conf&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;references-and-further-reading&#34;&gt;References and further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Proxmox VE admin guide, QEMU/KVM chapter (CPU type, flags, resource limits, NUMA): &lt;a href=&#34;https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_cpu&#34;&gt;https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_cpu&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Meltdown and Spectre CPU flags section of that chapter: &lt;a href=&#34;https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_meltdown_spectre&#34;&gt;https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_meltdown_spectre&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;List of AMD and Intel CPU types as defined in QEMU: &lt;a href=&#34;https://pve.proxmox.com/pve-docs/pve-admin-guide.html#chapter_qm_vcpu_list&#34;&gt;https://pve.proxmox.com/pve-docs/pve-admin-guide.html#chapter_qm_vcpu_list&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Manual: cpu-models.conf, for custom CPU models: &lt;a href=&#34;https://pve.proxmox.com/wiki/Manual:_cpu-models.conf&#34;&gt;https://pve.proxmox.com/wiki/Manual:_cpu-models.conf&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Proxmox forum thread identifying &lt;code&gt;md_clear&lt;/code&gt; and &lt;code&gt;flush_l1d&lt;/code&gt; as the Windows performance trigger: &lt;a href=&#34;https://forum.proxmox.com/threads/help-about-cpu-type.132652/&#34;&gt;https://forum.proxmox.com/threads/help-about-cpu-type.132652/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+  </channel>
+</rss>

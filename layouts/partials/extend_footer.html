@@ -70,7 +70,7 @@
     box.className = 'lightbox-inner';
 
     var big = document.createElement('img');
-    big.src = img.currentSrc || img.src;
+    big.src = img.getAttribute('data-full') || img.currentSrc || img.src;
     big.alt = img.alt || '';
     box.appendChild(big);
 
@@ -80,6 +80,17 @@
       var c = document.createElement('figcaption');
       c.textContent = cap.textContent.trim();
       box.appendChild(c);
+    }
+
+    var full = img.getAttribute('data-full');
+    if (full) {
+      var dl = document.createElement('a');
+      dl.href = full;
+      dl.download = '';
+      dl.textContent = 'Download full image';
+      dl.className = 'lightbox-download';
+      dl.addEventListener('click', function (e) { e.stopPropagation(); });
+      box.appendChild(dl);
     }
 
     overlay.appendChild(box);
