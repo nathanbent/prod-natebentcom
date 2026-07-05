@@ -10,10 +10,11 @@
      5.  Reading aids (progress bar + TOC)
      6.  Post list & cards
      7.  Cover images (list / thumbnail / single)
-     8.  Navigation & tags
-     9.  Profile / landing page
-     10. Misc embeds
-     11. Reduced motion  (must stay last)
+     8.  Series navigation
+     9.  Navigation & tags
+     10. Profile / landing page
+     11. Misc embeds
+     12. Reduced motion  (must stay last)
    ============================================================= */
 
 
@@ -369,22 +370,29 @@ html {
     margin-top: 0;
 }
 
-/* Series navigation box */
-.series-nav {
-    border: 1px solid var(--border);
-    border-inline-start: 4px solid var(--accent);
+/* 7c. Single-post cover — cap the big banner height */
+.post-single .entry-cover,
+.post-cover {
+    max-height: 400px;
+    overflow: hidden;
     border-radius: var(--radius);
-    background: var(--code-bg);
-    padding: 14px 18px;
-    margin: 0 0 30px;
 }
 
-.dark .series-nav {
-    background: var(--entry);
+.post-single .entry-cover img,
+.post-cover img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
 }
 
 
-/* Series navigation ----------------------------------------- */
+/* 8. SERIES NAVIGATION -------------------------------------- */
+/* The box rendered at the top of a series post by series-nav.html.
+   Background is theme-driven: --code-bg (pale) in light, --entry (dark)
+   in the .dark override below — which is why label/count use theme-aware
+   text tokens (--primary / --secondary) rather than literal white, so
+   they stay readable in both modes. */
+
 .series-nav {
     border: 1px solid var(--border);
     border-inline-start: 4px solid var(--accent);
@@ -406,10 +414,10 @@ html {
 }
 
 .series-nav-label {
-    color: var(--primary);      /* was `fff` — invalid; also readable in light mode */
+    color: var(--primary);
     font-weight: 600;
     letter-spacing: .05em;
-    font-size: 16px;
+    font-size: 14px;
     font-style: italic;
 }
 
@@ -441,23 +449,7 @@ html {
 }
 
 
-/* 7c. Single-post cover — cap the big banner height */
-.post-single .entry-cover,
-.post-cover {
-    max-height: 400px;
-    overflow: hidden;
-    border-radius: var(--radius);
-}
-
-.post-single .entry-cover img,
-.post-cover img {
-    width: 100%;
-    height: 400px;
-    object-fit: cover;
-}
-
-
-/* 8. NAVIGATION & TAGS -------------------------------------- */
+/* 9. NAVIGATION & TAGS -------------------------------------- */
 
 #menu {
     padding-bottom: 5px;
@@ -496,7 +488,7 @@ html {
 }
 
 
-/* 9. PROFILE / LANDING PAGE --------------------------------- */
+/* 10. PROFILE / LANDING PAGE -------------------------------- */
 
 .profile .profile_inner h1 {
     color: var(--accent);
@@ -547,7 +539,7 @@ html {
 }
 
 
-/* 10. MISC EMBEDS ------------------------------------------- */
+/* 11. MISC EMBEDS ------------------------------------------- */
 
 .twitter-tweet {
     margin: auto;
@@ -562,7 +554,7 @@ iframe {
 }
 
 
-/* 11. REDUCED MOTION  (keep last so it has the final word) --- */
+/* 12. REDUCED MOTION  (keep last so it has the final word) --- */
 
 @media (prefers-reduced-motion: reduce) {
 
