@@ -20,6 +20,10 @@
 
 /* 1. DESIGN TOKENS ------------------------------------------- */
 
+/* COLOR SCHEME
+ Color Scheme v1 - 2026-07-05
+ */
+
 :root {
     --main-width: 1100px;
     --measure: 72ch;

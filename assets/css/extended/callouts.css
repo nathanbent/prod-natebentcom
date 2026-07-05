@@ -6,6 +6,8 @@
    blockquote rule reads them. Add a type = one color block per
    mode + one mapping line (plus the icon in the render hook).
 
+   Color Scheme v1 - 2026-07-05
+
    Palette:
 
      default + [!NOTE]   var(--accent)    ocean blue, tracks custom.css
