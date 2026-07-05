@@ -40,9 +40,9 @@ languages:
           url: /posts
           weight: 10
         # --- NEW: search menu entry (needs content/search.md, see notes) ---
-        - name: Search
-          url: /search/
-          weight: 15
+        #- name: Search
+        #  url: /search/
+        #  weight: 15
         # -------------------------------------------------------------------
 outputs:
   home:
