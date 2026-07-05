@@ -1,7 +1,7 @@
 # Color Reference - natebent.com
 
 The site palette, where each color is used, and the reasoning behind the
-decisions. Companion to `CUSTOMIZATIONS.md`. Last updated: 2026-07-04.
+decisions. Companion to `CUSTOMIZATIONS.md`. Last updated: 2026-07-05.
 
 Files that define color: `assets/css/extended/custom.css` (sec 1, design
 tokens) and `assets/css/extended/callouts.css` (callout palette).
@@ -54,6 +54,28 @@ both the cold-Atlantic character and the contrast.
    If a new color is added, make a dark variant the same way.
 4. **Tuning knob is saturation, not lightness.** If the blue ever feels
    too gray in practice, try `#155E85` before anything lighter.
+5. **Faint accent surfaces come from the tint scale below.** New
+   translucent accent fills use `color-mix(in srgb, var(--accent) N%,
+   transparent)` with an N picked from (or deliberately added to) the
+   scale - do not invent one-off percentages, or the tints drift apart.
+
+### Accent tint scale (added 2026-07-05)
+
+The `color-mix()` tints of `--accent` currently in use, all in
+custom.css. Because they derive from the token, they auto-adapt to
+dark mode (where the accent is lighter, so the same N reads brighter -
+which is why the code ring bumps its N in dark).
+
+| N        | Where                                | custom.css |
+|----------|--------------------------------------|------------|
+| 8%       | Table row hover tint                 | sec 2      |
+| 12%      | Table header fill                    | sec 2      |
+| 14%      | Inline-code background               | sec 4      |
+| 22%      | Inline-code hairline border          | sec 4      |
+| 35%/45%  | Code-block hover ring (light/dark)   | sec 4      |
+
+Rough bands if extending: <=10% ambient/hover wash, 10-15% resting
+surface, ~20-25% hairline, 30%+ only for borders/rings, never fills.
 
 ### Shelf snippet: selection in green (not currently applied)
 
@@ -79,7 +101,11 @@ All tinted toward the blue (hue ~207). The "personal touch" lives here.
 | `--tertiary`      | `#C9D4DD` | `#3B4652` | Faint UI (dividers, disabled).                   |
 | `--content`       | `#232E3A` | `#C4CDD6` | Body prose.                                      |
 | `--code-block-bg` | `#1B222B` | `#242D38` | Fenced code. Dark blue-slate in both modes.      |
-| `--code-bg`       | `#F1F5F8` | `#2F3A47` | Inline code. Faint blue wash.                    |
+| `--code-bg`       | `#F1F5F8` | `#2F3A47` | Neutral surface: light-mode list-page bg         |
+|                   |           |           | (`.list`), series-nav box, and PaperMod's        |
+|                   |           |           | default for misc code/UI. MUST stay neutral -    |
+|                   |           |           | inline code no longer uses it (see history);     |
+|                   |           |           | its accent tint lives in custom.css sec 4.       |
 | `--border`        | `#D9E2EA` | `#333F4C` | Hairlines. One step darker than default so cards |
 |                   |           |           | still read against the tinted page.              |
 
@@ -172,3 +198,10 @@ Callout reasoning:
   Reverted same session: two blue-family callouts separated only by
   lightness were hard to tell apart in practice. Current TIP keeps the
   pastel treatment but on the teal hue, so teal is in use again.
+- Inline code used `--code-bg` (the faint blue wash) until 2026-07-05:
+  too close to the tinted `--theme` page in light mode to read. Now an
+  accent tint + hairline via `.post-content :not(pre) > code` in
+  custom.css sec 4. `--code-bg` itself was briefly redefined to the
+  accent tint the same day and reverted - it also drives list-page
+  backgrounds and the series-nav box, so it must stay a neutral
+  surface. (See the neutrals table note and agent guide.)

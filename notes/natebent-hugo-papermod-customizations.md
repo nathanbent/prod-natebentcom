@@ -52,7 +52,7 @@ list of things to re-check.
 | `layouts/_default/rss.xml` | Full-content RSS. Swaps `.Summary` → `.Content` so feed readers get whole posts. Also uses `site.Language.Locale` (not the deprecated `LanguageCode`). |
 | `layouts/404.html` | Custom 404 page. Accent "404", a quip, and a randomly-rotating quote pulled from `data/quotes.yaml` via JS on each page load. |
 | `layouts/partials/series-nav.html` | Series navigation box. Reads a post's `series` taxonomy, lists all parts ordered by the custom `series_order` front-matter field (falls back to date), marks the current one. Looks up taxonomy with `lower`. |
-| `layouts/partials/extend_head.html` | Light/dark favicon `<link>`s that follow `prefers-color-scheme`. |
+| `layouts/partials/extend_head.html` | Light/dark favicon `<link>`s that follow `prefers-color-scheme`; `<link rel="preload">` for the Karla + Rubik variable woff2s (used on every page — reduces flash-of-fallback-font; the mono is deliberately *not* preloaded since it only matters on code-heavy pages). |
 | `layouts/partials/extend_footer.html` | All the page-level JS: reading-progress bar, scroll-tracking TOC highlight, and the image lightbox. Lightbox opens the full-resolution original (reads `data-full` first, falls back to `currentSrc`/`src`), shows the figure caption, has a "Download full image" link (with `stopPropagation` so it doesn't close the box), closes on click or Esc, and locks background scroll. Gated to `.IsPage`. |
 | `layouts/partials/cover.html` | Copied from theme; the `<figure>` line stamps extra classes — `entry-cover-list` on list pages and `entry-cover-thumb` when a post sets `cover.thumb: true` — to drive the two cover styles. |
 
@@ -74,7 +74,8 @@ list of things to re-check.
 | File | Purpose |
 |------|---------|
 | `static/favicon-light.png`, `static/favicon-dark.png` | Light/dark favicons (referenced by `hugo.yaml` assets block + `extend_head.html`). |
-| `static/.htaccess` | `ErrorDocument 404 /404.html` — tells Hostinger's Apache/LiteSpeed to serve the custom 404 for missing URLs. |
+| `static/fonts/*.woff2` | Self-hosted variable fonts: Karla (body, +italic), Rubik (headings, +italic), JetBrains Mono (code, +italic). The JBM pair is **subset** to latin + Greek + punctuation + arrows + box-drawing + math + shapes (~70 KB each vs ~115 KB full); full-fidelity `.full.woff2` copies kept alongside as backups. If a code block ever shows fallback glyphs (most likely: powerline prompt symbols), swap the canonical name onto the `.full` copy. Filenames are load-bearing — they must match the `src` URLs in `custom.css` §0 exactly. |
+| `static/.htaccess` | `ErrorDocument 404 /404.html` — tells Hostinger's Apache/LiteSpeed to serve the custom 404 for missing URLs. Also sets `Cache-Control: public, max-age=31536000, immutable` on `.woff2` (fonts aren't fingerprinted, so a changed font file needs a **renamed** file + updated §0 `src` to bust the cache). |
 | `static/files/CVs/Resume.pdf` | Resume (moved here from `public/` so it's version-controlled and survives clean builds). |
 | `data/quotes.yaml` | Quote pool for the 404 page. Each entry: `text` + optional `source`. |
 
