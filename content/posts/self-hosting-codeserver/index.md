@@ -40,7 +40,7 @@ editPost:
 
 ## What code-server is
 
-code-server is Visual Studio Code running as a service on a remote machine, accessed entirely through a web browser. Instead of running VS Code locally on a laptop, you run it on a server, and the full editor experience (file tree, integrated terminal, extensions, git integration) is delivered over HTTP to any browser you point at it.
+[code-server](https://github.com/coder/code-server) is Visual Studio Code running as a service on a remote machine, accessed entirely through a web browser. Instead of running VS Code locally on a laptop, you run it on a server, and the full editor experience (file tree, integrated terminal, extensions, git integration) is delivered over HTTP to any browser you point at it.
 
 {{< figure src="images/screenshot-1.png" alt="code-server example screenshot, this shows the homepage upon install" caption="code-server home page" >}}
 
@@ -307,6 +307,7 @@ That's the difference between "exposed" and "exposed responsibly."
 
 ## References and further reading
 
+- [code-server GitHub page](https://github.com/coder/code-server)
 - code-server, [Securely expose code-server](https://coder.com/docs/code-server/guide). The official guidance on exposing it, and confirmation that the default is a single password on an instance that only binds to localhost.
 - oauth2-proxy, [Microsoft Entra ID provider](https://oauth2-proxy.github.io/oauth2-proxy/configuration/providers/ms_entra_id/). OIDC configuration and the group scoping this setup leans on.
 - Fortinet, [Virtual IPs with port forwarding](https://docs.fortinet.com/document/fortigate/8.0.0/administration-guide/155333/virtual-ips-with-port-forwarding). The VIP / DNAT reference for the edge.
