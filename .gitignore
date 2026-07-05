@@ -17,3 +17,7 @@ resources/
 
 # Local env/secrets if you ever add any
 .env
+
+# Organizational stuff
+# *.sh
+# *.py
