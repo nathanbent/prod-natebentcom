@@ -384,6 +384,11 @@ html {
     color: var(--accent);
 }
 
+/* Post-list description text — override theme default (14px) */
+.entry-content {
+    font-size: 15px;   /* try 15–16px; 16px matches body scale */
+}
+
 
 /* 7. COVER IMAGES ------------------------------------------- */
 
