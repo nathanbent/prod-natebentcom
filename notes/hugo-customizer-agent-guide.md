@@ -76,10 +76,18 @@ Read `CUSTOMIZATIONS.md` alongside this — it's the map of what already exists.
   `AlertType`, which keys the class `callout-foo` and everything else.
 - **One accent color** drives the whole site: `--accent` in `custom.css` §1. Reuse
   it (`var(--accent)`) for anything new rather than hardcoding a hex.
-- **`custom.css` is organized into 11 numbered sections** — add new rules to the
-  matching section, keep the `prefers-reduced-motion` block last.
+- **`custom.css` is organized into 13 numbered sections (§0–§12)** — add new rules
+  to the matching section, keep the `prefers-reduced-motion` block last.
 - **CSS variables must be defined before use** in the cascade; keep the `:root`
-  token block at the top.
+  token block at the top. Only custom-property declarations belong inside the
+  `:root` / `.dark` blocks — a style rule (selector) pasted inside them is a bug,
+  even if native CSS nesting makes it *appear* to work.
+- **`--code-bg` is a multi-consumer token — don't repurpose it.** It drives inline
+  code, but PaperMod *also* uses it for list-page backgrounds
+  (`.list { background: var(--code-bg) }`) and the site uses it for the series-nav
+  box. To restyle inline code, target `.post-content :not(pre) > code` (§4)
+  instead of redefining the token, or you'll accidentally recolor `/posts/` and
+  every taxonomy page.
 - **Images** flow through `figure.html`, which branches by type: **SVG** served
   as-is (never call `.Width`/`.Resize` on a vector — it errors), **PNG/JPEG ≥640px**
   gets WebP + responsive srcset, everything else served as-is. All branches emit
@@ -101,6 +109,13 @@ Read `CUSTOMIZATIONS.md` alongside this — it's the map of what already exists.
   separate from `weight` so series order can't disturb the post feed. Use this
   pattern generally: if you need to order something in one place without affecting
   another, use a custom param, not `weight`.
+- **Summaries** follow a precedence chain: a *manual* summary (`<!--more-->`
+  divider in the body) outranks a front-matter `summary:`, which outranks Hugo's
+  *automatic* first-70-words summary. The site standard is the `summary:` field for
+  `/posts/` excerpts — so a stray `<!--more-->` **silently overrides it**, and the
+  card falls back to body content that reads like an auto summary. This was the
+  exact cause of a "why is only this one post's summary auto-generated?" report. If
+  a post's excerpt ignores its `summary:`, `grep` the file for `<!--more-->` first.
 
 ---
 

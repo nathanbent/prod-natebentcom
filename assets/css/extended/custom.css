@@ -5,9 +5,9 @@
    Sections:
      0.  Font faces
      1.  Design tokens
-     2.  Post content — typography
+     2.  Post content — typography (incl. tables)
      3.  Post content — media (images + lightbox)
-     4.  Code blocks
+     4.  Code blocks (incl. inline code + mono font)
      5.  Reading aids (progress bar + TOC)
      6.  Post list & cards
      7.  Cover images (list / thumbnail / single)
@@ -61,7 +61,10 @@
     font-display: swap;
 }
 
+
 /* 1. DESIGN TOKENS ------------------------------------------- */
+/* Custom-property declarations ONLY in these blocks — style rules
+   (selectors) go in their numbered section, never inside :root/.dark. */
 
 /* COLOR SCHEME
  Color Scheme v1 - 2026-07-05
@@ -85,29 +88,25 @@
     --tertiary: #C9D4DD;
     --content: #232E3A;
     --code-block-bg: #1B222B;
-    --code-bg: color-mix(in srgb, var(--accent) 14%, transparent);
+    --code-bg: #F1F5F8;       /* CAUTION: also drives list-page backgrounds
+                                 (.list { background: var(--code-bg) }) and the
+                                 series-nav box — keep it a neutral surface.
+                                 Inline-code styling lives in §4 instead. */
     --border: #D9E2EA;        /* darkened a step so it still reads on the new bg */
-
-    /* inline code only — the :not(pre) excludes code inside highlighted blocks */
-.post-content :not(pre) > code {
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
-}
-
 }
 
 .dark {
     --accent: #7FB3D6;
     --accent-2: #7FBFA0;
 
-    --theme: #12161B;         /* ~20% darker */
-    --entry: #242D38;         /* ~12% lighter */
+    --theme: #12161B;
+    --entry: #242D38;
     --primary: #D8DFE6;
     --secondary: #92A0AD;
     --tertiary: #3B4652;
     --content: #C4CDD6;
     --code-block-bg: #242D38;
-    --code-bg: #2F3A47;       /* bumped to stay a step above the new entry */
+    --code-bg: #2F3A47;       /* a step above --entry so surfaces stay distinct */
     --border: #333F4C;
 }
 
@@ -237,9 +236,18 @@ html {
     text-wrap: pretty;
 }
 
-/* Digit-aligned tables (VNIs, route-targets, IPs) */
+/* Tables — digit alignment (VNIs, route-targets, IPs) */
 .post-content table {
     font-variant-numeric: tabular-nums;
+}
+
+/* Table header — faint accent fill + thicker accent underline */
+.post-content table thead th {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    border-bottom: 2px solid var(--accent);
+    color: var(--primary);
+    font-weight: 600;
+    letter-spacing: .02em;
 }
 
 /* Row hover — faint accent tint; targets tbody so the header row is exempt */
@@ -258,14 +266,6 @@ html {
     box-shadow: inset 3px 0 0 var(--accent);
 }
 
-/* Table header — pale fill + thicker accent underline */
-.post-content table thead th {
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-    border-bottom: 2px solid var(--accent);
-    color: var(--primary);
-    font-weight: 600;
-    letter-spacing: .02em;   /* optional — makes the header read as a label */
-}
 
 /* 3. POST CONTENT — MEDIA ----------------------------------- */
 
@@ -325,6 +325,15 @@ html {
     box-shadow: 0 8px 40px rgba(0, 0, 0, .5);
 }
 
+/* SVGs have no intrinsic size — give them an explicit width in the
+   lightbox or they collapse to zero. (Kept after the general img rule
+   for readability; the attribute selector wins on specificity anyway.) */
+.lightbox-inner img[src$=".svg"] {
+    width: 90vw;
+    max-width: 1200px;
+    height: auto;
+}
+
 .lightbox-inner figcaption {
     color: rgba(255, 255, 255, .85);
     font-size: 14px;
@@ -332,20 +341,33 @@ html {
     max-width: 70ch;
 }
 
-.lightbox-inner img[src$=".svg"] {
-    width: 90vw;
-    max-width: 1200px;
-    height: auto;
-}
+
 /* 4. CODE BLOCKS -------------------------------------------- */
+
+/* Monospace face — blocks AND inline code */
+.post-content pre,
+.post-content code,
+.code-wrap {
+    font-family: var(--font-mono);
+}
+
+/* Inline code — accent tint + hairline so it reads against the pale
+   canvas (the :not(pre) excludes code inside highlighted blocks).
+   Applies in both modes; tint derives from each mode's --accent. */
+.post-content :not(pre) > code {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
 
 .code-wrap {
     position: relative;
     margin: 10px auto;
-    border-radius: var(--radius);          /* so the ring corners match the block */
+    border-radius: var(--radius);    /* so the hover ring corners match */
     transition: box-shadow .15s ease;
 }
 
+/* Hover — faint accent ring + soft lift shadow (same shadow language as
+   the post-entry cards, minus the translate) */
 .code-wrap:hover {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
                 0 6px 18px rgba(0, 0, 0, .12);
@@ -380,11 +402,6 @@ html {
     opacity: 0;
 }
 
-.post-content pre,
-.post-content code,
-.code-wrap {
-    font-family: var(--font-mono);
-}
 
 /* 5. READING AIDS ------------------------------------------- */
 
@@ -443,7 +460,7 @@ html {
 
 /* Post-list description text — override theme default (14px) */
 .entry-content {
-    font-size: 15px;   /* try 15–16px; 16px matches body scale */
+    font-size: 15px;
 }
 
 
