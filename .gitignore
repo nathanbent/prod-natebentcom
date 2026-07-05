@@ -1,2 +1,19 @@
-*.obsidian
+# Hugo build output
+public/
+resources/_gen/
+.hugo_build.lock
+
+# OS/editor cruft
+.obsidian
 **/.obsidian
+.DS_Store
+Thumbs.db
+
+# If your theme or any pipeline uses npm/node (Tailwind, PostCSS, etc.)
+node_modules/
+
+# If you use asset pipelines with hashed output you don't want tracked
+resources/
+
+# Local env/secrets if you ever add any
+.env

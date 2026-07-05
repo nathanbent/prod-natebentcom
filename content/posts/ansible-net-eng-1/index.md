@@ -9,7 +9,7 @@ author: "Nate"
 # author: ["Me", "You"] # multiple authors
 showToc: true
 TocOpen: false
-draft: false
+draft: true
 hidemeta: false
 comments: false
 description: "Playing with Ansible in a network setting"
@@ -84,7 +84,7 @@ blah blah blah
 
 Ansible has become one of my more used deployment methods; it's incredibly versatile in terms of what it can do, and what platforms it can interact with.
 
-I've found that Ansible is excellent, and worry-free, for more simple programmatic tasks, where each switch is going to have a matching configuration.  Tasks that require compliance with a standard make the most sense; for example most organizations will want to have the same SNMP communties, syslog servers, logging parameters across their devices. 
+I've found that Ansible is excellent, and worry-free, for more simple programmatic tasks, where each switch is going to have a matching configuration.  Tasks that require compliance with a standard make the most sense; for example most organizations will want to have the same SNMP communties, syslog servers, logging parameters across their devices.
 
 ## References and further reading
 [Ansible documentation for Cisco IOS](https://docs.ansible.com/ansible/latest/collections/cisco/ios/index.html)
