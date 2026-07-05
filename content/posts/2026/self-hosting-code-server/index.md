@@ -25,7 +25,7 @@ ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
-    image: "images/screenshot-1.png"
+    image: "images/code-server-hero.png"
     alt: "code-server example screenshot, this shows the homepage upon install"
     relative: true
     thumb: true
@@ -72,26 +72,11 @@ So the goal is defense in depth: no single control is trusted to be the only thi
 
 The request path from the public internet to the editor passes through several independent layers, each of which can refuse the connection:
 
-```
-Internet
-  |
-  v
-FortiGate  (VIP / DNAT port-forward, IPS policies, restricted egress)
-  |
-  v
-Main Caddy reverse proxy  (wildcard TLS termination)
-  |
-  v
-code-server host: local Caddy  (host-level gateway)
-  |
-  v
-oauth2-proxy  (Entra ID / OIDC authentication)
-  |
-  v
-code-server  (bound to localhost only)
-```
+{{< figure src="images/code-server-hero.svg" alt="Example of how the codeserver flow works" caption="Example of how the codeserver flow works" >}}
 
 No layer trusts the layer in front of it to have done the whole job. If any one of them is misconfigured or bypassed, the next one still has to be satisfied.
+
+{{< figure src="images/code-server-detailed-dark.svg" alt="More detailed example of how the codeserver flow works" caption="More detailed example of how the codeserver flow works" >}}
 
 ## Layer 1: The network edge (FortiGate)
 

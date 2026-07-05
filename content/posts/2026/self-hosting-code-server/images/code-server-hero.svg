@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="640" viewBox="0 0 1600 640" font-family="Consolas, Menlo, 'JetBrains Mono', monospace">
+
+  <defs>
+    <!-- Background gradient -->
+    <radialGradient id="bgGlow" cx="30%" cy="20%" r="90%">
+      <stop offset="0%" stop-color="#141c2e"/>
+      <stop offset="55%" stop-color="#0d1320"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </radialGradient>
+
+    <!-- The light path gradient: cool at the edge, warm at the auth gate, settling blue -->
+    <linearGradient id="pathGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"  stop-color="#4aa8ff"/>
+      <stop offset="30%" stop-color="#ff6b5e"/>
+      <stop offset="55%" stop-color="#57d98a"/>
+      <stop offset="78%" stop-color="#ffb84d"/>
+      <stop offset="100%" stop-color="#7c9bff"/>
+    </linearGradient>
+
+    <!-- Soft glow filter -->
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="glowBig" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="14" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Dot grid pattern -->
+    <pattern id="dots" width="34" height="34" patternUnits="userSpaceOnUse">
+      <circle cx="1.2" cy="1.2" r="1.2" fill="#26314a" opacity="0.55"/>
+    </pattern>
+  </defs>
+
+  <!-- ============ BACKGROUND ============ -->
+  <rect width="1600" height="640" fill="url(#bgGlow)"/>
+  <rect width="1600" height="640" fill="url(#dots)"/>
+
+  <!-- faint oversized watermark text, networking vernacular -->
+  <text x="1560" y="600" text-anchor="end" font-size="120" font-weight="700" fill="#161f33" opacity="0.7" font-family="Segoe UI, Helvetica, sans-serif">:443</text>
+  <text x="52" y="612" font-size="15" fill="#2c3852" letter-spacing="3">0x1F90 // TCP/443 // SNI: code.example.net</text>
+
+  <!-- ============ TITLE BLOCK ============ -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <text x="52" y="86" font-size="15" fill="#5f7396" letter-spacing="6" font-family="Consolas, Menlo, monospace">DEFENSE IN DEPTH</text>
+    <text x="50" y="136" font-size="42" font-weight="750" fill="#e8edf7">Publishing code-server, safely.</text>
+    <text x="52" y="168" font-size="16" fill="#8b9bb8">Five gates between the internet and a localhost-bound IDE.</text>
+  </g>
+
+  <!-- ============ THE LIGHT PATH ============ -->
+  <!-- node centers: y=400; x: 120, 400, 680, 960, 1240, 1500 -->
+  <!-- soft under-glow of the path -->
+  <path d="M 120 400 H 1500" stroke="url(#pathGrad)" stroke-width="14" opacity="0.12" filter="url(#glowBig)" fill="none"/>
+  <!-- main path -->
+  <path d="M 120 400 H 1500" stroke="url(#pathGrad)" stroke-width="2.5" opacity="0.9" fill="none"/>
+  <!-- animated packet pulses -->
+  <g>
+    <circle r="4.5" fill="#ffffff" filter="url(#glow)">
+      <animateMotion dur="6s" repeatCount="indefinite" path="M 120 400 H 1500"/>
+    </circle>
+    <circle r="3" fill="#9fd0ff" filter="url(#glow)" opacity="0.8">
+      <animateMotion dur="6s" begin="2s" repeatCount="indefinite" path="M 120 400 H 1500"/>
+    </circle>
+    <circle r="3" fill="#ffd39f" filter="url(#glow)" opacity="0.8">
+      <animateMotion dur="6s" begin="4s" repeatCount="indefinite" path="M 120 400 H 1500"/>
+    </circle>
+  </g>
+
+  <!-- ============ VM ENCLOSURE (behind last 3 nodes) ============ -->
+  <rect x="860" y="300" width="712" height="230" rx="16" fill="#101a2e" opacity="0.55" stroke="#33436a" stroke-width="1.4" stroke-dasharray="7,5"/>
+  <text x="884" y="330" font-size="13" fill="#6f83a8" letter-spacing="2">dmz-code-prod-1</text>
+
+  <!-- ============ NODES ============ -->
+  <!-- Node template: outer ring + inner disc + label above/below -->
+
+  <!-- INTERNET -->
+  <g>
+    <circle cx="120" cy="400" r="34" fill="#0d1320" stroke="#4aa8ff" stroke-width="2" filter="url(#glow)"/>
+    <!-- globe glyph -->
+    <circle cx="120" cy="400" r="15" fill="none" stroke="#4aa8ff" stroke-width="1.6"/>
+    <ellipse cx="120" cy="400" rx="7" ry="15" fill="none" stroke="#4aa8ff" stroke-width="1.3"/>
+    <line x1="105" y1="400" x2="135" y2="400" stroke="#4aa8ff" stroke-width="1.3"/>
+    <text x="120" y="462" text-anchor="middle" font-size="15" font-weight="700" fill="#bcd6f5">internet</text>
+    <text x="120" y="482" text-anchor="middle" font-size="11" fill="#5f7396">untrusted</text>
+  </g>
+
+  <!-- FORTIGATE -->
+  <g>
+    <circle cx="400" cy="400" r="34" fill="#0d1320" stroke="#ff6b5e" stroke-width="2" filter="url(#glow)"/>
+    <!-- shield glyph -->
+    <path d="M 400 385 L 413 391 V 403 C 413 411 407 416 400 419 C 393 416 387 411 387 403 V 391 Z" fill="none" stroke="#ff6b5e" stroke-width="1.8"/>
+    <path d="M 394 402 L 399 407 L 407 396" fill="none" stroke="#ff6b5e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="400" y="462" text-anchor="middle" font-size="15" font-weight="700" fill="#ffc4be">fortigate</text>
+    <text x="400" y="482" text-anchor="middle" font-size="11" fill="#a06660">vip/dnat · ips · egress-deny</text>
+    <text x="400" y="352" text-anchor="middle" font-size="11" fill="#54617c">gate 01</text>
+  </g>
+
+  <!-- MAIN CADDY -->
+  <g>
+    <circle cx="680" cy="400" r="34" fill="#0d1320" stroke="#57d98a" stroke-width="2" filter="url(#glow)"/>
+    <!-- lock/TLS glyph -->
+    <rect x="670" y="398" width="20" height="15" rx="3" fill="none" stroke="#57d98a" stroke-width="1.8"/>
+    <path d="M 674 398 V 393 a 6 6 0 0 1 12 0 V 398" fill="none" stroke="#57d98a" stroke-width="1.8"/>
+    <text x="680" y="462" text-anchor="middle" font-size="15" font-weight="700" fill="#b9eccf">main caddy</text>
+    <text x="680" y="482" text-anchor="middle" font-size="11" fill="#5d8a6f">wildcard tls · sni routing</text>
+    <text x="680" y="352" text-anchor="middle" font-size="11" fill="#54617c">gate 02</text>
+  </g>
+
+  <!-- LOCAL CADDY -->
+  <g>
+    <circle cx="960" cy="400" r="34" fill="#0d1320" stroke="#57d98a" stroke-width="2" filter="url(#glow)"/>
+    <!-- door/gateway glyph -->
+    <rect x="951" y="388" width="18" height="24" rx="2" fill="none" stroke="#57d98a" stroke-width="1.8"/>
+    <circle cx="964" cy="401" r="1.8" fill="#57d98a"/>
+    <text x="960" y="462" text-anchor="middle" font-size="15" font-weight="700" fill="#b9eccf">local caddy</text>
+    <text x="960" y="482" text-anchor="middle" font-size="11" fill="#5d8a6f">host gateway</text>
+    <text x="960" y="352" text-anchor="middle" font-size="11" fill="#54617c">gate 03</text>
+  </g>
+
+  <!-- OAUTH2-PROXY -->
+  <g>
+    <circle cx="1240" cy="400" r="34" fill="#0d1320" stroke="#ffb84d" stroke-width="2" filter="url(#glow)"/>
+    <!-- key glyph -->
+    <circle cx="1231" cy="396" r="6" fill="none" stroke="#ffb84d" stroke-width="1.8"/>
+    <path d="M 1236 401 L 1251 412 M 1245 408 L 1242 412 M 1249 411 L 1246 415" stroke="#ffb84d" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <text x="1240" y="462" text-anchor="middle" font-size="15" font-weight="700" fill="#ffe0b0">oauth2-proxy</text>
+    <text x="1240" y="482" text-anchor="middle" font-size="11" fill="#a8854f">entra id · oidc · mfa</text>
+    <text x="1240" y="352" text-anchor="middle" font-size="11" fill="#54617c">gate 04</text>
+  </g>
+
+  <!-- CODE-SERVER -->
+  <g>
+    <circle cx="1500" cy="400" r="34" fill="#0d1320" stroke="#7c9bff" stroke-width="2" filter="url(#glowBig)"/>
+    <!-- code glyph </> -->
+    <path d="M 1490 393 L 1483 400 L 1490 407" fill="none" stroke="#7c9bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 1510 393 L 1517 400 L 1510 407" fill="none" stroke="#7c9bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="1503" y1="391" x2="1497" y2="409" stroke="#7c9bff" stroke-width="2" stroke-linecap="round"/>
+    <text x="1500" y="462" text-anchor="middle" font-size="15" font-weight="700" fill="#c3d0ff">code-server</text>
+    <text x="1500" y="482" text-anchor="middle" font-size="11" fill="#6d7cb0">127.0.0.1 only</text>
+  </g>
+
+  <!-- ============ FOOTER RULE ============ -->
+  <line x1="52" y1="560" x2="700" y2="560" stroke="#233150" stroke-width="1"/>
+  <text x="52" y="586" font-size="12" fill="#5f7396" letter-spacing="1.5">homelab series</text>
+
+</svg>

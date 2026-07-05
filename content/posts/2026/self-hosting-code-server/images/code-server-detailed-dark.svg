@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1300" viewBox="0 0 900 1300" font-family="Consolas, Menlo, 'JetBrains Mono', monospace">
+
+  <defs>
+    <radialGradient id="bgGlow" cx="35%" cy="12%" r="110%">
+      <stop offset="0%" stop-color="#141c2e"/>
+      <stop offset="55%" stop-color="#0d1320"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </radialGradient>
+    <linearGradient id="pathGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"  stop-color="#4aa8ff"/>
+      <stop offset="28%" stop-color="#ff6b5e"/>
+      <stop offset="50%" stop-color="#57d98a"/>
+      <stop offset="74%" stop-color="#ffb84d"/>
+      <stop offset="100%" stop-color="#7c9bff"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="dots" width="34" height="34" patternUnits="userSpaceOnUse">
+      <circle cx="1.2" cy="1.2" r="1.2" fill="#26314a" opacity="0.55"/>
+    </pattern>
+    <marker id="arrowD" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#5f7396"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="1300" fill="url(#bgGlow)"/>
+  <rect width="900" height="1300" fill="url(#dots)"/>
+
+  <!-- watermark -->
+  <text x="866" y="1272" text-anchor="end" font-size="90" font-weight="700" fill="#161f33" opacity="0.7" font-family="Segoe UI, Helvetica, sans-serif">:443</text>
+
+  <!-- ============ TITLE ============ -->
+  <text x="60" y="74" font-size="13" fill="#5f7396" letter-spacing="6">DEFENSE IN DEPTH</text>
+  <text x="58" y="116" font-size="32" font-weight="750" fill="#e8edf7" font-family="Segoe UI, Helvetica, sans-serif">Publishing code-server, safely.</text>
+  <text x="60" y="144" font-size="14" fill="#8b9bb8" font-family="Segoe UI, Helvetica, sans-serif">Five gates between the internet and a localhost-bound IDE.</text>
+
+  <!-- ============ SPINE (glowing vertical path on the left of the cards) ============ -->
+  <path d="M 120 210 V 1010" stroke="url(#pathGrad)" stroke-width="10" opacity="0.12" filter="url(#glow)" fill="none"/>
+  <path d="M 120 210 V 1010" stroke="url(#pathGrad)" stroke-width="2.2" opacity="0.9" fill="none"/>
+
+  <!-- ============ NODE: INTERNET ============ -->
+  <g>
+    <circle cx="120" cy="230" r="26" fill="#0d1320" stroke="#4aa8ff" stroke-width="2" filter="url(#glow)"/>
+    <circle cx="120" cy="230" r="11" fill="none" stroke="#4aa8ff" stroke-width="1.4"/>
+    <ellipse cx="120" cy="230" rx="5" ry="11" fill="none" stroke="#4aa8ff" stroke-width="1.2"/>
+    <line x1="109" y1="230" x2="131" y2="230" stroke="#4aa8ff" stroke-width="1.2"/>
+    <text x="176" y="226" font-size="16" font-weight="700" fill="#bcd6f5">internet</text>
+    <text x="176" y="246" font-size="11.5" fill="#5f7396">untrusted zone · inbound TCP/443 only</text>
+  </g>
+
+  <!-- ============ CARD: FORTIGATE ============ -->
+  <g>
+    <circle cx="120" cy="360" r="8" fill="#0d1320" stroke="#ff6b5e" stroke-width="2" filter="url(#glow)"/>
+    <rect x="176" y="300" width="620" height="122" rx="10" fill="#101a2e" opacity="0.85" stroke="#3a2a35" stroke-width="1.2"/>
+    <rect x="176" y="300" width="4" height="122" rx="2" fill="#ff6b5e"/>
+    <text x="204" y="330" font-size="17" font-weight="700" fill="#ffc4be">fortigate</text>
+    <text x="776" y="330" text-anchor="end" font-size="11" fill="#54617c">gate 01 · perimeter</text>
+    <text x="204" y="356" font-size="12.5" fill="#9aa8c4">VIP / DNAT port-forward — only :443 exposed to the edge</text>
+    <text x="204" y="378" font-size="12.5" fill="#9aa8c4">IPS security profile applied to the inbound policy</text>
+    <text x="204" y="400" font-size="12.5" fill="#9aa8c4">restricted egress — VM outbound is default-deny</text>
+  </g>
+
+  <!-- ============ CARD: MAIN CADDY ============ -->
+  <g>
+    <circle cx="120" cy="510" r="8" fill="#0d1320" stroke="#57d98a" stroke-width="2" filter="url(#glow)"/>
+    <rect x="176" y="454" width="620" height="104" rx="10" fill="#101a2e" opacity="0.85" stroke="#263a30" stroke-width="1.2"/>
+    <rect x="176" y="454" width="4" height="104" rx="2" fill="#57d98a"/>
+    <text x="204" y="484" font-size="17" font-weight="700" fill="#b9eccf">main caddy</text>
+    <text x="776" y="484" text-anchor="end" font-size="11" fill="#54617c">gate 02 · edge proxy</text>
+    <text x="204" y="510" font-size="12.5" fill="#9aa8c4">wildcard TLS termination for all published services</text>
+    <text x="204" y="532" font-size="12.5" fill="#9aa8c4">routes by SNI / Host header to the backend VM</text>
+  </g>
+
+  <!-- ============ VM ENCLOSURE ============ -->
+  <rect x="150" y="592" width="700" height="426" rx="14" fill="#0e1626" opacity="0.6" stroke="#33436a" stroke-width="1.4" stroke-dasharray="7,5"/>
+  <text x="176" y="620" font-size="12" fill="#6f83a8" letter-spacing="2">code-server VM (DMZ)</text>
+
+  <!-- ============ CARD: LOCAL CADDY ============ -->
+  <g>
+    <circle cx="120" cy="694" r="8" fill="#0d1320" stroke="#57d98a" stroke-width="2" filter="url(#glow)"/>
+    <rect x="200" y="642" width="596" height="100" rx="10" fill="#101a2e" opacity="0.9" stroke="#263a30" stroke-width="1.2"/>
+    <rect x="200" y="642" width="4" height="100" rx="2" fill="#57d98a"/>
+    <text x="228" y="672" font-size="17" font-weight="700" fill="#b9eccf">local caddy</text>
+    <text x="776" y="672" text-anchor="end" font-size="11" fill="#54617c">gate 03 · host</text>
+    <text x="228" y="698" font-size="12.5" fill="#9aa8c4">host-level gateway — the only listener facing the LAN</text>
+    <text x="228" y="720" font-size="12.5" fill="#9aa8c4">forwards every request to oauth2-proxy for authentication</text>
+  </g>
+
+  <!-- ============ CARD: OAUTH2-PROXY ============ -->
+  <g>
+    <circle cx="120" cy="836" r="8" fill="#0d1320" stroke="#ffb84d" stroke-width="2" filter="url(#glow)"/>
+    <rect x="200" y="778" width="596" height="118" rx="10" fill="#101a2e" opacity="0.9" stroke="#3d3524" stroke-width="1.2"/>
+    <rect x="200" y="778" width="4" height="118" rx="2" fill="#ffb84d"/>
+    <text x="228" y="808" font-size="17" font-weight="700" fill="#ffe0b0">oauth2-proxy</text>
+    <text x="776" y="808" text-anchor="end" font-size="11" fill="#54617c">gate 04 · identity</text>
+    <text x="228" y="834" font-size="12.5" fill="#9aa8c4">OIDC authentication against the identity provider (Entra ID)</text>
+    <text x="228" y="856" font-size="12.5" fill="#9aa8c4">MFA enforced before any session cookie is issued</text>
+    <text x="228" y="878" font-size="12" fill="#a8854f" font-style="italic">unauthenticated requests dead-end here</text>
+  </g>
+
+  <!-- ============ CARD: CODE-SERVER ============ -->
+  <g>
+    <circle cx="120" cy="985" r="12" fill="#0d1320" stroke="#7c9bff" stroke-width="2" filter="url(#glow)"/>
+    <rect x="200" y="932" width="596" height="106" rx="10" fill="#101a2e" opacity="0.9" stroke="#2b3352" stroke-width="1.2"/>
+    <rect x="200" y="932" width="4" height="106" rx="2" fill="#7c9bff"/>
+    <text x="228" y="962" font-size="17" font-weight="700" fill="#c3d0ff">code-server</text>
+    <text x="776" y="962" text-anchor="end" font-size="11" fill="#54617c">destination</text>
+    <text x="228" y="988" font-size="12.5" fill="#9aa8c4">bound to 127.0.0.1 only — no external listener exists</text>
+    <text x="228" y="1010" font-size="12.5" fill="#9aa8c4">reachable exclusively through the authenticated proxy chain</text>
+  </g>
+
+  <!-- ============ SUMMARY ============ -->
+  <g>
+    <rect x="150" y="1064" width="700" height="150" rx="10" fill="#0e1626" opacity="0.7" stroke="#233150" stroke-width="1.2"/>
+    <text x="176" y="1096" font-size="14" font-weight="700" fill="#e8edf7" font-family="Segoe UI, Helvetica, sans-serif">Why layer it this way</text>
+    <text x="176" y="1122" font-size="12" fill="#8b9bb8">perimeter → the firewall filters and inspects before anything touches a host</text>
+    <text x="176" y="1144" font-size="12" fill="#8b9bb8">edge → one TLS termination point, one certificate to manage, one routing table</text>
+    <text x="176" y="1166" font-size="12" fill="#8b9bb8">host → identity is enforced on the VM itself, not just at the border</text>
+    <text x="176" y="1188" font-size="12" fill="#8b9bb8">app → the service can't be reached even if every other layer is misconfigured</text>
+  </g>
+
+</svg>
