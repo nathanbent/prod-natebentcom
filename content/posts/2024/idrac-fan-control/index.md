@@ -13,6 +13,7 @@ draft: false
 hidemeta: false
 comments: false
 description: "Basic iDRAC fan control with ipmitool, and why it stops working on newer firmware"
+summary: "Basic iDRAC fan control with ipmitool, and why it stops working on newer firmware"
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: true

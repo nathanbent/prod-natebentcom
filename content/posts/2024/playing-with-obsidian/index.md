@@ -16,6 +16,7 @@ draft: false
 hidemeta: false
 comments: false
 description: "I've been playing with Obsidian for a few months, and wanted to share some thoughts"
+summary: "I've been playing with Obsidian for a few months, and wanted to share some thoughts"
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: true
@@ -47,7 +48,7 @@ Calling Obsidian a markdown editor is really underselling it; it is really a [Pe
 
 This organizational methodology forms Obsidian's foundation, and on top of that is built a robust markdown editor, with a very capable plugin system available.
 
-To put it more succinctly, Obsidian is an organizationally focused note taking app that uses the markdown language that is flexible enough to be used in almost any situation.  For example, 
+To put it more succinctly, Obsidian is an organizationally focused note taking app that uses the markdown language that is flexible enough to be used in almost any situation.  For example,
 - I have a plugin that creates a daily note with predefined format, that allows me to plan out my day.
 - I have note taking templates pre-defined for the things I have a solid outline for.  This has been extremely useful for me as I study IT certifications.  Right now I am working on my Cisco CCNP, and I can create templates that...
 	- Make it easier for me to take notes on complex topics

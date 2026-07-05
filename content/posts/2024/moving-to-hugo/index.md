@@ -13,6 +13,7 @@ draft: false
 hidemeta: false
 comments: false
 description: "After playing with Wordpress for 15 years, I'm moving to Hugo"
+summary: "After playing with Wordpress for 15 years, I'm moving to Hugo"
 disableHLJS: true # to disable highlightjs
 disableShare: true
 hideSummary: false

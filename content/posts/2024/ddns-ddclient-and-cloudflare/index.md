@@ -12,6 +12,7 @@ draft: false
 hidemeta: false
 comments: false
 description: "Setting DDNS up on Cloudflare can be a little tricky, this is my experience with it"
+summary: "Setting DDNS up on Cloudflare can be a little tricky, this is my experience with it"
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: true

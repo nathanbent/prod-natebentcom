@@ -13,6 +13,7 @@ draft: false
 hidemeta: false
 comments: false
 description: "How I carve up the /56 that Cox delegates over DHCPv6-PD across a FortiGate edge and a Brocade ICX core, why the prefix keeps changing, and the plan for automating the renumbering."
+summary: "How I carve up the /56 that Cox delegates over DHCPv6-PD across a FortiGate edge and a Brocade ICX core, why the prefix keeps changing, and the plan for automating the renumbering."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: true
