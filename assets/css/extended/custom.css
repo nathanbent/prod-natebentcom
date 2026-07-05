@@ -242,6 +242,15 @@ html {
     box-shadow: inset 3px 0 0 var(--accent);
 }
 
+/* Table header — pale fill + thicker accent underline */
+.post-content table thead th {
+    background: var(--code-bg);
+    border-bottom: 2px solid var(--accent);
+    color: var(--primary);
+    font-weight: 600;
+    letter-spacing: .02em;   /* optional — makes the header read as a label */
+}
+
 /* 3. POST CONTENT — MEDIA ----------------------------------- */
 
 .post-content img {
