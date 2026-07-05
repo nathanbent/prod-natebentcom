@@ -6,7 +6,8 @@ author: "Nate"
 # aliases: ["/first"]
 tags: ["Untagged"]
 categories: ["Uncategorized"]
-#series: ["No-Series"]
+series: ["Testing"]
+series_order: 1
 showToc: true
 TocOpen: false
 draft: false
@@ -92,6 +93,56 @@ With all that in mind, the start of the New Year seemed as good a time as any to
 Even with those grandest of intentions, it was not without some growing pains.  Moving from a dynamic CMS to a static site generator like Hugo is a pretty large undertaking, and even though I feel like I have a fairly good start, there's a lot of work remaining.
 
 That said, I'm working on bringing some of the my favorite posts from my old iterations of this site over, and will hopefully get a good method down.
+
+## Code blocks
+
+```bash
+# a long line to test horizontal scroll behavior inside the code box
+ip link add xfrm0 type xfrm dev eth0 if_id 42 && ip link set xfrm0 up && echo "tunnel bound"
+```
+
+```yaml
+params:
+  ShowWordCount: true
+  editPost:
+    URL: "https://github.com/<repo>/content"
+```
+
+```
+plain fenced block with no language — should show no label but still copy
+```
+
+## Tables
+
+| VNI    | Route-Target   | IP Address      |
+|--------|----------------|-----------------|
+| 10100  | 65000:10100    | 10.1.0.1/24     |
+| 10200  | 65000:10200    | 10.2.0.1/24     |
+| 100100 | 65000:100100   | 10.100.0.1/24   |
+
+## Heading level two (accent + left bar)
+
+### Heading level three (accent, no bar)
+
+#### Heading level four (should NOT be accent-colored)
+
+Some prose with `inline code`, a [link](https://gohugo.io/), **bold**, and *italic*.
+
+1. Ordered item
+2. Ordered item
+   - nested unordered
+   - nested unordered
+
+Term
+: A definition-list entry (your `.post-content > dl` measure rule).
+
+---
+
+## Images
+
+{{</* figure src="test.svg" alt="SVG diagram" caption="SVG branch — served untouched; check it zooms to a real size in the lightbox, not zero." */>}}
+
+{{</* figure src="test.png" alt="Raster screenshot" caption="PNG branch — inspect for WebP srcset, then open the lightbox and confirm the caption + Download full image link." */>}}
 
 
 

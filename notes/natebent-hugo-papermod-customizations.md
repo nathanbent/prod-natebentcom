@@ -92,6 +92,7 @@ list of things to re-check.
 | `series_order: N` | Orders posts within the series-nav box, independent of date or `weight`. |
 | `cover.image` / `cover.thumb: true` / `cover.relative: true` | Cover image (bundle-relative); `thumb: true` renders the small left-of-title thumbnail style. |
 | `weight` | **Leave unset normally** (sorts by date). Set only to pin a post to the top of the feed. |
+| `summary` / `<!--more-->` | List excerpts (`/posts/`) come from the `summary:` front-matter field — that's the site standard. **Avoid the `<!--more-->` divider.** Hugo's `.Summary` precedence is manual (`<!--more-->`) > front-matter `summary:` > auto first-70-words, so a stray divider *silently overrides* your hand-written `summary:` and the card falls back to body content (which reads like an auto summary). Only use `<!--more-->` on a post where you deliberately want the formatted opening of the body as the excerpt — and leave `summary:` unset there so there's no precedence collision. |
 
 ---
 
