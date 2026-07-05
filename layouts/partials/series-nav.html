@@ -15,7 +15,7 @@
     {{- $current := $ -}}
     <div class="series-nav">
       <div class="series-nav-head">
-        <span class="series-nav-label">{{ $series }}</span>
+        <span class="series-nav-label">This post is part of the <b><{{ $series }}></b> series</span>
         <span class="series-nav-count">
           {{- range $i, $p := $posts -}}
             {{- if eq $p.Permalink $current.Permalink }}Part {{ add $i 1 }} of {{ $total }}{{ end -}}
