@@ -12,27 +12,27 @@
 {{- $posts = .Pages.ByDate -}}
 {{- end -}}
 {{- $total := len $posts -}}
-{{- $current := $ -}}
-<div class="series-nav-head">
-  <span class="series-nav-label">This post is part of the <span class="series-nav-name">{{ $series }}</span>
-    series</span>
-  <span class="series-nav-count">
-    {{- range $i, $p := $posts -}}
-    {{- if eq $p.Permalink $current.Permalink }}Part {{ add $i 1 }} of {{ $total }}{{ end -}}
-    {{- end -}}
-  </span>
-</div>
-<ol class="series-nav-list">
-  {{- range $i, $p := $posts }}
-  <li{{ if eq $p.Permalink $current.Permalink }} class="active" aria-current="true" {{ end }}>
-    {{- if eq $p.Permalink $current.Permalink -}}
-    <span>{{ $p.LinkTitle }}</span>
-    {{- else -}}
-    <a href="{{ $p.Permalink }}">{{ $p.LinkTitle }}</a>
-    {{- end -}}
-    </li>
-    {{- end }}
-</ol>
-</div>
+    {{- $current := $ -}}
+    <div class="series-nav">
+      <div class="series-nav-head">
+        <span class="series-nav-label">This post is part of the <span class="series-nav-name">{{ $series }}</span> series</span>
+        <span class="series-nav-count">
+          {{- range $i, $p := $posts -}}
+            {{- if eq $p.Permalink $current.Permalink }}Part {{ add $i 1 }} of {{ $total }}{{ end -}}
+          {{- end -}}
+        </span>
+      </div>
+      <ol class="series-nav-list">
+        {{- range $i, $p := $posts }}
+        <li{{ if eq $p.Permalink $current.Permalink }} class="active" aria-current="true"{{ end }}>
+          {{- if eq $p.Permalink $current.Permalink -}}
+            <span>{{ $p.LinkTitle }}</span>
+          {{- else -}}
+            <a href="{{ $p.Permalink }}">{{ $p.LinkTitle }}</a>
+          {{- end -}}
+        </li>
+        {{- end }}
+      </ol>
+    </div>
 {{- end }}
 {{- end }}
