@@ -383,6 +383,21 @@ html {
     background: var(--entry);
 }
 
+
+/* Series navigation ----------------------------------------- */
+.series-nav {
+    border: 1px solid var(--border);
+    border-inline-start: 4px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--code-bg);
+    padding: 14px 18px;
+    margin: 0 0 30px;
+}
+
+.dark .series-nav {
+    background: var(--entry);
+}
+
 .series-nav-head {
     display: flex;
     justify-content: space-between;
@@ -391,18 +406,19 @@ html {
 }
 
 .series-nav-label {
+    color: var(--primary);      /* was `fff` — invalid; also readable in light mode */
     font-weight: 600;
-    color: fff;
-    text-transform: lowercase;
     letter-spacing: .05em;
     font-size: 14px;
+    font-style: italic;
 }
 
 .series-nav-name {
-  color: var(--accent);
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 16px;
+    color: var(--accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 16px;
+    font-style: normal;
 }
 
 .series-nav-count {
