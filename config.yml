@@ -9,6 +9,9 @@ pagination:
   pagerSize: 10
 # ---------------------------------------------------------------------------
 
+permalinks:
+  posts: /posts/:slug/
+
 enableInlineShortcodes: true
 enableRobotsTXT: true
 buildDrafts: false
