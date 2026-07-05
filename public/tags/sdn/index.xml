@@ -563,8 +563,13 @@
 &lt;h2 id=&#34;proxmox-datacenter-manager&#34;&gt;Proxmox Datacenter Manager&lt;/h2&gt;
 &lt;p&gt;Proxmox Datacenter Manager (PDM) has been adding in more support for SDN features, including EVPN.  Here is what it looks like currently:&lt;/p&gt;
 &lt;figure&gt;
-    &lt;img src=&#34;https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1.png&#34; alt=&#34;Proxmox Datacenter Manager - EVPN Page&#34;
-         width=&#34;2220&#34; height=&#34;643&#34; loading=&#34;lazy&#34;&gt;&lt;figcaption&gt;Proxmox Datacenter Manager - EVPN Page&lt;/figcaption&gt;&lt;/figure&gt;
+      &lt;img
+        src=&#34;https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_4b6da540cf0233d2.webp&#34;
+        srcset=&#34;https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_6179e94603c8a8e4.webp 640w, https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_4b6da540cf0233d2.webp 1024w, https://natebent.com/posts/vxlan-fortigate-proxmox-2/images/pdm-evpn-1_hu_74a6acc14c3e17ef.webp 1600w&#34;
+        sizes=&#34;(min-width: 768px) 720px, 100vw&#34;
+        alt=&#34;Proxmox Datacenter Manager - EVPN Page&#34;
+        width=&#34;2220&#34; height=&#34;643&#34;
+        loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;Proxmox Datacenter Manager - EVPN Page&lt;/figcaption&gt;&lt;/figure&gt;
 &lt;h2 id=&#34;where-this-goes-next&#34;&gt;Where this goes next&lt;/h2&gt;
 &lt;p&gt;Everything above is hand typed, and every segment is the identical five object pattern keyed on one VNI, which is exactly the shape that begs to be looped. The next post is automating it: defining the segment list once as data and letting Terraform render both the FortiGate objects and the Proxmox SDN objects, with the route target and the tag both computed from the same number so the &amp;ldquo;mind your tags&amp;rdquo; failure mode becomes structurally impossible.&lt;/p&gt;
 &lt;p&gt;The order matters, though. Build it by hand first, hit these walls, understand every object and how it fails. Then codify the pattern you now actually understand. Automating before you understand it just gives you a black box that deploys broken configs faster. Earning the mental model the hard way is the right moment to hand the typing off to a tool.&lt;/p&gt;

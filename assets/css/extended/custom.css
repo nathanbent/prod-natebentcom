@@ -298,6 +298,35 @@ html { scroll-behavior: smooth; }
     margin-top: 0;
 }
 
+/* Series navigation box */
+.series-nav {
+    border: 1px solid var(--border);
+    border-inline-start: 4px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--code-bg);
+    padding: 14px 18px;
+    margin: 0 0 30px;
+}
+.dark .series-nav { background: var(--entry); }
+.series-nav-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+}
+.series-nav-label {
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-size: 14px;
+}
+.series-nav-count { color: var(--secondary); font-size: 14px; }
+.series-nav-list { margin: 0; padding-inline-start: 20px; }
+.series-nav-list li { margin: 3px 0; }
+.series-nav-list li.active span { font-weight: 600; color: var(--primary); }
+
+
 /* 7c. Single-post cover — cap the big banner height */
 .post-single .entry-cover,
 .post-cover {

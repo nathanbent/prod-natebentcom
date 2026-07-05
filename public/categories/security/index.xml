@@ -16,8 +16,13 @@
       <description>&lt;h2 id=&#34;what-code-server-is&#34;&gt;What code-server is&lt;/h2&gt;
 &lt;p&gt;code-server is Visual Studio Code running as a service on a remote machine, accessed entirely through a web browser. Instead of running VS Code locally on a laptop, you run it on a server, and the full editor experience (file tree, integrated terminal, extensions, git integration) is delivered over HTTP to any browser you point at it.&lt;/p&gt;
 &lt;figure&gt;
-    &lt;img src=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1.png&#34; alt=&#34;code-server example screenshot, this shows the homepage upon install&#34;
-         width=&#34;1519&#34; height=&#34;988&#34; loading=&#34;lazy&#34;&gt;&lt;figcaption&gt;code-server home page&lt;/figcaption&gt;&lt;/figure&gt;
+      &lt;img
+        src=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp&#34;
+        srcset=&#34;https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_e834b822f9581d36.webp 640w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_bc6cd99a7fb67642.webp 1024w, https://natebent.com/posts/self-hosting-codeserver/images/screenshot-1_hu_14eee16a3e0e3089.webp 1600w&#34;
+        sizes=&#34;(min-width: 768px) 720px, 100vw&#34;
+        alt=&#34;code-server example screenshot, this shows the homepage upon install&#34;
+        width=&#34;1519&#34; height=&#34;988&#34;
+        loading=&#34;lazy&#34; decoding=&#34;async&#34;&gt;&lt;figcaption&gt;code-server home page&lt;/figcaption&gt;&lt;/figure&gt;
 &lt;p&gt;The appeal is obvious: a single, consistent development environment that follows you everywhere. Open a Chromebook, a tablet, a locked-down work laptop, or a friend&amp;rsquo;s machine, and you land in the exact same editor with the exact same tools, extensions, and open projects. Nothing to install on the client. The heavy lifting (compiling, running containers, filesystem access) happens on the server where the resources actually are.&lt;/p&gt;
 &lt;p&gt;For a homelab or a personal cloud VM, this is genuinely useful. You get a real, always-on dev environment you can reach from anywhere.&lt;/p&gt;
 &lt;h2 id=&#34;why-exposing-it-publicly-is-dangerous&#34;&gt;Why exposing it publicly is dangerous&lt;/h2&gt;
