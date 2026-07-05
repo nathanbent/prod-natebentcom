@@ -1,10 +1,32 @@
 {{- $src := .Get "src" -}}
 {{- with .Page.Resources.GetMatch $src -}}
-  <figure>
-    <img src="{{ .RelPermalink }}" alt="{{ $.Get "alt" }}"
-         width="{{ .Width }}" height="{{ .Height }}" loading="lazy">
-    {{- with $.Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end -}}
-  </figure>
+  {{- $img := . -}}
+  {{- $isPNGorJPG := (or (eq $img.MediaType.SubType "png") (eq $img.MediaType.SubType "jpeg")) -}}
+
+  {{- if and $isPNGorJPG (ge $img.Width 640) -}}
+    {{- /* Generate resized WebP variants for a responsive srcset */ -}}
+    {{- $small  := ($img.Resize "640x webp q82").RelPermalink -}}
+    {{- $medium := ($img.Resize "1024x webp q82").RelPermalink -}}
+    {{- $large  := ($img.Resize "1600x webp q82").RelPermalink -}}
+    <figure>
+      <img
+        src="{{ $medium }}"
+        srcset="{{ $small }} 640w, {{ $medium }} 1024w, {{ $large }} 1600w"
+        sizes="(min-width: 768px) 720px, 100vw"
+        alt="{{ $.Get "alt" }}"
+        width="{{ $img.Width }}" height="{{ $img.Height }}"
+        loading="lazy" decoding="async">
+      {{- with $.Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end -}}
+    </figure>
+  {{- else -}}
+    {{- /* Small image or non-raster (svg/gif): serve as-is, no processing */ -}}
+    <figure>
+      <img src="{{ $img.RelPermalink }}" alt="{{ $.Get "alt" }}"
+           width="{{ $img.Width }}" height="{{ $img.Height }}"
+           loading="lazy" decoding="async">
+      {{- with $.Get "caption" }}<figcaption>{{ . }}</figcaption>{{ end -}}
+    </figure>
+  {{- end -}}
 {{- else -}}
   {{- errorf "figure shortcode: image %q not found in %s" $src $.Page.File.Path -}}
 {{- end -}}
