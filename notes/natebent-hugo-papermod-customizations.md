@@ -115,3 +115,4 @@ list of things to re-check.
 - **Table styling** (header fill/underline, row hover) → `custom.css` (§2)
 - **Inline-code tint + code-block hover ring** → `custom.css` (§4)
 - **Post-list excerpt size** → `custom.css` (§6 `.entry-content`)
+- **Footnotes** → Goldmark builtin (`[^1]` syntax, no config); styling in `custom.css` (§2 — measure, quiet type, `:target` accent flash)
