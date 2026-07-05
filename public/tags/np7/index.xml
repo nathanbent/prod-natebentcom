@@ -74,7 +74,7 @@
 &lt;blockquote class=&#34;callout callout-insight&#34;&gt;
     &lt;p class=&#34;callout-title&#34;&gt;
       &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
-      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Interesting!&lt;/span&gt;&lt;/p&gt;
     &lt;p&gt;&amp;ldquo;XLite&amp;rdquo; and &amp;ldquo;Lite&amp;rdquo; both read like a modern, trimmed down part, but they belong to different generations: NP6XLite is NP6 era silicon, NP7Lite is NP7 era. The generation is the tell, the &amp;ldquo;Lite&amp;rdquo; is the trap. A newer or bigger model number tells you nothing about VXLAN offload on its own.&lt;/p&gt;
   &lt;/blockquote&gt;&lt;blockquote class=&#34;callout callout-warning&#34;&gt;
     &lt;p class=&#34;callout-title&#34;&gt;

@@ -21,7 +21,7 @@
 &lt;blockquote class=&#34;callout callout-insight&#34;&gt;
     &lt;p class=&#34;callout-title&#34;&gt;
       &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
-      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Interesting!&lt;/span&gt;&lt;/p&gt;
     &lt;p&gt;The Proxmox CPU type menu is not a stability versus performance slider. It is a portability versus feature-exposure trade. &lt;code&gt;host&lt;/code&gt; gives the guest every flag the physical CPU has and gives up live migration. The &lt;code&gt;x86-64-vN&lt;/code&gt; types give up flags to stay migratable.&lt;/p&gt;
   &lt;/blockquote&gt;&lt;h2 id=&#34;the-one-question&#34;&gt;The one question&lt;/h2&gt;
 &lt;p&gt;Does this VM need to move between nodes, or does it need to squeeze the host CPU? Everything below is downstream of that. The short version of how I answer it:&lt;/p&gt;

@@ -39,7 +39,7 @@
 &lt;blockquote class=&#34;callout callout-insight&#34;&gt;
     &lt;p class=&#34;callout-title&#34;&gt;
       &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
-      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Interesting!&lt;/span&gt;&lt;/p&gt;
     &lt;p&gt;&lt;code&gt;raw 0x30 0x30 0x01 0x00&lt;/code&gt; turns manual control on, and &lt;code&gt;0x30 0x30 0x01 0x01&lt;/code&gt; turns it back off. The &lt;code&gt;0x00&lt;/code&gt;/&lt;code&gt;0x01&lt;/code&gt; reads backwards from what you would guess: &lt;code&gt;0x00&lt;/code&gt; hands control to you, and &lt;code&gt;0x01&lt;/code&gt; hands it back to Dell&amp;rsquo;s automatic algorithm.&lt;/p&gt;
   &lt;/blockquote&gt;&lt;p&gt;Replace &lt;code&gt;&amp;lt;BMC-IP&amp;gt;&lt;/code&gt;, &lt;code&gt;&amp;lt;username&amp;gt;&lt;/code&gt;, and &lt;code&gt;&amp;lt;password&amp;gt;&lt;/code&gt; in all of these.&lt;/p&gt;
 &lt;p&gt;Enable manual fan control:
@@ -231,7 +231,7 @@
   &lt;/blockquote&gt;&lt;blockquote class=&#34;callout callout-insight&#34;&gt;
     &lt;p class=&#34;callout-title&#34;&gt;
       &lt;span class=&#34;callout-icon&#34;&gt;&lt;svg viewBox=&#34;0 0 16 16&#34; aria-hidden=&#34;true&#34;&gt;&lt;path d=&#34;M8 0 L9.6 6.4 L16 8 L9.6 9.6 L8 16 L6.4 9.6 L0 8 L6.4 6.4 Z&#34;/&gt;&lt;/svg&gt;&lt;/span&gt;
-      &lt;span class=&#34;callout-label&#34;&gt;Really Interesting!&lt;/span&gt;&lt;/p&gt;
+      &lt;span class=&#34;callout-label&#34;&gt;Interesting!&lt;/span&gt;&lt;/p&gt;
     &lt;p&gt;The xfrm interface has to exist &lt;em&gt;before&lt;/em&gt; strongSwan can bind the tunnel to it — which is the kind of ordering detail that costs you an afternoon.&lt;/p&gt;
   &lt;/blockquote&gt;&lt;blockquote class=&#34;callout callout-tip&#34;&gt;
     &lt;p class=&#34;callout-title&#34;&gt;
