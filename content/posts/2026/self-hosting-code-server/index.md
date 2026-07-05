@@ -13,6 +13,7 @@ draft: false
 hidemeta: false
 comments: false
 description: "How I put code-server behind a FortiGate, a Caddy proxy chain, and Entra ID single sign-on so its built-in terminal never faces the raw internet."
+summary: "How I put code-server behind a FortiGate, a Caddy proxy chain, and Entra ID single sign-on so its built-in terminal never faces the raw internet."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: true

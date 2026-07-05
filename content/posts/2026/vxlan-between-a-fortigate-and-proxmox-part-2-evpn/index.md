@@ -14,6 +14,7 @@ draft: false
 hidemeta: false
 comments: false
 description: "Swapping the static VXLAN peer list for a BGP EVPN control plane across a FortiGate and a three node Proxmox cluster, and every place the two platforms tripped me up by disagreeing on what to state versus what to derive."
+summary: "Swapping the static VXLAN peer list for a BGP EVPN control plane across a FortiGate and a three node Proxmox cluster, and every place the two platforms tripped me up by disagreeing on what to state versus what to derive."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: true
