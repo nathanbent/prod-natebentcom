@@ -26,11 +26,13 @@ ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
 cover:
-    image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
-    hidden: true # only hide on current single page
+    image: "images/vxlan-terraform-hero-v2.svg" # image path/url
+    alt: "A visual representation of Terraform and EVPN-VXLAN" # alt text
+    caption: "A visual representation of Terraform and EVPN-VXLAN" # display caption under cover
+    relative: true
+    thumb: true
+    hiddenInSingle: true   # never show it stacked atop the article
+    hiddenInList: false    # but do show it as the list thumbnail
 editPost:
     disaled: true
     URL: "https://github.com/<path_to_repo>/content"
@@ -48,9 +50,13 @@ A note on scope: everything here uses real, current provider versions (`bpg/prox
 
 ## Terraform in one section, if you come from Ansible
 
+{{< figure src="images/vxlan-terraform-hero-v2.svg" alt="A visual representation of Terraform and EVPN-VXLAN" caption="A visual representation of Terraform and EVPN-VXLAN" >}}
+
 If your automation background is Ansible, there is a mental model shift worth making first. Ansible is procedural: run this sequence of steps against a host. Terraform is declarative: here is the set of things that should exist, you work out the difference from reality and close the gap. The rough division of labor is that Terraform manages the existence and shape of infrastructure (VMs, networks, DNS records, SDN objects) and Ansible configures what lives inside them. They are a pipeline, not rivals. Terraform makes the VM exist, Ansible installs and configures it.
 
 Five concepts and you can follow the rest of this post. A provider is a plugin that talks to one system's API (I use two, one for Proxmox and one for the FortiGate). A resource is one managed object. State is the file Terraform keeps of what it believes it created, so it can tell new from changed from deleted. The plan/apply loop is the safety model: `terraform plan` shows the diff without touching anything, `terraform apply` executes it after you confirm. And `for_each` loops a resource over a map, which is how a pile of near identical segments becomes one block plus a data structure.
+
+{{< figure src="images/vxlan-terraform-resource-detail-v2.svg" alt="A visual representation of Terraform and EVPN-VXLAN" caption="A visual representation of Terraform and EVPN-VXLAN" >}}
 
 ## The design: one map, both platforms
 

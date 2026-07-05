@@ -1,0 +1,79 @@
+<svg width="680" height="500" viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Terraform resource graph across FortiGate and Proxmox</title>
+<desc>A locals.segments map feeds two containers. The FortiGate container holds system_evpn, system_vxlan, and system_interface with dependency arrows between them. The Proxmox container holds sdn_vnet feeding virtual_environment_vm. A dashed connector below notes both sides derive from the same vni and route target.</desc>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Karla:wght@400;500&amp;family=Rubik:wght@400;500&amp;display=swap');
+.h{font-family:'Rubik','Segoe UI',Helvetica,Arial,sans-serif;}
+.b{font-family:'Karla','Segoe UI',Helvetica,Arial,sans-serif;}
+.mapbox{fill:#E9EFF3;stroke:#1B5A7A;}
+.map-title{fill:#1B5A7A;}
+.map-sub{fill:#5A6B79;}
+.fgt-container{fill:#FFFFFF;stroke:#1B5A7A;}
+.fgt-label{fill:#1B5A7A;}
+.fgt-res{fill:#E6F1FB;stroke:#1B5A7A;}
+.fgt-res-title{fill:#0C447C;}
+.fgt-res-sub{fill:#185FA5;}
+.pve-container{fill:#FFFFFF;stroke:#1C2733;}
+.pve-label{fill:#1C2733;}
+.pve-res{fill:#F1EFE8;stroke:#5A6B79;}
+.pve-res-title{fill:#2C2C2A;}
+.pve-res-sub{fill:#5F5E5A;}
+.arrline{fill:none;stroke:#5A6B79;}
+.dep{fill:none;stroke:#1B5A7A;}
+.dep2{fill:none;stroke:#5F5E5A;}
+.tunnel{stroke:#1B5A7A;}
+@media (prefers-color-scheme: dark){
+.mapbox{fill:#242D38;stroke:#7FB3D6;}
+.map-title{fill:#7FB3D6;}
+.map-sub{fill:#92A0AD;}
+.fgt-container{fill:#12161B;stroke:#7FB3D6;}
+.fgt-label{fill:#7FB3D6;}
+.fgt-res{fill:#1A2733;stroke:#7FB3D6;}
+.fgt-res-title{fill:#B5D4F4;}
+.fgt-res-sub{fill:#85B7EB;}
+.pve-container{fill:#12161B;stroke:#D8DFE6;}
+.pve-label{fill:#D8DFE6;}
+.pve-res{fill:#242D38;stroke:#92A0AD;}
+.pve-res-title{fill:#D3D1C7;}
+.pve-res-sub{fill:#B4B2A9;}
+.arrline{stroke:#92A0AD;}
+.dep{stroke:#7FB3D6;}
+.dep2{stroke:#B4B2A9;}
+.tunnel{stroke:#7FB3D6;}
+}
+</style>
+<defs>
+<marker id="detail-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect class="mapbox" x="245" y="36" width="190" height="64" rx="12" stroke-width="1"/>
+<text class="h map-title" x="340" y="60" text-anchor="middle" dominant-baseline="central" font-size="15" font-weight="500">locals.segments</text>
+<text class="b map-sub" x="340" y="82" text-anchor="middle" dominant-baseline="central" font-size="12">vni, subnet, gw</text>
+<line class="arrline" x1="300" y1="100" x2="190" y2="142" stroke-width="1" marker-end="url(#detail-arrow)"/>
+<line class="arrline" x1="380" y1="100" x2="490" y2="142" stroke-width="1" marker-end="url(#detail-arrow)"/>
+<rect class="fgt-container" x="60" y="146" width="260" height="262" rx="16" stroke-width="1" stroke-dasharray="4 3"/>
+<text class="h fgt-label" x="80" y="174" font-size="14" font-weight="500">FortiGate</text>
+<text class="b map-sub" x="80" y="192" font-size="12">fortios provider</text>
+<rect class="fgt-res" x="80" y="204" width="220" height="46" rx="8" stroke-width="1"/>
+<text class="h fgt-res-title" x="190" y="221" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">system_evpn</text>
+<text class="b fgt-res-sub" x="190" y="239" text-anchor="middle" dominant-baseline="central" font-size="12">route targets</text>
+<line class="dep" x1="190" y1="250" x2="190" y2="270" stroke-width="1" marker-end="url(#detail-arrow)"/>
+<rect class="fgt-res" x="80" y="272" width="220" height="46" rx="8" stroke-width="1"/>
+<text class="h fgt-res-title" x="190" y="289" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">system_vxlan</text>
+<text class="b fgt-res-sub" x="190" y="307" text-anchor="middle" dominant-baseline="central" font-size="12">vni + evpn_id</text>
+<line class="dep" x1="190" y1="318" x2="190" y2="338" stroke-width="1" marker-end="url(#detail-arrow)"/>
+<rect class="fgt-res" x="80" y="340" width="220" height="46" rx="8" stroke-width="1"/>
+<text class="h fgt-res-title" x="190" y="357" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">system_interface</text>
+<text class="b fgt-res-sub" x="190" y="375" text-anchor="middle" dominant-baseline="central" font-size="12">gateway ip, imported</text>
+<rect class="pve-container" x="360" y="146" width="260" height="262" rx="16" stroke-width="1" stroke-dasharray="4 3"/>
+<text class="h pve-label" x="380" y="174" font-size="14" font-weight="500">Proxmox</text>
+<text class="b map-sub" x="380" y="192" font-size="12">bpg/proxmox provider</text>
+<rect class="pve-res" x="380" y="216" width="220" height="56" rx="8" stroke-width="1"/>
+<text class="h pve-res-title" x="490" y="236" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">sdn_vnet</text>
+<text class="b pve-res-sub" x="490" y="256" text-anchor="middle" dominant-baseline="central" font-size="12">tag = vni, no subnet</text>
+<line class="dep2" x1="490" y1="272" x2="490" y2="308" stroke-width="1" marker-end="url(#detail-arrow)"/>
+<rect class="pve-res" x="380" y="310" width="220" height="56" rx="8" stroke-width="1"/>
+<text class="h pve-res-title" x="490" y="330" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500">virtual_environment_vm</text>
+<text class="b pve-res-sub" x="490" y="350" text-anchor="middle" dominant-baseline="central" font-size="12">bridge = vnet.id</text>
+<path class="tunnel" d="M190 408 Q340 442 490 408" fill="none" stroke-width="1.5" stroke-dasharray="5 5" marker-start="url(#detail-arrow)" marker-end="url(#detail-arrow)"/>
+<text class="b map-sub" x="340" y="466" text-anchor="middle" font-size="12">same vni + route target, no drift</text>
+</svg>
