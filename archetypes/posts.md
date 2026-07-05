@@ -2,40 +2,35 @@
 title: '{{ replace .File.ContentBaseName "-" " " | title }}'
 date: {{ .Date }}
 author: "Nate"
-# weight: 1
-# aliases: ["/first"]
-tags: ["Untagged"]
-categories: ["Uncategorized"]
-#series: ["No-Series"]
+draft: true
+tags: []
+categories: []
+# series: ["Name"]
+# series_order: 1
+# weight: 1            # only to pin a post; leave unset otherwise
+description: ""        # SEO/OG meta + single-page subtitle
+# summary: ""          # list excerpt — leave unset to auto-generate from the body
 showToc: true
 TocOpen: false
-draft: true
-hidemeta: false
-comments: false
-description: "Desc. Text"
-summary: "Desc. Text"
-canonicalURL: "https://canonical.url/to/page"
-disableHLJS: true # to disable highlightjs
-disableShare: true
-hideSummary: false
-searchHidden: true
+UseHugoToc: true
 ShowReadingTime: true
+ShowWordCount: true
 ShowBreadCrumbs: true
 ShowPostNavLinks: true
-ShowWordCount: true
-ShowRssButtonInSectionTermList: true
-UseHugoToc: true
-cover:
-    image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
-    thumb: true
-    hiddenInSingle: true   # never show it stacked atop the article
-    hiddenInList: false    # but do show it as the list thumbnail
-editPost:
-    disaled: true
-    URL: "https://github.com/<path_to_repo>/content"
-    Text: "Suggest Changes" # edit text
-    appendFilePath: true # to append file path to Edit link
+hidemeta: false
+hideSummary: false
+searchHidden: false
+comments: false
+disableShare: true    # drop if you want share buttons on a given post
+# disableHLJS: true   # no-op for you — highlighting is Chroma, not highlight.js
+# canonicalURL: ""    # ONLY for genuine cross-posts; a stale value can deindex the post
+# cover:              # uncomment only on posts that have one
+#   image: ""
+#   alt: ""
+#   caption: ""
+#   relative: true    # true for page-bundle images (your usual pattern)
+#   thumb: true       # your custom list-thumbnail style
+#   hiddenInSingle: true
+#   hiddenInList: false
+# editPost is configured site-wide in hugo.yaml — no per-post block needed
 ---

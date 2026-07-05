@@ -75,9 +75,6 @@ Over the last few months, I have been playing around with moving my website from
 > [!QUOTE]
 > Network processor NP7 - Fortinet’s breakthrough SPU NP7 works in line with FortiOS functions to deliver:
 
-
-<!--more-->
-
 Having used Wordpress for so long, I have gotten extremely familiar with what I liked, but also what I disliked.  To summarize,
 
 **My reasons for changing are myriad, but a few of the main draws include:**
