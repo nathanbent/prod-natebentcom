@@ -6,7 +6,7 @@ weight: 1
 # aliases: ["/first"]
 tags: ["Proxmox", "ZFS", "Storage", "Homelab", "Virtualization"]
 categories: ["Virtualization"]
-#series: ["No-Series"]
+series: ["Proxmox Best Practices"]
 showToc: true
 TocOpen: false
 draft: false

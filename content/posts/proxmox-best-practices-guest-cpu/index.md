@@ -6,7 +6,7 @@ weight: 1
 # aliases: ["/first"]
 tags: ["Proxmox", "Virtualization", "KVM", "Homelab"]
 categories: ["Proxmox"]
-#series: ["No-Series"]
+series: ["Proxmox Best Practices"]
 showToc: true
 TocOpen: false
 draft: false
