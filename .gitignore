@@ -18,6 +18,10 @@ resources/
 # Local env/secrets if you ever add any
 .env
 
+# Claude Code
+.claude/settings.local.json
+CLAUDE.local.md
+
 # Organizational stuff
 # *.sh
 # *.py
