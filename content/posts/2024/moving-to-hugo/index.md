@@ -140,9 +140,9 @@ Term
 
 ## Images
 
-{{</* figure src="test.svg" alt="SVG diagram" caption="SVG branch — served untouched; check it zooms to a real size in the lightbox, not zero." */>}}
+{{<figure src="images/test.svg" alt="SVG diagram" caption="SVG branch — served untouched; check it zooms to a real size in the lightbox, not zero.">}}
 
-{{</* figure src="test.png" alt="Raster screenshot" caption="PNG branch — inspect for WebP srcset, then open the lightbox and confirm the caption + Download full image link." */>}}
+{{<figure src="images/test.png" alt="Raster screenshot" caption="PNG branch — inspect for WebP srcset, then open the lightbox and confirm the caption + Download full image link.">}}
 
 
 
