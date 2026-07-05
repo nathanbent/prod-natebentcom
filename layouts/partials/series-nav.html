@@ -7,8 +7,8 @@
 {{- end -}}
 {{- with $series }}
   {{- with (index $.Site.Taxonomies.series (lower .)) }}
-    {{- $posts := .Pages.ByWeight -}}
-    {{- if eq (index $posts 0).Weight 0 -}}
+  {{- $posts := .Pages.ByParam "series_order" -}}
+    {{- if not (index $posts 0).Params.series_order -}}
       {{- $posts = .Pages.ByDate -}}
     {{- end -}}
     {{- $total := len $posts -}}

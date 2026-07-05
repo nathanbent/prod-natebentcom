@@ -2,7 +2,7 @@
 title: "VXLAN Between a FortiGate and Proxmox, Part 2.5: A Security Aside"
 date: 2026-06-27T01:00:00Z
 author: Nate
-weight: 1
+# weight: 1
 tags:
   - VXLAN
   - EVPN
@@ -16,6 +16,7 @@ categories:
   - Networking
   - Security
 series: ["Proxmox SDN"]
+series_order: 2.5
 showToc: true
 TocOpen: false
 draft: false

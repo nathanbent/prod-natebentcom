@@ -2,7 +2,7 @@
 title: 'iDRAC Fan Control'
 date: 2024-09-25T11:54:26-05:00
 author: "Nate"
-weight: 1
+# weight: 1
 # aliases: ["/first"]
 tags: ["iDRAC"]
 categories: ["Experiences"]

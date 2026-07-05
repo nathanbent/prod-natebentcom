@@ -2,7 +2,7 @@
 title: "Self hosting code-server"
 date: 2026-07-02T01:00:00Z
 author: "Nate"
-weight: 1
+# weight: 1
 # aliases: ["/first"]
 tags: ["code-server", "Security", "Docker", "oauth2-proxy", "Caddy", "FortiGate", "Homelab"]
 categories: ["Security"]

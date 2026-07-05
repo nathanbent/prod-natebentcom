@@ -2,11 +2,12 @@
 title: 'VXLAN Between a FortiGate and Proxmox, Part 2: EVPN'
 date: 2026-06-25T01:00:00Z
 author: "Nate"
-weight: 1
+# weight: 1
 # aliases: ["/first"]
 tags: ["VXLAN", "EVPN", "BGP", "FortiGate", "Proxmox", "SDN", "Homelab"]
 categories: ["Networking"]
 series: ["Proxmox SDN"]
+series_order: 2
 showToc: true
 TocOpen: false
 draft: false

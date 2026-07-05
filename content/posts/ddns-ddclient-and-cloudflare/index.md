@@ -1,7 +1,7 @@
 ---
 title: 'DDNS, ddclient and Cloudflare'
 date: 2024-02-03T20:52:13-06:00
-weight: 1
+# weight: 1
 # aliases: ["/first"]
 tags: ["Docker", "DDNS", "Cloudflare"]
 categories: ["Experiences"]
@@ -43,7 +43,7 @@ editPost:
 
 [DDNS](https://en.wikipedia.org/wiki/Dynamic_DNS) allows for the dynamic update of DNS entries and attributes - what a fitting name.  This can be an extremely valuable resource for professionals and homelabbers who need to deal with dynamically assigned IP addresses in keeping things connected.
 
-I personally use [Cloudflare](https://www.cloudflare.com/) as a DNS proxy for my various domains, which used to be managed by [Google Domains](https://domains.google.com/) until they [sold that business](https://domains.squarespace.com/google-domains) to [Squarespace](https://domains.squarespace.com/); I've since been moving everything to [Porkbun](https://porkbun.com/).  
+I personally use [Cloudflare](https://www.cloudflare.com/) as a DNS proxy for my various domains, which used to be managed by [Google Domains](https://domains.google.com/) until they [sold that business](https://domains.squarespace.com/google-domains) to [Squarespace](https://domains.squarespace.com/); I've since been moving everything to [Porkbun](https://porkbun.com/).
 
 Recently, I wanted to organize all of my Cloud and on-prem resources better, and decided to use a singular domain name to help organize everything.  I wanted to be sure that the subdomains I would be assigning out through A records would always be accurate, and thus my project began.
 
@@ -63,7 +63,7 @@ Finally, ddclient will need some way to check it's own IP and see if the records
 
 Because I have a number of VMs running among the different cloud providers, running ddclient in a docker container works wonderfully.  Once I install docker and docker compose, I'm easily able to use basically the same two files to keep every VM host updated.
 
-***It should be noted*** that without a pre-made config/ddclient.conf file, the ddclient container will download a default one.  This needs to be altered slightly to work. 
+***It should be noted*** that without a pre-made config/ddclient.conf file, the ddclient container will download a default one.  This needs to be altered slightly to work.
 
 ## My docker-compose.yml and ddclient.conf
 

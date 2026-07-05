@@ -2,11 +2,12 @@
 title: "Proxmox Best Practices - Guest Storage"
 date: 2026-05-11T01:00:00Z
 author: "Nate"
-weight: 1
+# weight: 1
 # aliases: ["/first"]
 tags: ["Proxmox", "ZFS", "Storage", "Homelab", "Virtualization"]
 categories: ["Virtualization"]
 series: ["Proxmox Best Practices"]
+series_order: 2
 showToc: true
 TocOpen: false
 draft: false

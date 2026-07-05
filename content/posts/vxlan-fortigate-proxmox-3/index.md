@@ -2,11 +2,12 @@
 title: 'VXLAN Between a FortiGate and Proxmox, Part 3: Automating It With Terraform'
 date: 2026-06-30T01:00:00Z
 author: "Nate"
-weight: 1
+# weight: 1
 # aliases: ["/first"]
 tags: ["Terraform", "VXLAN", "EVPN", "FortiGate", "Proxmox", "SDN", "IaC", "Automation", "Homelab"]
 categories: ["Networking", "Automation"]
 series: ["Proxmox SDN"]
+series_order: 3
 showToc: true
 TocOpen: false
 draft: false

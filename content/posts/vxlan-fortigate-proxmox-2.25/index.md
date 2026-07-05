@@ -2,11 +2,12 @@
 title: 'VXLAN Performance on a FortiGate 70F: The Software Switching Tax'
 date: 2026-06-25T03:00:00Z
 author: "Nate"
-weight: 1
+# weight: 1
 # aliases: ["/first"]
 tags: ["VXLAN", "EVPN", "FortiGate", "Proxmox", "SDN", "Performance", "NP7", "Homelab"]
 categories: ["Networking"]
 series: ["Proxmox SDN"]
+series_order: 2.25
 showToc: true
 TocOpen: false
 draft: false

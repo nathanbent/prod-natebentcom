@@ -2,7 +2,7 @@
 title: 'Creating Ubuntu Templates with Cloud-Init in Proxmox'
 date: 2024-04-09T23:20:01Z
 author: "Nate"
-weight: 1
+# weight: 1
 # aliases: ["/first"]
 tags: ["Untagged"]
 categories: ["Proxmox", "Ubuntu", "Cloud-Init"]
@@ -67,13 +67,13 @@ As of writing, I am running Proxmox 8.2 and using Ubuntu 22.04.  This should be 
    - **[Ubuntu 22.04](https://cloud-images.ubuntu.com/releases/jammy/release/?ref=tcude.net)**
 
 ``` bash
-wget https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-amd64.img 
+wget https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-amd64.img
 
 ```
 
 - More coming soon!
 
-5. 
+5.
 
 
 

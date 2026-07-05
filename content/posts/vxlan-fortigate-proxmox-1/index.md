@@ -2,11 +2,12 @@
 title: 'VXLAN Between a FortiGate and Proxmox'
 date: 2026-06-23T01:00:00Z
 author: "Nate"
-weight: 1
+# weight: 1
 # aliases: ["/first"]
 tags: ["VXLAN", "FortiGate", "Proxmox", "SDN", "Homelab"]
 categories: ["Networking"]
 series: ["Proxmox SDN"]
+series_order: 1
 showToc: true
 TocOpen: false
 draft: false
