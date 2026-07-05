@@ -214,11 +214,6 @@ html {
 
 /* 5. READING AIDS ------------------------------------------- */
 
-.series-nav-name {
-  color: var(--accent);
-  font-weight: 600;
-}
-
 /* Scroll progress bar */
 #reading-progress {
     position: fixed;
@@ -397,10 +392,17 @@ html {
 
 .series-nav-label {
     font-weight: 600;
-    color: var(--accent);
-    text-transform: uppercase;
+    color: fff;
+    text-transform: lowercase;
     letter-spacing: .05em;
     font-size: 14px;
+}
+
+.series-nav-name {
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 16px;
 }
 
 .series-nav-count {
