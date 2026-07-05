@@ -226,6 +226,21 @@ html {
     font-variant-numeric: tabular-nums;
 }
 
+/* Row hover — faint accent tint; targets tbody so the header row is exempt */
+.post-content table tbody tr {
+    transition: background-color .12s ease;
+}
+
+.post-content table tbody tr:hover {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+/* Accent edge on the hovered row. Put on the first cell, not the <tr>:
+   box-shadow on a <tr> is unreliable under border-collapse, but on a <td>
+   it's rock solid — and inset avoids the layout shift a border would cause. */
+.post-content table tbody tr:hover td:first-child {
+    box-shadow: inset 3px 0 0 var(--accent);
+}
 
 /* 3. POST CONTENT — MEDIA ----------------------------------- */
 
@@ -302,6 +317,18 @@ html {
 .code-wrap {
     position: relative;
     margin: 10px auto;
+    border-radius: var(--radius);          /* so the ring corners match the block */
+    transition: box-shadow .15s ease;
+}
+
+.code-wrap:hover {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
+                0 6px 18px rgba(0, 0, 0, .12);
+}
+
+.dark .code-wrap:hover {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent),
+                0 6px 22px rgba(0, 0, 0, .4);
 }
 
 .code-wrap>.highlight {
