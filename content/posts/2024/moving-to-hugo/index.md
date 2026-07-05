@@ -39,39 +39,12 @@ editPost:
     Text: "Suggest Changes" # edit text
     appendFilePath: true # to append file path to Edit link
 ---
+# Moving to Hugo!
 
-# weight: 1
-# aliases: ["/first"]
-tags: ["Hugo", "Meta"]
-categories: ["Experiences", "Projects", "Thoughts"]
-author: "Nate"
-# author: ["Me, "You"] # multiple authors
-showToc: false
-TocOpen: true
-draft: false
-hidemeta: false
-comments: false
-description: "After playing with Wordpress for 15 years, I'm moving to Hugo"
-summary: "After playing with Wordpress for 15 years, I'm moving to Hugo"
-disableHLJS: true # to disable highlightjs
-disableShare: true
-hideSummary: false
-searchHidden: true
-ShowReadingTime: true
-ShowBreadCrumbs: true
-ShowPostNavLinks: true
-ShowWordCount: true
-ShowRssButtonInSectionTermList: true
-UseHugoToc: true
-cover:
-    image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
-    hidden: true # only hide on current single page
 
----
 Over the last few months, I have been playing around with moving my website from Wordpress where it has lived in one form or another since around 2004.  When I first installed it, I believe I was really just looking for some software to run on my newly hacked together LAMP server; I never imagined I would use it for so long.
+
+## Testing
 
 
 > A plain quote — stays blue, no label.
