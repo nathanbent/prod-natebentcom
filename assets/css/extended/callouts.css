@@ -9,7 +9,7 @@
    Palette:
 
      default + [!NOTE]   var(--accent)    ocean blue, tracks custom.css
-     [!TIP]              teal             bridges blue and green
+     [!TIP]              pastel blue      distinct from NOTE by lightness
      [!IMPORTANT]        purple
      [!WARNING]          amber
      [!CAUTION]          red
@@ -37,7 +37,7 @@
     --cl-insight-bg: color-mix(in srgb, var(--accent-2) 7%, transparent);
     --cl-insight-f: var(--accent-2);
 
-    --cl-tip-b: #1A7A6E;      --cl-tip-bg: rgba(26, 122, 110, .07);     --cl-tip-f: #14685E;
+    --cl-tip-b: #93C6E8;      --cl-tip-bg: rgba(147, 198, 232, .12);    --cl-tip-f: #1873A8;
     --cl-imp-b: #8a63d2;      --cl-imp-bg: rgba(138, 99, 210, .08);     --cl-imp-f: #7b54c8;
     --cl-warn-b: #d1a017;     --cl-warn-bg: rgba(209, 160, 23, .10);    --cl-warn-f: #9c7400;
     --cl-caut-b: #d1453b;     --cl-caut-bg: rgba(209, 69, 59, .08);     --cl-caut-f: #c23730;
@@ -57,7 +57,7 @@
     --cl-insight-bg: color-mix(in srgb, var(--accent-2) 10%, transparent);
     --cl-insight-f: var(--accent-2);
 
-    --cl-tip-b: #5FC5B8;      --cl-tip-bg: rgba(95, 197, 184, .10);     --cl-tip-f: #5FC5B8;
+    --cl-tip-b: #A8D4F0;      --cl-tip-bg: rgba(168, 212, 240, .10);    --cl-tip-f: #A8D4F0;
     --cl-imp-b: #b294e8;      --cl-imp-bg: rgba(178, 148, 232, .12);    --cl-imp-f: #b294e8;
     --cl-warn-b: #e3b341;     --cl-warn-bg: rgba(227, 179, 65, .12);    --cl-warn-f: #e3b341;
     --cl-caut-b: #f0857d;     --cl-caut-bg: rgba(240, 133, 125, .12);   --cl-caut-f: #f0857d;
