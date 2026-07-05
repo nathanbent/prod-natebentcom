@@ -20,9 +20,12 @@
 /* 1. DESIGN TOKENS ------------------------------------------- */
 :root {
     --accent: #748CAB;
-    --main-width: 1100px;   /* wide canvas: code, tables, images breathe */
-    --measure: 72ch;        /* comfortable reading width for prose */
+    --main-width: 1100px;
+    /* wide canvas: code, tables, images breathe */
+    --measure: 72ch;
+    /* comfortable reading width for prose */
 }
+
 .dark {
     --accent: #8fa8c9;
 }
@@ -31,17 +34,17 @@
 /* 2. POST CONTENT — TYPOGRAPHY ------------------------------- */
 
 /* Constrain prose to a readable measure; media stays full width */
-.post-content > p,
-.post-content > ul,
-.post-content > ol,
-.post-content > dl,
-.post-content > blockquote,
-.post-content > h1,
-.post-content > h2,
-.post-content > h3,
-.post-content > h4,
-.post-content > h5,
-.post-content > h6 {
+.post-content>p,
+.post-content>ul,
+.post-content>ol,
+.post-content>dl,
+.post-content>blockquote,
+.post-content>h1,
+.post-content>h2,
+.post-content>h3,
+.post-content>h4,
+.post-content>h5,
+.post-content>h6 {
     max-width: var(--measure);
     margin-inline: auto;
 }
@@ -52,6 +55,7 @@
 .post-content h3 {
     color: var(--accent);
 }
+
 .post-content h2 {
     border-inline-start: 4px solid var(--accent);
     padding-inline-start: 12px;
@@ -62,16 +66,21 @@
 .toc a:hover {
     color: var(--accent);
 }
+
 .post-content a {
     transition: color .15s ease, box-shadow .15s ease;
 }
+
 ::selection {
     background: var(--accent);
     color: #fff;
 }
 
 /* Smooth anchor jumps + offset so headings don't hide under the header */
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+}
+
 .post-content h1,
 .post-content h2,
 .post-content h3,
@@ -85,11 +94,18 @@ html { scroll-behavior: smooth; }
 .post-title,
 .post-content h1,
 .post-content h2,
-.post-content h3 { text-wrap: balance; }
-.post-content p { text-wrap: pretty; }
+.post-content h3 {
+    text-wrap: balance;
+}
+
+.post-content p {
+    text-wrap: pretty;
+}
 
 /* Digit-aligned tables (VNIs, route-targets, IPs) */
-.post-content table { font-variant-numeric: tabular-nums; }
+.post-content table {
+    font-variant-numeric: tabular-nums;
+}
 
 
 /* 3. POST CONTENT — MEDIA ----------------------------------- */
@@ -100,12 +116,15 @@ html { scroll-behavior: smooth; }
     border: 1px solid var(--border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
 }
+
 .dark .post-content img {
     box-shadow: 0 2px 12px rgba(0, 0, 0, .4);
 }
 
 /* Click-to-zoom lightbox (built in extend_footer.html) */
-.post-content img:not(.in-text) { cursor: zoom-in; }
+.post-content img:not(.in-text) {
+    cursor: zoom-in;
+}
 
 .lightbox {
     position: fixed;
@@ -120,7 +139,10 @@ html { scroll-behavior: smooth; }
     opacity: 0;
     transition: opacity .2s ease;
 }
-.lightbox.open { opacity: 1; }
+
+.lightbox.open {
+    opacity: 1;
+}
 
 .lightbox-inner {
     margin: 0;
@@ -128,19 +150,22 @@ html { scroll-behavior: smooth; }
     flex-direction: column;
     align-items: center;
     gap: 12px;
-    max-width: 92vw;
-    max-height: 92vh;
+    max-width: 95vw;
+    max-height: 95vh;
 }
+
 .lightbox-inner img {
-    max-width: 92vw;
-    max-height: 92vh;
+    max-width: 95vw;
+    max-height: 95vh;
     width: auto;
     height: auto;
-    min-height: 0;          /* lets the image shrink so the caption stays visible */
+    min-height: 0;
+    /* lets the image shrink so the caption stays visible */
     object-fit: contain;
     border-radius: var(--radius);
     box-shadow: 0 8px 40px rgba(0, 0, 0, .5);
 }
+
 .lightbox-inner figcaption {
     color: rgba(255, 255, 255, .85);
     font-size: 14px;
@@ -151,8 +176,14 @@ html { scroll-behavior: smooth; }
 
 /* 4. CODE BLOCKS -------------------------------------------- */
 
-.code-wrap { position: relative; margin: 10px auto; }
-.code-wrap > .highlight { margin: 0; }
+.code-wrap {
+    position: relative;
+    margin: 10px auto;
+}
+
+.code-wrap>.highlight {
+    margin: 0;
+}
 
 /* Language label, top-right; fades on hover so the copy button shows */
 .code-wrap[data-lang]::before {
@@ -169,7 +200,10 @@ html { scroll-behavior: smooth; }
     pointer-events: none;
     transition: opacity .15s ease;
 }
-.code-wrap:hover[data-lang]::before { opacity: 0; }
+
+.code-wrap:hover[data-lang]::before {
+    opacity: 0;
+}
 
 
 /* 5. READING AIDS ------------------------------------------- */
@@ -177,12 +211,14 @@ html { scroll-behavior: smooth; }
 /* Scroll progress bar */
 #reading-progress {
     position: fixed;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 3px;
     z-index: 1000;
     pointer-events: none;
 }
+
 #reading-progress span {
     display: block;
     width: 0;
@@ -192,7 +228,10 @@ html { scroll-behavior: smooth; }
 }
 
 /* Active TOC link */
-#TableOfContents a { transition: color .15s ease; }
+#TableOfContents a {
+    transition: color .15s ease;
+}
+
 #TableOfContents a.active {
     color: var(--accent);
     font-weight: 600;
@@ -207,15 +246,20 @@ html { scroll-behavior: smooth; }
     padding: 18px 20px;
     transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
+
 .post-entry:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, .10);
     border-color: var(--accent);
 }
+
 .dark .post-entry:hover {
     box-shadow: 0 6px 24px rgba(0, 0, 0, .45);
 }
-.post-entry:hover .entry-header h2 { color: var(--accent); }
+
+.post-entry:hover .entry-header h2 {
+    color: var(--accent);
+}
 
 
 /* 7. COVER IMAGES ------------------------------------------- */
@@ -226,6 +270,7 @@ html { scroll-behavior: smooth; }
     overflow: hidden;
     border-radius: var(--radius);
 }
+
 .entry-cover-list img {
     width: 100%;
     height: 220px;
@@ -240,24 +285,29 @@ html { scroll-behavior: smooth; }
 .post-entry:has(.entry-cover-thumb) {
     display: grid;
     grid-template-columns: 120px 1fr;
-    grid-auto-rows: min-content;   /* each row is exactly its content height */
+    grid-auto-rows: min-content;
+    /* each row is exactly its content height */
     column-gap: 16px;
     row-gap: 0;
     align-items: start;
     align-content: start;
 }
+
 .entry-cover-thumb {
     grid-column: 1;
-    grid-row: 1 / span 4;          /* span the text rows; never inflate just one */
+    grid-row: 1 / span 4;
+    /* span the text rows; never inflate just one */
     align-self: start;
     margin: 0;
 }
+
 .post-entry:has(.entry-cover-thumb) .entry-header,
 .post-entry:has(.entry-cover-thumb) .entry-content,
 .post-entry:has(.entry-cover-thumb) .entry-footer {
     grid-column: 2;
     margin-top: 0;
 }
+
 .entry-cover-thumb img {
     width: 120px;
     height: 120px;
@@ -266,13 +316,27 @@ html { scroll-behavior: smooth; }
     border: 1px solid var(--border);
     margin: 0;
 }
+
 @media (max-width: 500px) {
-    .post-entry:has(.entry-cover-thumb) { grid-template-columns: 1fr; }
+    .post-entry:has(.entry-cover-thumb) {
+        grid-template-columns: 1fr;
+    }
+
     .post-entry:has(.entry-cover-thumb) .entry-header,
     .post-entry:has(.entry-cover-thumb) .entry-content,
-    .post-entry:has(.entry-cover-thumb) .entry-footer { grid-column: 1; }
-    .entry-cover-thumb { grid-row: auto; }      /* stop spanning when stacked */
-    .entry-cover-thumb img { width: 100%; height: 160px; }
+    .post-entry:has(.entry-cover-thumb) .entry-footer {
+        grid-column: 1;
+    }
+
+    .entry-cover-thumb {
+        grid-row: auto;
+    }
+
+    /* stop spanning when stacked */
+    .entry-cover-thumb img {
+        width: 100%;
+        height: 160px;
+    }
 }
 
 /* PaperMod hides covers on term/series pages — re-show ours */
@@ -291,6 +355,7 @@ html { scroll-behavior: smooth; }
     align-items: start;
     align-content: start;
 }
+
 .tag-entry:has(.entry-cover-thumb) .entry-header,
 .tag-entry:has(.entry-cover-thumb) .entry-content,
 .tag-entry:has(.entry-cover-thumb) .entry-footer {
@@ -307,13 +372,18 @@ html { scroll-behavior: smooth; }
     padding: 14px 18px;
     margin: 0 0 30px;
 }
-.dark .series-nav { background: var(--entry); }
+
+.dark .series-nav {
+    background: var(--entry);
+}
+
 .series-nav-head {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     margin-bottom: 8px;
 }
+
 .series-nav-label {
     font-weight: 600;
     color: var(--accent);
@@ -321,10 +391,25 @@ html { scroll-behavior: smooth; }
     letter-spacing: .05em;
     font-size: 14px;
 }
-.series-nav-count { color: var(--secondary); font-size: 14px; }
-.series-nav-list { margin: 0; padding-inline-start: 20px; }
-.series-nav-list li { margin: 3px 0; }
-.series-nav-list li.active span { font-weight: 600; color: var(--primary); }
+
+.series-nav-count {
+    color: var(--secondary);
+    font-size: 14px;
+}
+
+.series-nav-list {
+    margin: 0;
+    padding-inline-start: 20px;
+}
+
+.series-nav-list li {
+    margin: 3px 0;
+}
+
+.series-nav-list li.active span {
+    font-weight: 600;
+    color: var(--primary);
+}
 
 
 /* 7c. Single-post cover — cap the big banner height */
@@ -334,6 +419,7 @@ html { scroll-behavior: smooth; }
     overflow: hidden;
     border-radius: var(--radius);
 }
+
 .post-single .entry-cover img,
 .post-cover img {
     width: 100%;
@@ -344,11 +430,18 @@ html { scroll-behavior: smooth; }
 
 /* 8. NAVIGATION & TAGS -------------------------------------- */
 
-#menu { padding-bottom: 5px; }
+#menu {
+    padding-bottom: 5px;
+}
 
-.nav .logo a { transition: color .15s ease; }
+.nav .logo a {
+    transition: color .15s ease;
+}
 
-#menu a { position: relative; }
+#menu a {
+    position: relative;
+}
+
 #menu a::after {
     content: "";
     position: absolute;
@@ -361,7 +454,10 @@ html { scroll-behavior: smooth; }
     transform-origin: left;
     transition: transform .2s ease;
 }
-#menu a:hover::after { transform: scaleX(1); }
+
+#menu a:hover::after {
+    transform: scaleX(1);
+}
 
 .post-tags a:hover,
 .terms-tags a:hover {
@@ -373,32 +469,49 @@ html { scroll-behavior: smooth; }
 
 /* 9. PROFILE / LANDING PAGE --------------------------------- */
 
-.profile .profile_inner h1 { color: var(--accent); }
+.profile .profile_inner h1 {
+    color: var(--accent);
+}
 
 .buttons .button {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     transition: background .15s ease, color .15s ease,
-                border-color .15s ease, transform .15s ease;
+        border-color .15s ease, transform .15s ease;
 }
+
 .buttons .button:hover {
     background: var(--accent);
     color: #fff;
     border-color: var(--accent);
     transform: translateY(-2px);
 }
-.buttons .button-inner { padding: 8px 18px; }
 
-.profile .profile_inner { animation: profile-rise .5s ease both; }
+.buttons .button-inner {
+    padding: 8px 18px;
+}
+
+.profile .profile_inner {
+    animation: profile-rise .5s ease both;
+}
+
 @keyframes profile-rise {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .profile img {
     border: 3px solid var(--border);
     transition: border-color .2s ease, transform .2s ease;
 }
+
 .profile img:hover {
     border-color: var(--accent);
     transform: scale(1.1);
@@ -407,14 +520,23 @@ html { scroll-behavior: smooth; }
 
 /* 10. MISC EMBEDS ------------------------------------------- */
 
-.twitter-tweet { margin: auto; }
-iframe { border-radius: var(--radius) !important; }
-.home-info ul { padding-inline-start: 20px; }
+.twitter-tweet {
+    margin: auto;
+}
+
+iframe {
+    border-radius: var(--radius) !important;
+}
+
+.home-info ul {
+    padding-inline-start: 20px;
+}
 
 
 /* 11. REDUCED MOTION  (keep last so it has the final word) --- */
 
 @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {

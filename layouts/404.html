@@ -12,7 +12,7 @@
 
   <script id="q404-data" type="application/json">
     {{- $q := slice -}}
-    {{- range site.Data.quotes -}}
+    {{- range hugo.Data.quotes -}}
       {{- $q = $q | append (dict "text" .text "source" (.source | default "")) -}}
     {{- end -}}
     {{ $q | jsonify | safeJS }}

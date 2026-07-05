@@ -16,7 +16,7 @@
     <title>{{ if eq  .Title  .Site.Title }}{{ .Site.Title }}{{ else }}{{ with .Title }}{{ . }} on {{ end }}{{ .Site.Title }}{{ end }}</title>
     <link>{{ .Permalink }}</link>
     <description>Recent content {{ if ne  .Title  .Site.Title }}{{ with .Title }}in {{ . }} {{ end }}{{ end }}on {{ .Site.Title }}</description>
-    <generator>Hugo</generator>{{ with site.Language.LanguageCode }}
+    <generator>Hugo</generator>{{ with site.Language.Locale }}
     <language>{{ . }}</language>{{end}}{{ with site.Params.author }}
     <managingEditor>{{ with site.Params.email }}{{.}}{{ end }}{{ with . }} ({{.}}){{end}}</managingEditor>{{end}}{{ with .OutputFormats.Get "RSS" }}
     <atom:link href="{{ .Permalink }}" rel="self" type="application/rss+xml" />{{ end }}
