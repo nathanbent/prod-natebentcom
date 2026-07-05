@@ -14,6 +14,7 @@ draft: false
 hidemeta: false
 comments: false
 description: "How I pick a Proxmox VM CPU type: host versus the x86-64-vN virtual types, the Spectre and Meltdown flags those types quietly leave off, and why host is usually the wrong default on Windows."
+summary: "How I pick a Proxmox VM CPU type: host versus the x86-64-vN virtual types, the Spectre and Meltdown flags those types quietly leave off, and why host is usually the wrong default on Windows."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: true
