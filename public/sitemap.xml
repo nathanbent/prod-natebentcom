@@ -21,7 +21,10 @@
     <lastmod>2026-06-23T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/posts/proxmox-best-practices-guest-storage/</loc>
-    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
+    <lastmod>2026-05-11T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/posts/proxmox-best-practices-guest-cpu/</loc>
+    <lastmod>2026-05-04T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/posts/idrac-fan-control/</loc>
     <lastmod>2024-09-25T11:54:26-05:00</lastmod>
@@ -114,16 +117,22 @@
     <lastmod>2026-06-25T03:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/storage/</loc>
-    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
+    <lastmod>2026-05-11T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/virtualization/</loc>
-    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
+    <lastmod>2026-05-11T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/virtualization/</loc>
-    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
+    <lastmod>2026-05-11T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/tags/zfs/</loc>
-    <lastmod>2026-05-27T01:00:00+00:00</lastmod>
+    <lastmod>2026-05-11T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/tags/kvm/</loc>
+    <lastmod>2026-05-04T01:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://natebent.com/categories/proxmox/</loc>
+    <lastmod>2026-05-04T01:00:00+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/experiences/</loc>
     <lastmod>2024-09-25T11:54:26-05:00</lastmod>
@@ -132,9 +141,6 @@
     <lastmod>2024-09-25T11:54:26-05:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/cloud-init/</loc>
-    <lastmod>2024-04-09T23:20:01+00:00</lastmod>
-  </url><url>
-    <loc>https://natebent.com/categories/proxmox/</loc>
     <lastmod>2024-04-09T23:20:01+00:00</lastmod>
   </url><url>
     <loc>https://natebent.com/categories/ubuntu/</loc>
@@ -207,5 +213,7 @@
     <lastmod>2026-06-23T12:00:00-05:00</lastmod>
   </url><url>
     <loc>https://natebent.com/archive/</loc>
+  </url><url>
+    <loc>https://natebent.com/search/</loc>
   </url>
 </urlset>

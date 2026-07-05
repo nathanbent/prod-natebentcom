@@ -2,8 +2,12 @@
 # contain http (as opposeed to https) URLs. This would affect Google indexing of your URLs.
 baseURL: "https://natebent.com"
 title: NateBent.com
-#paginate: 5
 theme: [hugo-PaperMod]
+
+# --- NEW: pagination (replaces deprecated top-level 'paginate') -------------
+pagination:
+  pagerSize: 10
+# ---------------------------------------------------------------------------
 
 enableInlineShortcodes: true
 enableRobotsTXT: true
@@ -17,7 +21,7 @@ mainsections: ["posts", "about-me/"]
 
 minify:
   disableXML: true
-  # minifyOutput: true
+  minifyOutput: true          # NEW: minify HTML output
 
 languages:
   en:
@@ -35,6 +39,11 @@ languages:
         - name: Posts
           url: /posts
           weight: 10
+        # --- NEW: search menu entry (needs content/search.md, see notes) ---
+        - name: Search
+          url: /search/
+          weight: 15
+        # -------------------------------------------------------------------
 outputs:
   home:
     - HTML
@@ -51,6 +60,7 @@ params:
   # disableThemeToggle: true
   ShowShareButtons: true
   ShowReadingTime: true
+  ShowWordCount: true           # NEW: word count next to reading time
   # disableSpecial1stPost: true
   displayFullLangName: true
   ShowPostNavLinks: true
@@ -63,6 +73,13 @@ params:
   # comments: false
   images: ["images/papermod-cover.png"]
   social: true
+
+  # --- NEW: "Suggest changes" link on each post (edit YOURUSER/repo) --------
+  editPost:
+    URL: "https://github.com/YOURUSER/prod-natebentcom/tree/main/content"
+    Text: "Suggest changes"
+    appendFilePath: true
+  # -------------------------------------------------------------------------
 
  # profile-mode
   profileMode:
@@ -79,68 +96,20 @@ params:
       - name: Posts
         url: /posts/
 
-
-  # label:
-  # iconSVG: '<svg xmlns="http://www.w3.org/2000/svg" height="25" viewBox="0 -960 960 960" fill="currentColor"><path d="M320-240h320v-80H320v80Zm0-160h320v-80H320v80ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/></svg>'
-  # text: "Home"
-  # icon: icon.png
-  # iconHeight: 35
-
-  # analytics:
-  #     google:
-  #         SiteVerificationTag: "XYZabc"
-
   assets:
     disableHLJS: true
-  #     favicon: "<link / abs url>"
-  #     favicon16x16: "<link / abs url>"
-  #     favicon32x32: "<link / abs url>"
-  #     apple_touch_icon: "<link / abs url>"
-  #     safari_pinned_tab: "<link / abs url>"
+    favicon: "/favicon-light.png"              # NEW
+    favicon16x16: "/favicon-light.png"         # NEW
+    favicon32x32: "/favicon-light.png"         # NEW
+    apple_touch_icon: "/favicon-light.png"     # NEW
+    safari_pinned_tab: "/favicon-light.png"    # NEW
 
-  # cover:
-  #     hidden: true # hide everywhere but not in structured data
-  #     hiddenInList: true # hide on list pages and home
-  #     hiddenInSingle: true # hide on single page
-
-  # fuseOpts:
-  #     isCaseSensitive: false
-  #     shouldSort: true
-  #     location: 0
-  #     distance: 1000
-  #     threshold: 0.4
-  #     minMatchCharLength: 0
-  #     keys: ["title", "permalink", "summary", "content"]
-
-markup:
+  markup:
   goldmark:
     renderer:
       unsafe: true
   highlight:
     noClasses: false
-    # anchorLineNos: true
-    # codeFences: true
-    # guessSyntax: true
-    # lineNos: true
-    # style: monokai
-
-# privacy:
-#   vimeo:
-#     disabled: false
-#     simple: true
-
-#   twitter:
-#     disabled: false
-#     enableDNT: true
-#     simple: true
-
-#   instagram:
-#     disabled: false
-#     simple: true
-
-#   youtube:
-#     disabled: false
-#     privacyEnhanced: true
 
 services:
   instagram:

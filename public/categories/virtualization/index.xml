@@ -11,12 +11,12 @@
     </image>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 27 May 2026 01:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 11 May 2026 01:00:00 +0000</lastBuildDate>
     <atom:link href="https://natebent.com/categories/virtualization/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Proxmox Best Practices - Guest Storage</title>
       <link>https://natebent.com/posts/proxmox-best-practices-guest-storage/</link>
-      <pubDate>Wed, 27 May 2026 01:00:00 +0000</pubDate>
+      <pubDate>Mon, 11 May 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/posts/proxmox-best-practices-guest-storage/</guid>
       <description>How I set cache, aio, iothread, and discard on Proxmox VMs, decided by how each VM is used rather than the OS inside it, plus the ZFS foundations that keep those choices safe to leave alone for years.</description>
     </item>

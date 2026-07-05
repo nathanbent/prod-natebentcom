@@ -58,9 +58,16 @@
     <item>
       <title>Proxmox Best Practices - Guest Storage</title>
       <link>https://natebent.com/posts/proxmox-best-practices-guest-storage/</link>
-      <pubDate>Wed, 27 May 2026 01:00:00 +0000</pubDate>
+      <pubDate>Mon, 11 May 2026 01:00:00 +0000</pubDate>
       <guid>https://natebent.com/posts/proxmox-best-practices-guest-storage/</guid>
       <description>How I set cache, aio, iothread, and discard on Proxmox VMs, decided by how each VM is used rather than the OS inside it, plus the ZFS foundations that keep those choices safe to leave alone for years.</description>
+    </item>
+    <item>
+      <title>Proxmox Best Practices - Guest CPU Types</title>
+      <link>https://natebent.com/posts/proxmox-best-practices-guest-cpu/</link>
+      <pubDate>Mon, 04 May 2026 01:00:00 +0000</pubDate>
+      <guid>https://natebent.com/posts/proxmox-best-practices-guest-cpu/</guid>
+      <description>How I pick a Proxmox VM CPU type: host versus the x86-64-vN virtual types, the Spectre and Meltdown flags those types quietly leave off, and why host is usually the wrong default on Windows.</description>
     </item>
   </channel>
 </rss>
