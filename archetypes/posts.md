@@ -24,14 +24,14 @@ ShowPostNavLinks: true
 ShowWordCount: true
 ShowRssButtonInSectionTermList: true
 UseHugoToc: true
-cover:
-    image: "<image path/url>" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
-    thumb: true
-    hiddenInSingle: true   # never show it stacked atop the article
-    hiddenInList: false    # but do show it as the list thumbnail
+# cover:
+#     image: "<image path/url>" # image path/url
+#     alt: "<alt text>" # alt text
+#     caption: "<text>" # display caption under cover
+#     relative: false # when using page bundles set this to true
+#     thumb: true
+#     hiddenInSingle: true   # never show it stacked atop the article
+#     hiddenInList: false    # but do show it as the list thumbnail
 editPost:
     disaled: true
     URL: "https://github.com/<path_to_repo>/content"
