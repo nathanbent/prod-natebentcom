@@ -3,6 +3,7 @@
    Loaded from assets/css/extended/, overrides PaperMod defaults.
 
    Sections:
+     0.  Font faces
      1.  Design tokens
      2.  Post content — typography
      3.  Post content — media (images + lightbox)
@@ -84,7 +85,7 @@
     --accent-2: #7FBFA0;
 
     --theme: #12161B;         /* ~20% darker */
-    --entry: #242D38;         /* ~12% lighter (dup line removed) */
+    --entry: #242D38;         /* ~12% lighter */
     --primary: #D8DFE6;
     --secondary: #92A0AD;
     --tertiary: #3B4652;
@@ -272,12 +273,6 @@ html {
     max-height: 95vh;
 }
 
-.lightbox-inner img[src$=".svg"] {
-    width: 90vw;
-    max-width: 1200px;
-    height: auto;
-}
-
 .lightbox-inner img {
     max-width: 95vw;
     max-height: 95vh;
@@ -297,7 +292,11 @@ html {
     max-width: 70ch;
 }
 
-
+.lightbox-inner img[src$=".svg"] {
+    width: 90vw;
+    max-width: 1200px;
+    height: auto;
+}
 /* 4. CODE BLOCKS -------------------------------------------- */
 
 .code-wrap {

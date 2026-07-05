@@ -67,7 +67,7 @@ list of things to re-check.
 | File | Purpose |
 |------|---------|
 | `assets/css/extended/callouts.css` | The callout/alert color system: per-type CSS variables (light + dark), base blockquote styling, the icon/label title row, quote-specific italic + citation styling, list spacing inside callouts. |
-| `assets/css/extended/custom.css` | Everything else, organized into 11 labeled sections: design tokens (`--accent`, `--main-width`, `--measure`), typography (narrow-prose/wide-media, accent headings, text-wrap, tabular tables), media (image borders/shadows, lightbox at 98vw/98vh, an SVG-specific lightbox rule via `img[src$=".svg"]` since vectors have no intrinsic size, and `.lightbox-download` link styling), code-block labels, reading aids (progress bar, TOC), post-list cards (hover lift), cover images (list/thumbnail/single), nav + tags (animated underline), profile/landing page, misc embeds, and a site-wide `prefers-reduced-motion` guard (kept last). |
+| `assets/css/extended/custom.css` | Everything else, organized into 13 numbered sections (§0–§12): **§0** font-faces (Karla body + Rubik headings, variable `woff2`); **§1** design tokens (`--accent`/`--accent-2`, full light+dark palette, `--font-body`/`--font-heading`, `--main-width`, `--measure`, plus a commented copy of PaperMod's default theme-vars kept for palette-planning reference); **§2** typography (narrow-prose/wide-media, accent headings, text-wrap, tabular tables); **§3** media (image borders/shadows, lightbox at 95vw/95vh with a wider `img[src$=".svg"]` rule since vectors have no intrinsic size); **§4** code-block labels; **§5** reading aids (progress bar, TOC); **§6** post-list cards (hover lift); **§7** cover images (list/thumbnail/single); **§8** series navigation; **§9** nav + tags (animated underline); **§10** profile/landing page; **§11** misc embeds; **§12** a site-wide `prefers-reduced-motion` guard (kept last). Note: the lightbox "Download full image" link is built in `extend_footer.html` JS and has no dedicated CSS rule here. |
 
 ### Static & data
 
@@ -109,3 +109,4 @@ list of things to re-check.
 - **Custom 404 + quotes** → `layouts/404.html` + `data/quotes.yaml` + `static/.htaccess`
 - **Full-content RSS** → `rss.xml`
 - **Accent color / layout width** → `custom.css` (§1 design tokens: `--accent`, `--main-width`, `--measure`)
+- **Fonts (Karla / Rubik)** → `custom.css` (§0 `@font-face` + §1 `--font-body` / `--font-heading`)
