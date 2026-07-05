@@ -409,7 +409,7 @@ html {
     color: var(--primary);      /* was `fff` — invalid; also readable in light mode */
     font-weight: 600;
     letter-spacing: .05em;
-    font-size: 14px;
+    font-size: 16px;
     font-style: italic;
 }
 
