@@ -1,635 +1,137 @@
-/* =============================================================
-   natebent.com — custom styles
-   Loaded from assets/css/extended/, overrides PaperMod defaults.
+/* ============================================================
+   Callouts / GitHub-style alerts
+   ------------------------------------------------------------
+   Architecture: each type only remaps three custom properties
+   (--callout-border / --callout-bg / --callout-fg); one base
+   blockquote rule reads them. Add a type = one color block per
+   mode + one mapping line (plus the icon in the render hook).
 
-   Sections:
-     1.  Design tokens
-     2.  Post content — typography
-     3.  Post content — media (images + lightbox)
-     4.  Code blocks
-     5.  Reading aids (progress bar + TOC)
-     6.  Post list & cards
-     7.  Cover images (list / thumbnail / single)
-     8.  Series navigation
-     9.  Navigation & tags
-     10. Profile / landing page
-     11. Misc embeds
-     12. Reduced motion  (must stay last)
-   ============================================================= */
+   Palette:
 
+     default + [!NOTE]   var(--accent)    ocean blue, tracks custom.css
+     [!TIP]              pastel teal      pastel, hue-distinct from NOTE
+     [!IMPORTANT]        purple
+     [!WARNING]          amber
+     [!CAUTION]          red
+     [!INSIGHT]          var(--accent-2)  racing green, tracks custom.css
+     [!QUOTE]            cool gray
 
-/* 1. DESIGN TOKENS ------------------------------------------- */
+   NOTE and INSIGHT follow the accents automatically (borders/text
+   via var(), background tints via color-mix). The var() lines are
+   intentionally repeated in .dark: custom properties resolve their
+   var() refs where DECLARED (:root = html), but PaperMod's .dark
+   class sits on body, so the dark re-declaration is required to
+   pick up the dark accent values. Do not "deduplicate" them.
+   ============================================================ */
 
 :root {
-    --main-width: 1100px;
-    --measure: 72ch;
+    --callout-border: var(--accent);
+    --callout-bg: color-mix(in srgb, var(--accent) 7%, transparent);
+    --callout-fg: var(--accent);
 
-    --accent: #1B5A7A;
-    --accent-2: #235B41;
+    --cl-note-b: var(--accent);
+    --cl-note-bg: color-mix(in srgb, var(--accent) 7%, transparent);
+    --cl-note-f: var(--accent);
 
-    --theme: #E9EFF3;         /* page canvas — soft blue-gray paper */
-    --entry: #FFFFFF;         /* cards stay white, now visibly lifted */
-    --primary: #1C2733;
-    --secondary: #5A6B79;
-    --tertiary: #C9D4DD;
-    --content: #232E3A;
-    --code-block-bg: #1B222B;
-    --code-bg: #F1F5F8;
-    --border: #D9E2EA;        /* darkened a step so it still reads on the new bg */
+    --cl-insight-b: var(--accent-2);
+    --cl-insight-bg: color-mix(in srgb, var(--accent-2) 7%, transparent);
+    --cl-insight-f: var(--accent-2);
+
+    --cl-tip-b: #8FD4CA;      --cl-tip-bg: rgba(143, 212, 202, .12);    --cl-tip-f: #14685E;
+    --cl-imp-b: #8a63d2;      --cl-imp-bg: rgba(138, 99, 210, .08);     --cl-imp-f: #7b54c8;
+    --cl-warn-b: #d1a017;     --cl-warn-bg: rgba(209, 160, 23, .10);    --cl-warn-f: #9c7400;
+    --cl-caut-b: #d1453b;     --cl-caut-bg: rgba(209, 69, 59, .08);     --cl-caut-f: #c23730;
+    --cl-quote-b: #A7B3BD;    --cl-quote-bg: rgba(122, 140, 153, .06);  --cl-quote-f: var(--secondary);
 }
 
 .dark {
-    --accent: #7FB3D6;
-    --accent-2: #7FBFA0;
+    --callout-border: var(--accent);
+    --callout-bg: color-mix(in srgb, var(--accent) 10%, transparent);
+    --callout-fg: var(--accent);
 
-    --theme: #12161B;         /* ~20% darker */
-    --entry: #242D38;         /* ~12% lighter (dup line removed) */
-    --primary: #D8DFE6;
-    --secondary: #92A0AD;
-    --tertiary: #3B4652;
-    --content: #C4CDD6;
-    --code-block-bg: #242D38;
-    --code-bg: #2F3A47;       /* bumped to stay a step above the new entry */
-    --border: #333F4C;
+    --cl-note-b: var(--accent);
+    --cl-note-bg: color-mix(in srgb, var(--accent) 10%, transparent);
+    --cl-note-f: var(--accent);
+
+    --cl-insight-b: var(--accent-2);
+    --cl-insight-bg: color-mix(in srgb, var(--accent-2) 10%, transparent);
+    --cl-insight-f: var(--accent-2);
+
+    --cl-tip-b: #9BDCD2;      --cl-tip-bg: rgba(155, 220, 210, .10);    --cl-tip-f: #9BDCD2;
+    --cl-imp-b: #b294e8;      --cl-imp-bg: rgba(178, 148, 232, .12);    --cl-imp-f: #b294e8;
+    --cl-warn-b: #e3b341;     --cl-warn-bg: rgba(227, 179, 65, .12);    --cl-warn-f: #e3b341;
+    --cl-caut-b: #f0857d;     --cl-caut-bg: rgba(240, 133, 125, .12);   --cl-caut-f: #f0857d;
+    --cl-quote-b: #46525E;    --cl-quote-bg: rgba(150, 165, 178, .07);  --cl-quote-f: var(--secondary);
 }
 
-/* --- PaperMod theme token reference (theme-vars.css defaults) ---------------
-   NOT live. This is a copy of every variable the theme defines in
-   themes/hugo-PaperMod/assets/css/core/theme-vars.css, for reference while
-   planning a palette. To actually change one, add a real declaration in the
-   :root / .dark block above (or its own new block) — do NOT uncomment these
-   directly without deliberately deciding to.
+/* --- Base: plain ">" quotes get the default (blue) look --- */
 
-   :root (light mode) {
-       --gap: 24px;
-       --content-gap: 20px;
-       --nav-width: 1024px;
-       --main-width: 1000px;          (site overrides this to 1100px above)
-       --header-height: 60px;
-       --footer-height: 60px;
-       --radius: 8px;
-       --theme: rgb(255, 255, 255);
-       --entry: rgb(255, 255, 255);
-       --primary: rgb(30, 30, 30);
-       --secondary: rgb(108, 108, 108);
-       --tertiary: rgb(214, 214, 214);
-       --content: rgb(31, 31, 31);
-       --code-block-bg: rgb(28, 29, 33);
-       --code-bg: rgb(245, 245, 245);
-       --border: rgb(238, 238, 238);
-   }
-
-   .dark {
-       --theme: rgb(29, 30, 32);
-       --entry: rgb(46, 46, 51);
-       --primary: rgb(218, 218, 219);
-       --secondary: rgb(155, 156, 157);
-       --tertiary: rgb(65, 66, 68);
-       --content: rgb(196, 196, 197);
-       --code-block-bg: rgb(46, 46, 51);
-       --code-bg: rgb(55, 56, 62);
-       --border: rgb(51, 51, 51);
-   }
-
-   Also in theme-vars.css (not variables, direct rules — relevant if palette
-   work touches list-page backgrounds):
-   .list        { background: var(--code-bg); }
-   .dark.list   { background: var(--theme); }
-------------------------------------------------------------------------- */
-
-
-/* 2. POST CONTENT — TYPOGRAPHY ------------------------------- */
-
-/* Constrain prose to a readable measure; media stays full width */
-.post-content>p,
-.post-content>ul,
-.post-content>ol,
-.post-content>dl,
-.post-content>blockquote,
-.post-content>h1,
-.post-content>h2,
-.post-content>h3,
-.post-content>h4,
-.post-content>h5,
-.post-content>h6 {
-    max-width: var(--measure);
-    margin-inline: auto;
-}
-
-/* Accent headings */
-.post-content h1,
-.post-content h2,
-.post-content h3 {
-    color: var(--accent);
-}
-
-.post-content h2 {
-    border-inline-start: 4px solid var(--accent);
-    padding-inline-start: 12px;
-}
-
-/* Links + selection */
-.post-content a,
-.toc a:hover {
-    color: var(--accent);
-}
-
-.post-content a {
-    transition: color .15s ease, box-shadow .15s ease;
-}
-
-::selection {
-    background: var(--accent);
-    color: #fff;
-}
-
-/* Smooth anchor jumps + offset so headings don't hide under the header */
-html {
-    scroll-behavior: smooth;
-}
-
-.post-content h1,
-.post-content h2,
-.post-content h3,
-.post-content h4,
-.post-content h5,
-.post-content h6 {
-    scroll-margin-top: 80px;
-}
-
-/* Nicer line wrapping */
-.post-title,
-.post-content h1,
-.post-content h2,
-.post-content h3 {
-    text-wrap: balance;
-}
-
-.post-content p {
-    text-wrap: pretty;
-}
-
-/* Digit-aligned tables (VNIs, route-targets, IPs) */
-.post-content table {
-    font-variant-numeric: tabular-nums;
-}
-
-
-/* 3. POST CONTENT — MEDIA ----------------------------------- */
-
-.post-content img {
-    max-width: 100%;
-    height: auto;
-    border: 1px solid var(--border);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
-}
-
-.dark .post-content img {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, .4);
-}
-
-/* Click-to-zoom lightbox (built in extend_footer.html) */
-.post-content img:not(.in-text) {
-    cursor: zoom-in;
-}
-
-.lightbox {
-    position: fixed;
-    inset: 0;
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4vmin;
-    background: rgba(0, 0, 0, .85);
-    cursor: zoom-out;
-    opacity: 0;
-    transition: opacity .2s ease;
-}
-
-.lightbox.open {
-    opacity: 1;
-}
-
-.lightbox-inner {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    max-width: 95vw;
-    max-height: 95vh;
-}
-
-.lightbox-inner img[src$=".svg"] {
-    width: 90vw;
-    max-width: 1200px;
-    height: auto;
-}
-
-.lightbox-inner img {
-    max-width: 95vw;
-    max-height: 95vh;
-    width: auto;
-    height: auto;
-    min-height: 0;
-    /* lets the image shrink so the caption stays visible */
-    object-fit: contain;
+.post-content blockquote {
+    border-inline-start: 4px solid var(--callout-border);
+    background: var(--callout-bg);
     border-radius: var(--radius);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, .5);
+    padding: 12px 18px;
+    margin: 20px 0;
 }
 
-.lightbox-inner figcaption {
-    color: rgba(255, 255, 255, .85);
-    font-size: 14px;
-    text-align: center;
-    max-width: 70ch;
+.post-content blockquote > :last-child {
+    margin-bottom: 0;
 }
 
+/* --- Typed callouts: remap the three vars, base rule does the rest --- */
 
-/* 4. CODE BLOCKS -------------------------------------------- */
+.post-content blockquote.callout-note      { --callout-border: var(--cl-note-b);    --callout-bg: var(--cl-note-bg);    --callout-fg: var(--cl-note-f); }
+.post-content blockquote.callout-tip       { --callout-border: var(--cl-tip-b);     --callout-bg: var(--cl-tip-bg);     --callout-fg: var(--cl-tip-f); }
+.post-content blockquote.callout-important { --callout-border: var(--cl-imp-b);     --callout-bg: var(--cl-imp-bg);     --callout-fg: var(--cl-imp-f); }
+.post-content blockquote.callout-warning   { --callout-border: var(--cl-warn-b);    --callout-bg: var(--cl-warn-bg);    --callout-fg: var(--cl-warn-f); }
+.post-content blockquote.callout-caution   { --callout-border: var(--cl-caut-b);    --callout-bg: var(--cl-caut-bg);    --callout-fg: var(--cl-caut-f); }
+.post-content blockquote.callout-insight   { --callout-border: var(--cl-insight-b); --callout-bg: var(--cl-insight-bg); --callout-fg: var(--cl-insight-f); }
 
-.code-wrap {
-    position: relative;
-    margin: 10px auto;
-}
+/* --- Quote: vars + italic body in one rule --- */
 
-.code-wrap>.highlight {
-    margin: 0;
-}
-
-/* Language label, top-right; fades on hover so the copy button shows */
-.code-wrap[data-lang]::before {
-    content: attr(data-lang);
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    z-index: 2;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--secondary);
-    pointer-events: none;
-    transition: opacity .15s ease;
-}
-
-.code-wrap:hover[data-lang]::before {
-    opacity: 0;
-}
-
-
-/* 5. READING AIDS ------------------------------------------- */
-
-/* Scroll progress bar */
-#reading-progress {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    z-index: 1000;
-    pointer-events: none;
-}
-
-#reading-progress span {
-    display: block;
-    width: 0;
-    height: 100%;
-    background: var(--accent);
-    transition: width .1s linear;
-}
-
-/* Active TOC link */
-#TableOfContents a {
-    transition: color .15s ease;
-}
-
-#TableOfContents a.active {
-    color: var(--accent);
-    font-weight: 600;
-}
-
-
-/* 6. POST LIST & CARDS -------------------------------------- */
-
-.post-entry {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-}
-
-.post-entry:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, .10);
-    border-color: var(--accent);
-}
-
-.dark .post-entry:hover {
-    box-shadow: 0 6px 24px rgba(0, 0, 0, .45);
-}
-
-.post-entry:hover .entry-header h2 {
-    color: var(--accent);
-}
-
-
-/* 7. COVER IMAGES ------------------------------------------- */
-
-/* 7a. Default list cover — capped banner so native screenshots don't blow up */
-.entry-cover-list {
-    margin: 0 0 14px;
-    overflow: hidden;
-    border-radius: var(--radius);
-}
-
-.entry-cover-list img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-    margin: 0;
-    border: 1px solid var(--border);
-}
-
-/* 7b. Thumbnail cover — small square left of the title/excerpt.
-       Opt in per post with  cover.thumb: true  (the site cover.html
-       partial stamps .entry-cover-thumb onto the figure). */
-.post-entry:has(.entry-cover-thumb) {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    grid-auto-rows: min-content;
-    /* each row is exactly its content height */
-    column-gap: 16px;
-    row-gap: 0;
-    align-items: start;
-    align-content: start;
-}
-
-.entry-cover-thumb {
-    grid-column: 1;
-    grid-row: 1 / span 4;
-    /* span the text rows; never inflate just one */
-    align-self: start;
-    margin: 0;
-}
-
-.post-entry:has(.entry-cover-thumb) .entry-header,
-.post-entry:has(.entry-cover-thumb) .entry-content,
-.post-entry:has(.entry-cover-thumb) .entry-footer {
-    grid-column: 2;
-    margin-top: 0;
-}
-
-.entry-cover-thumb img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    margin: 0;
-}
-
-@media (max-width: 500px) {
-    .post-entry:has(.entry-cover-thumb) {
-        grid-template-columns: 1fr;
-    }
-
-    .post-entry:has(.entry-cover-thumb) .entry-header,
-    .post-entry:has(.entry-cover-thumb) .entry-content,
-    .post-entry:has(.entry-cover-thumb) .entry-footer {
-        grid-column: 1;
-    }
-
-    .entry-cover-thumb {
-        grid-row: auto;
-    }
-
-    /* stop spanning when stacked */
-    .entry-cover-thumb img {
-        width: 100%;
-        height: 160px;
-    }
-}
-
-/* PaperMod hides covers on term/series pages — re-show ours */
-.tag-entry .entry-cover-thumb {
-    display: block;
-}
-
-/* Series/taxonomy term pages wrap entries in .post-entry.tag-entry —
-   make the thumbnail grid apply there too */
-.tag-entry:has(.entry-cover-thumb) {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    grid-auto-rows: min-content;
-    column-gap: 16px;
-    row-gap: 0;
-    align-items: start;
-    align-content: start;
-}
-
-.tag-entry:has(.entry-cover-thumb) .entry-header,
-.tag-entry:has(.entry-cover-thumb) .entry-content,
-.tag-entry:has(.entry-cover-thumb) .entry-footer {
-    grid-column: 2;
-    margin-top: 0;
-}
-
-/* 7c. Single-post cover — cap the big banner height */
-.post-single .entry-cover,
-.post-cover {
-    max-height: 400px;
-    overflow: hidden;
-    border-radius: var(--radius);
-}
-
-.post-single .entry-cover img,
-.post-cover img {
-    width: 100%;
-    height: 400px;
-    object-fit: cover;
-}
-
-
-/* 8. SERIES NAVIGATION -------------------------------------- */
-/* The box rendered at the top of a series post by series-nav.html.
-   Background is theme-driven: --code-bg (pale) in light, --entry (dark)
-   in the .dark override below — which is why label/count use theme-aware
-   text tokens (--primary / --secondary) rather than literal white, so
-   they stay readable in both modes. */
-
-.series-nav {
-    border: 1px solid var(--border);
-    border-inline-start: 4px solid var(--accent);
-    border-radius: var(--radius);
-    background: var(--code-bg);
-    padding: 14px 18px;
-    margin: 0 0 30px;
-}
-
-.dark .series-nav {
-    background: var(--entry);
-}
-
-.series-nav-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 8px;
-}
-
-.series-nav-label {
-    color: var(--primary);
-    font-weight: 600;
-    letter-spacing: .05em;
-    font-size: 16px;
+.post-content blockquote.callout-quote {
+    --callout-border: var(--cl-quote-b);
+    --callout-bg: var(--cl-quote-bg);
+    --callout-fg: var(--cl-quote-f);
     font-style: italic;
 }
 
-.series-nav-name {
-    color: var(--accent);
-    font-weight: 900;
-    text-transform: uppercase;
-    font-size: 16px;
+.post-content blockquote.callout-quote .callout-cite {
     font-style: normal;
+    font-weight: 500;
+    font-size: .85em;
+    letter-spacing: .02em;
 }
 
-.series-nav-count {
-    color: var(--secondary);
-    font-size: 14px;
+.post-content blockquote.callout-quote .callout-cite::before {
+    content: "\2014\00a0";  /* em dash + no-break space (escaped, not literal) */
 }
 
-.series-nav-list {
-    margin: 0;
-    padding-inline-start: 20px;
+/* --- Lists inside callouts --- */
+
+.post-content blockquote ul,
+.post-content blockquote ol {
+    margin-bottom: 0;
+    padding-inline-start: 1.4em;
 }
 
-.series-nav-list li {
-    margin: 3px 0;
-}
+/* --- Title row (icon + label) --- */
 
-.series-nav-list li.active span {
+.post-content blockquote .callout-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--callout-fg);
 }
 
-
-/* 9. NAVIGATION & TAGS -------------------------------------- */
-
-#menu {
-    padding-bottom: 5px;
+.post-content blockquote .callout-icon {
+    display: inline-flex;
 }
 
-.nav .logo a {
-    transition: color .15s ease;
-}
-
-#menu a {
-    position: relative;
-}
-
-#menu a::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 100%;
-    height: 2px;
-    background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform .2s ease;
-}
-
-#menu a:hover::after {
-    transform: scaleX(1);
-}
-
-.post-tags a:hover,
-.terms-tags a:hover {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-}
-
-
-/* 10. PROFILE / LANDING PAGE -------------------------------- */
-
-.profile .profile_inner h1 {
-    color: var(--accent);
-}
-
-.buttons .button {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    transition: background .15s ease, color .15s ease,
-        border-color .15s ease, transform .15s ease;
-}
-
-.buttons .button:hover {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-    transform: translateY(-2px);
-}
-
-.buttons .button-inner {
-    padding: 8px 18px;
-}
-
-.profile .profile_inner {
-    animation: profile-rise .5s ease both;
-}
-
-@keyframes profile-rise {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.profile img {
-    border: 3px solid var(--border);
-    transition: border-color .2s ease, transform .2s ease;
-}
-
-.profile img:hover {
-    border-color: var(--accent);
-    transform: scale(1.1);
-}
-
-
-/* 11. MISC EMBEDS ------------------------------------------- */
-
-.twitter-tweet {
-    margin: auto;
-}
-
-iframe {
-    border-radius: var(--radius) !important;
-}
-
-.home-info ul {
-    padding-inline-start: 20px;
-}
-
-
-/* 12. REDUCED MOTION  (keep last so it has the final word) --- */
-
-@media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
-        scroll-behavior: auto !important;
-    }
+.post-content blockquote .callout-icon svg {
+    width: 1.1em;
+    height: 1.1em;
+    fill: currentColor;
 }
