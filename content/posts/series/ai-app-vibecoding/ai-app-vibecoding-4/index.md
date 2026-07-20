@@ -10,7 +10,7 @@ series: ["Zero to App with AI"]
 series_order: 4
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: false
 description: "Auth in one dependency-free file, a deploy to a homelab VM over SSH, and the BOM, CRLF, and sudo war stories the AI and I debugged together. Plus /ship, the one word deploy."

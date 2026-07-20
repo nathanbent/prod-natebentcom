@@ -10,7 +10,7 @@ series: ["Zero to App with AI"]
 series_order: 6
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: false
 description: "Real gym sessions produced a nine item friction list that out-planned every brainstorm. Plus a survey of the apps that already solved this, and an ideation phase with zero code."

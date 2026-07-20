@@ -10,7 +10,7 @@ series: ["Zero to App with AI"]
 series_order: 5
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: false
 description: "Parallel sessions in git worktrees, sub-agents with job descriptions, and sub-projects with their own plan docs. How one person's attention became the only real bottleneck, and how we widened it."
