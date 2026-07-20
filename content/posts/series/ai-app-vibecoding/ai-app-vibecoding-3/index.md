@@ -9,7 +9,7 @@ categories: ["Development"]
 series: ["Zero to App with AI"]
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: false
 description: "Build in one session, review at the boundary, ship, repeat. How the core app came together phase by phase, and what the reviews actually caught."
@@ -37,7 +37,7 @@ editPost:
     appendFilePath: true # to append file path to Edit link
 ---
 
-[Part 1]({{< ref "zero-to-app-01-docs-before-code" >}}) and [Part 2]({{< ref "zero-to-app-02-keeping-ai-cheap" >}}) covered the setup: docs as memory, cost controls in config. This is the part where the app actually got built, a core logging loop, a plans system, and a PR detection engine, and where the working rhythm emerged that carried the whole project:
+[Part 1]({{< ref "/posts/series/ai-app-vibecoding/ai-app-vibecoding-1" >}}) and [Part 2]({{< ref "/posts/series/ai-app-vibecoding/ai-app-vibecoding-2" >}}) covered the setup: docs as memory, cost controls in config. This is the part where the app actually got built, a core logging loop, a plans system, and a PR detection engine, and where the working rhythm emerged that carried the whole project:
 
 One phase per session. Review at every phase boundary. The human tests between phases.
 

@@ -9,7 +9,7 @@ categories: ["Development"]
 series: ["Zero to App with AI"]
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: false
 description: "How an empty folder became a working REST API in one day, and why the boring markdown files I wrote first were the highest leverage hour of the whole project."
@@ -110,7 +110,7 @@ By evening there was a working API with validated inputs. The next morning there
 
 The pattern under all five: move context out of your head and out of the chat history, into the repo. Chat history dies with the session and costs money to carry. The repo is free, permanent, and versioned.
 
-Next up, [Part 2]({{< ref "zero-to-app-02-keeping-ai-cheap" >}}): how I kept the whole thing cheap. Model routing, running the boring work through a local LLM on the homelab, and why more automation usually means a bigger bill.
+Next up, [Part 2]({{< ref "/posts/series/ai-app-vibecoding/ai-app-vibecoding-2" >}}): how I kept the whole thing cheap. Model routing, running the boring work through a local LLM on the homelab, and why more automation usually means a bigger bill.
 
 ## References and further reading
 

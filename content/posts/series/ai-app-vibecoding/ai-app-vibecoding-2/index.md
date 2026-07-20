@@ -9,7 +9,7 @@ categories: ["Development"]
 series: ["Zero to App with AI"]
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: false
 description: "Model routing, a free local LLM tier, and why session hygiene beats clever automation. The cost control setup that let me build all weekend without watching a meter."
@@ -39,7 +39,7 @@ editPost:
 
 The dirty secret of AI-assisted development is that the naive way to do it, one enormous chat session, the biggest model, all day, is expensive out of proportion to what you get. Before writing much code for [RepRepo](https://reprepo.app), I set up cost controls. The interesting part is that almost none of them rely on me remembering to do anything, which turns out to be the whole trick.
 
-If you missed it, [Part 1]({{< ref "zero-to-app-01-docs-before-code" >}}) covered the docs-as-memory setup this all builds on.
+If you missed it, [Part 1]({{< ref "/posts/series/ai-app-vibecoding/ai-app-vibecoding-1" >}}) covered the docs-as-memory setup this all builds on.
 
 ## The routing table
 
@@ -100,7 +100,7 @@ The economical version of automation is boring: pinned models, one-keystroke com
 4. Let the repo be the memory. Every fact in a doc is a fact you never pay to re-explain.
 5. Distrust automation that multiplies contexts. More agents does not mean more productivity per dollar. Usually the opposite.
 
-Next, [Part 3]({{< ref "zero-to-app-03-the-phase-rhythm" >}}): the actual build. The phase rhythm, what end-of-phase reviews caught (including a timezone bug that would have eaten my evening workouts), and the one mistake I kept making anyway.
+Next, [Part 3]({{< ref "/posts/series/ai-app-vibecoding/ai-app-vibecoding-3" >}}): the actual build. The phase rhythm, what end-of-phase reviews caught (including a timezone bug that would have eaten my evening workouts), and the one mistake I kept making anyway.
 
 ## References and further reading
 
