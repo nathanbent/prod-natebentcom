@@ -2,11 +2,12 @@
 title: "Zero to App with AI, Part 2: Keeping It Cheap"
 date: 2026-07-11T01:00:00Z
 author: "Nate"
-weight: 2
+weight: 1
 # aliases: ["/first"]
 tags: ["ai-assisted-development", "claude-code", "ollama", "cost-optimization"]
 categories: ["Development"]
 series: ["Zero to App with AI"]
+series_order: 2
 showToc: true
 TocOpen: false
 draft: false

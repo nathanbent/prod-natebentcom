@@ -2,11 +2,12 @@
 title: "Zero to App with AI, Part 3: The Phase Rhythm"
 date: 2026-07-13T01:00:00Z
 author: "Nate"
-weight: 3
+weight: 1
 # aliases: ["/first"]
 tags: ["ai-assisted-development", "claude-code", "testing", "code-review"]
 categories: ["Development"]
 series: ["Zero to App with AI"]
+series_order: 3
 showToc: true
 TocOpen: false
 draft: false

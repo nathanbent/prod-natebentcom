@@ -7,6 +7,7 @@ weight: 1
 tags: ["ai-assisted-development", "claude-code", "side-projects", "process"]
 categories: ["Development"]
 series: ["Zero to App with AI"]
+series_order: 1
 showToc: true
 TocOpen: false
 draft: false
