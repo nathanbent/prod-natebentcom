@@ -1,7 +1,7 @@
 # Color Reference - natebent.com
 
 The site palette, where each color is used, and the reasoning behind the
-decisions. Companion to `CUSTOMIZATIONS.md`. Last updated: 2026-07-05.
+decisions. Companion to `CUSTOMIZATIONS.md`. Last updated: 2026-11-08.
 
 Files that define color: `assets/css/extended/custom.css` (sec 1, design
 tokens) and `assets/css/extended/callouts.css` (callout palette).
@@ -131,7 +131,7 @@ All tinted toward the blue (hue ~207). The "personal touch" lives here.
 | default + NOTE    | `var(--accent)`          | `var(--accent)`          | Tracks the site blue.           |
 | TIP               | `#8FD4CA` (fg `#14685E`) | `#9BDCD2`                | Pastel teal - see note.         |
 | IMPORTANT         | `#8a63d2` (fg `#7b54c8`) | `#b294e8`                | Purple, unchanged from v1.      |
-| WARNING           | `#d1a017` (fg `#9c7400`) | `#e3b341`                | Amber, unchanged.               |
+| WARNING           | `#d1a017` (fg `#8a6600`) | `#e3b341`                | Amber; fg darkened 2026-11.     |
 | CAUTION           | `#d1453b` (fg `#c23730`) | `#f0857d`                | Red, unchanged.                 |
 | INSIGHT           | `var(--accent-2)`        | `var(--accent-2)`        | THE home of the racing green.   |
 | QUOTE             | `#A7B3BD` border         | `#46525E` border         | Cool gray, fg = `--secondary`.  |
@@ -198,6 +198,9 @@ Callout reasoning:
   Reverted same session: two blue-family callouts separated only by
   lightness were hard to tell apart in practice. Current TIP keeps the
   pastel treatment but on the teal hue, so teal is in use again.
+- WARNING title fg was `#9c7400` until 2026-11-08: measured 4.28:1 on
+  white and 3.69:1 on the `#E9EFF3` page, below AA. Darkened to `#8a6600`
+  (same hue; 5.27:1 / 4.55:1). Border and tint unchanged.
 - Inline code used `--code-bg` (the faint blue wash) until 2026-07-05:
   too close to the tinted `--theme` page in light mode to read. Now an
   accent tint + hairline via `.post-content :not(pre) > code` in

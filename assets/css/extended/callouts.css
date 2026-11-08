@@ -41,7 +41,7 @@
 
     --cl-tip-b: #8FD4CA;      --cl-tip-bg: rgba(143, 212, 202, .12);    --cl-tip-f: #14685E;
     --cl-imp-b: #8a63d2;      --cl-imp-bg: rgba(138, 99, 210, .08);     --cl-imp-f: #7b54c8;
-    --cl-warn-b: #d1a017;     --cl-warn-bg: rgba(209, 160, 23, .10);    --cl-warn-f: #9c7400;
+    --cl-warn-b: #d1a017;     --cl-warn-bg: rgba(209, 160, 23, .10);    --cl-warn-f: #8a6600;
     --cl-caut-b: #d1453b;     --cl-caut-bg: rgba(209, 69, 59, .08);     --cl-caut-f: #c23730;
     --cl-quote-b: #A7B3BD;    --cl-quote-bg: rgba(122, 140, 153, .06);  --cl-quote-f: var(--secondary);
 }
