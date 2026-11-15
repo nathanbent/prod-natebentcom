@@ -1,7 +1,8 @@
 # Color Reference - natebent.com
 
 The site palette, where each color is used, and the reasoning behind the
-decisions. Companion to `CUSTOMIZATIONS.md`. Last updated: 2026-11-08.
+decisions. Companion to `CUSTOMIZATIONS.md`. Last updated: 2026-11-15
+(brand tokens v1.1.0).
 
 Files that define color: `assets/css/extended/custom.css` (sec 1, design
 tokens) and `assets/css/extended/callouts.css` (callout palette).
@@ -29,12 +30,17 @@ dark backgrounds.
 |--------------|-----------|-----------|----------------------|
 | `--accent`   | `#1B5A7A` | `#7FB3D6` | Maine Atlantic blue  |
 | `--accent-2` | `#235B41` | `#7FBFA0` | British Racing Green |
+| `--on-accent` | `#FFFFFF` | `#12161B` | Text on an `--accent` fill |
 
 Contrast (WCAG: 4.5:1 = AA, 7:1 = AAA), all approximate:
 
 - `#1B5A7A` on white entries: ~7.5:1. On the `#E9EFF3` page: ~6.5:1.
 - `#7FB3D6` on the `#12161B` page: ~8:1.
 - `#235B41` on white: ~8:1.  `#7FBFA0` on `#12161B`: ~8:1.
+- `--on-accent` (measured): `#FFFFFF` on `#1B5A7A` 7.53:1; `#12161B` on
+  `#7FB3D6` 8.06:1. Used by `::selection`, tag hover and the profile
+  button hover. The dark value is the page color, because white on the
+  lighter dark accent is only 2.25:1.
 
 All pass AA comfortably; most pass AAA. This is why the light-mode blue is
 darker/grayer than a typical "nice blue" swatch - the depth is what buys
@@ -101,6 +107,8 @@ All tinted toward the blue (hue ~207). The "personal touch" lives here.
 | `--tertiary`      | `#C9D4DD` | `#3B4652` | Faint UI (dividers, disabled).                   |
 | `--content`       | `#232E3A` | `#C4CDD6` | Body prose.                                      |
 | `--code-block-bg` | `#1B222B` | `#242D38` | Fenced code. Dark blue-slate in both modes.      |
+| `--code-block-text` | `#D8DFE6` | `#D8DFE6` | Base text in fenced code (custom.css sec 4).   |
+|                   |           |           | Measured 11.92:1 light block, 10.36:1 dark.      |
 | `--code-bg`       | `#F1F5F8` | `#2F3A47` | Neutral surface: light-mode list-page bg         |
 |                   |           |           | (`.list`), series-nav box, and PaperMod's        |
 |                   |           |           | default for misc code/UI. MUST stay neutral -    |
@@ -201,6 +209,12 @@ Callout reasoning:
 - WARNING title fg was `#9c7400` until 2026-11-08: measured 4.28:1 on
   white and 3.69:1 on the `#E9EFF3` page, below AA. Darkened to `#8a6600`
   (same hue; 5.27:1 / 4.55:1). Border and tint unchanged.
+- Text on accent fills (`::selection`, tag hover, profile button hover)
+  was a hardcoded `#fff` until 2026-11-15: fine in light mode, but only
+  2.25:1 on the dark accent `#7FB3D6`. Now `var(--on-accent)`.
+- Fenced-code base text was PaperMod's neutral `rgb(213, 213, 214)`
+  until 2026-11-15. Now `--code-block-text` (`#D8DFE6`), tinted toward
+  the blue like the other neutrals.
 - Inline code used `--code-bg` (the faint blue wash) until 2026-07-05:
   too close to the tinted `--theme` page in light mode to read. Now an
   accent tint + hairline via `.post-content :not(pre) > code` in
