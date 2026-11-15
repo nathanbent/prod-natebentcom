@@ -76,6 +76,7 @@
 
 /* COLOR SCHEME
  Color Scheme v1 - 2026-07-05
+ Brand tokens v1.1.0 - 2026-11-15 (adds --on-accent, --code-block-text)
  */
 
 :root {
@@ -88,6 +89,7 @@
 
     --accent: #1B5A7A;
     --accent-2: #235B41;
+    --on-accent: #FFFFFF;     /* text on an --accent fill */
 
     --theme: #E9EFF3;         /* page canvas — soft blue-gray paper */
     --entry: #FFFFFF;         /* cards stay white, now visibly lifted */
@@ -96,6 +98,7 @@
     --tertiary: #C9D4DD;
     --content: #232E3A;
     --code-block-bg: #1B222B;
+    --code-block-text: #D8DFE6; /* same in both modes: the block is always dark */
     --code-bg: #F1F5F8;       /* CAUTION: also drives list-page backgrounds
                                  (.list { background: var(--code-bg) }) and the
                                  series-nav box — keep it a neutral surface.
@@ -106,6 +109,7 @@
 .dark {
     --accent: #7FB3D6;
     --accent-2: #7FBFA0;
+    --on-accent: #12161B;     /* white on the lighter dark accent is only 2.25:1 */
 
     --theme: #12161B;
     --entry: #242D38;
@@ -114,6 +118,7 @@
     --tertiary: #3B4652;
     --content: #C4CDD6;
     --code-block-bg: #242D38;
+    --code-block-text: #D8DFE6;
     --code-bg: #2F3A47;       /* a step above --entry so surfaces stay distinct */
     --border: #333F4C;
 }
@@ -215,7 +220,7 @@ h1, h2, h3, h4, h5, h6,
 
 ::selection {
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
 }
 
 /* Smooth anchor jumps + offset so headings don't hide under the header */
@@ -394,6 +399,12 @@ html {
 .post-content code,
 .code-wrap {
     font-family: var(--font-mono);
+}
+
+/* Base text in fenced code: the blue-tinted token in place of PaperMod's
+   neutral gray. Syntax-highlight colors still apply on top. */
+.post-content pre code {
+    color: var(--code-block-text);
 }
 
 /* Inline code — accent tint + hairline so it reads against the pale
@@ -723,7 +734,7 @@ html {
 .post-tags a:hover,
 .terms-tags a:hover {
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
     border-color: var(--accent);
 }
 
@@ -743,7 +754,7 @@ html {
 
 .buttons .button:hover {
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
     border-color: var(--accent);
     transform: translateY(-2px);
 }

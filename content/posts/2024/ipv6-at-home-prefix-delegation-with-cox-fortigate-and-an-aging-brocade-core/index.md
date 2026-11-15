@@ -113,7 +113,7 @@ The FortiGate's WAN is a 2-member LACP aggregate (`wan1`, `wan2`) sitting on Cox
 ```
 config system interface
     edit "LAN-LACP"
-        set ip 192.168.255.254 255.255.255.252
+        set ip 172.16.255.2 255.255.255.252
         set type aggregate
         set member "internal1" "internal2" "internal3" "internal4" "internal5"
         config ipv6
@@ -165,14 +165,14 @@ The FortiGate also runs iBGP (AS 65412) to the Brocade, to a lab peer, and to my
 ```
 config router bgp
     set as 65412
-    set router-id 192.168.255.254
+    set router-id 172.16.255.2
     set ebgp-multipath enable
     set ibgp-multipath enable
     config neighbor
-        edit "10.169.169.1"
+        edit "172.16.0.1"
             set remote-as 65412
         next
-        edit "192.168.255.253"
+        edit "172.16.255.1"
             set remote-as 65412
         next
     end
@@ -187,17 +187,17 @@ config router bgp
     end
     config neighbor-range
         edit 1
-            set prefix 10.16.230.0 255.255.255.0
+            set prefix 172.16.30.0 255.255.255.0
             set neighbor-group "pve-hosts"
         next
     end
     config redistribute "connected"
         set status enable
-        set route-map "NGBHL_HQ-BGP_Routes"
+        set route-map "HQ-BGP-Routes"
     end
     config redistribute "ospf"
         set status enable
-        set route-map "NGBHL_HQ-BGP_Routes"
+        set route-map "HQ-BGP-Routes"
     end
     config redistribute6 "connected"
     end
